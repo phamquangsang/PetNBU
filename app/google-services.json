@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "975478082520",
+    "firebase_url": "https://petnbu.firebaseio.com",
+    "project_id": "petnbu",
+    "storage_bucket": "petnbu.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:975478082520:android:d5dfefc6647d5495",
+        "android_client_info": {
+          "package_name": "com.petnbu.petnbu"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "975478082520-3ober1fg4i82ivv1d6vv57vb1vmei98l.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.petnbu.petnbu",
+            "certificate_hash": "1dbda0d026cf20621633a707942c183a36ebb341"
+          }
+        },
+        {
+          "client_id": "975478082520-sutqcsgjm6pj0ad9mg6jelph7fj94rus.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDbInLuiFROl1KcY7crpTvdxXYkQ2bhBv0"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "975478082520-sutqcsgjm6pj0ad9mg6jelph7fj94rus.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
