@@ -5,18 +5,12 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.MenuItem;
 import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.petnbu.petnbu.api.FirebaseService;
-import com.petnbu.petnbu.api.SuccessCallback;
 import com.petnbu.petnbu.login.LoginJavaActivity;
-import com.petnbu.petnbu.model.Feed;
-import com.petnbu.petnbu.model.FeedUser;
 
 public class MainActivity extends AppCompatActivity {
 
