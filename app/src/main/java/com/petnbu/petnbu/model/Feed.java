@@ -11,18 +11,20 @@ public class Feed {
     private List<Photo> photos;
     private int commentCount;
     private int likeCount;
+    private String content;
     @ServerTimestamp private Date timeCreated;
     @ServerTimestamp private Date timeUpdated;
 
     public Feed() {
     }
 
-    public Feed(String feedId, FeedUser feedUser, List<Photo> photos, int commentCount, int likeCount, Date timeCreated, Date timeUpdated) {
+    public Feed(String feedId, FeedUser feedUser, List<Photo> photos, int commentCount, int likeCount, String content, Date timeCreated, Date timeUpdated) {
         this.feedId = feedId;
         mFeedUser = feedUser;
         this.photos = photos;
         this.commentCount = commentCount;
         this.likeCount = likeCount;
+        this.content = content;
         this.timeCreated = timeCreated;
         this.timeUpdated = timeUpdated;
     }
@@ -81,6 +83,14 @@ public class Feed {
 
     public void setTimeUpdated(Date timeUpdated) {
         this.timeUpdated = timeUpdated;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
     }
 
     @Override

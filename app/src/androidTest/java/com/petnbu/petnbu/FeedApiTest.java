@@ -42,12 +42,12 @@ public class FeedApiTest {
         List<Photo> photo1 = new ArrayList<>();
         photo1.add(new Photo("https://picsum.photos/1200/1300/?image=381", "https://picsum.photos/600/650/?image=381", "https://picsum.photos/300/325/?image=381", "https://picsum.photos/120/130/?image=381", 1200, 1300));
         photo1.add(new Photo("https://picsum.photos/1200/1300/?image=382", "https://picsum.photos/600/650/?image=382", "https://picsum.photos/300/325/?image=382", "https://picsum.photos/120/130/?image=382", 1200, 1300));
-        Feed feed = new Feed("1", userSang, photo1, 10, 12, new Date(), new Date());
+        Feed feed = new Feed("1", userSang, photo1, 10, 12, "",new Date(), new Date());
 
         FeedUser userNhat = new FeedUser("2", "https://developer.android.com/static/images/android_logo_2x.png", "Nhat Nhat");
         List<Photo> photo2 = new ArrayList<>();
         photo2.add(new Photo("https://picsum.photos/1000/600/?image=383", "https://picsum.photos/500/300/?image=383", "https://picsum.photos/250/150/?image=383", "https://picsum.photos/100/60/?image=383", 1000, 600));
-        Feed feed1 = new Feed("2", userNhat, photo2, 12, 14, new Date(), new Date());
+        Feed feed1 = new Feed("2", userNhat, photo2, 12, 14, "", new Date(), new Date());
 
         for (int i = 0; i < 100; i++) {
             webService.createFeed(i % 2 == 0 ? feed : feed1, new SuccessCallback<Void>() {
