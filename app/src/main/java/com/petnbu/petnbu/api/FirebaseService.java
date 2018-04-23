@@ -2,14 +2,18 @@ package com.petnbu.petnbu.api;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.SetOptions;
 import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.User;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -18,6 +22,8 @@ import java.util.List;
 public class FirebaseService implements WebService{
     
     public static final String GLOBAL_FEEDS = "global_feeds";
+
+    public static final String USERS = "users";
 
     private static final String TAG = FirebaseService.class.getSimpleName();
 
@@ -72,5 +78,36 @@ public class FirebaseService implements WebService{
                     feedsLive.setValue(feeds);
                 }).addOnFailureListener(e -> Log.e(TAG, "onFailure: ", e));
         return feedsLive;
+    }
+
+    @Override
+    public void createUser(User user, SuccessCallback<Void> callback) {
+        DocumentReference userDoc = mDb.collection(USERS).document();
+        user.setUserId(userDoc.getId());
+        userDoc.set(user)
+                .addOnSuccessListener(aVoid -> callback.onSuccess(aVoid))
+                .addOnFailureListener(e -> callback.onFailed(e));
+    }
+
+    @Override
+    public void getUser(String userId, SuccessCallback<User> callback) {
+        mDb.collection(USERS).document(userId).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if(documentSnapshot.exists()){
+                        callback.onSuccess(documentSnapshot.toObject(User.class));
+                    }else{
+                        callback.onFailed(new IllegalStateException("User not found"));
+                    }
+                })
+                .addOnFailureListener(e -> callback.onFailed(e));
+    }
+
+    @Override
+    public void updateUser(User user, SuccessCallback<Void> callback) {
+        DocumentReference userDoc = mDb.collection(USERS).document();
+        user.setUserId(userDoc.getId());
+        userDoc.set(user, SetOptions.merge())
+                .addOnSuccessListener(aVoid -> callback.onSuccess(aVoid))
+                .addOnFailureListener(e -> callback.onFailed(e));
     }
 }
