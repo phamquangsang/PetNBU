@@ -82,8 +82,7 @@ public class FirebaseService implements WebService{
 
     @Override
     public void createUser(User user, SuccessCallback<Void> callback) {
-        DocumentReference userDoc = mDb.collection(USERS).document();
-        user.setUserId(userDoc.getId());
+        DocumentReference userDoc = mDb.collection(USERS).document(user.getUserId());
         userDoc.set(user)
                 .addOnSuccessListener(aVoid -> callback.onSuccess(aVoid))
                 .addOnFailureListener(e -> callback.onFailed(e));

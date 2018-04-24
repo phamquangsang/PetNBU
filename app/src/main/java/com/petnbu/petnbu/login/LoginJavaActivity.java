@@ -1,5 +1,6 @@
 package com.petnbu.petnbu.login;
 
+import android.app.DialogFragment;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
@@ -25,8 +26,16 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.petnbu.petnbu.MainActivity;
+import com.petnbu.petnbu.PetApplication;
 import com.petnbu.petnbu.R;
+import com.petnbu.petnbu.SharedPrefUtil;
+import com.petnbu.petnbu.api.SuccessCallback;
+import com.petnbu.petnbu.api.WebService;
 import com.petnbu.petnbu.databinding.ActivityLoginJavaBinding;
+import com.petnbu.petnbu.model.Photo;
+import com.petnbu.petnbu.model.User;
+
+import javax.inject.Inject;
 
 public class LoginJavaActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -37,11 +46,14 @@ public class LoginJavaActivity extends AppCompatActivity implements View.OnClick
 
     private FirebaseAuth mAuth;
     private GoogleSignInClient mGoogleSignInClient;
+    @Inject
+    WebService mWebService;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        PetApplication.getWebComponent().inject(this);
 
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_login_java);
         mBinding.btnGoogleSignIn.setOnClickListener(this);
@@ -144,7 +156,7 @@ public class LoginJavaActivity extends AppCompatActivity implements View.OnClick
                             Log.d(TAG, "signInWithCredential:success");
                             FirebaseUser user = mAuth.getCurrentUser();
                             updateUI(user);
-                            openMainActivity();
+
                         } else {
                             // If sign in fails, display a message to the user.
                             Log.w(TAG, "signInWithCredential:failure", task.getException());
@@ -163,20 +175,54 @@ public class LoginJavaActivity extends AppCompatActivity implements View.OnClick
     }
 
 
-    private void updateUI(FirebaseUser user) {
+    private void updateUI(FirebaseUser firebaseUser) {
         hideProgressDialog();
-        if (user != null) {
-            mBinding.tvStatus.setText(String.format("logged in as %s", user.getEmail()));
-            mBinding.tvDetail.setText(String.format("user id: %s", user.getUid()));
+        if (firebaseUser != null) {
+            mBinding.tvStatus.setText(String.format("logged in as %s", firebaseUser.getEmail()));
+            mBinding.tvDetail.setText(String.format("user id: %s", firebaseUser.getUid()));
 
             mBinding.btnGoogleSignIn.setVisibility(View.GONE);
             mBinding.btnGoogleSignOut.setVisibility(View.VISIBLE);
+            createUser(firebaseUser);
         } else {
             mBinding.tvStatus.setText(R.string.signed_out);
             mBinding.tvDetail.setText(null);
             mBinding.btnGoogleSignIn.setVisibility(View.VISIBLE);
             mBinding.btnGoogleSignOut.setVisibility(View.GONE);
         }
+    }
+
+    private void createUser(FirebaseUser firebaseUser) {
+        String photoUrl = "";
+        if(firebaseUser.getPhotoUrl() != null){
+            photoUrl = firebaseUser.getPhotoUrl().toString();
+        }
+        Photo photo = new Photo(photoUrl, null, null, null, 0, 0);
+        User user = new User(firebaseUser.getUid(), photo, firebaseUser.getDisplayName(), firebaseUser.getEmail(), null, null);
+        mWebService.getUser(firebaseUser.getUid(), new SuccessCallback<User>() {
+            @Override
+            public void onSuccess(User user) {
+                //user existed -> go to Main screen
+                SharedPrefUtil.saveUserId(getApplicationContext(), user.getUserId());
+                openMainActivity();
+            }
+
+            @Override
+            public void onFailed(Exception e) {
+                mWebService.createUser(user, new SuccessCallback<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        SharedPrefUtil.saveUserId(getApplicationContext(), user.getUserId());
+                        openMainActivity();
+                    }
+
+                    @Override
+                    public void onFailed(Exception e) {
+                        Snackbar.make(mBinding.getRoot(), "Error: "+e.getMessage(), Snackbar.LENGTH_LONG).show();
+                    }
+                });
+            }
+        });
     }
 
     private void hideProgressDialog() {

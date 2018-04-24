@@ -67,28 +67,25 @@ public class StorageApi {
                     public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                         mTotalImage.decrementAndGet();
                         mResult.add(taskSnapshot.getDownloadUrl().toString());
-                        isFinish();
+                        if (mTotalImage.get() == 0) {
+                            onCompleted(mResult);
+                        }
                     }
                 };
                 OnFailureListener failureListener = new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
                         mTotalImage.decrementAndGet();
-                        isFinish();
+                        onFailed(e);
                     }
                 };
                 updateImage(Uri.parse(file), successListener, failureListener);
             }
         }
 
-        private boolean isFinish() {
-            if (mTotalImage.get() == 0) {
-                onCompleted(mResult);
-                return true;
-            } else
-                return false;
-        }
 
         public abstract void onCompleted(List<String> result);
+
+        public abstract void onFailed(Exception e);
     }
 }
