@@ -1,9 +1,7 @@
 package com.petnbu.petnbu.feed;
 
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.res.TypedArray;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -17,6 +15,7 @@ import android.view.ViewGroup;
 
 import com.petnbu.petnbu.MainActivity;
 import com.petnbu.petnbu.R;
+import com.petnbu.petnbu.Utils;
 import com.petnbu.petnbu.databinding.FragmentFeedsBinding;
 
 import java.util.ArrayList;
@@ -48,7 +47,7 @@ public class FeedsFragment extends Fragment {
         mBinding.rvFeeds.setLayoutManager(linearLayoutManager);
         mBinding.rvFeeds.post(() -> {
             int maxHeight = mBinding.rvFeeds.getHeight();
-            mAdapter.setMaxPhotoHeight(maxHeight - (getToolbarHeight(FeedsFragment.this.getContext()) * 3 / 2));
+            mAdapter.setMaxPhotoHeight(maxHeight - (Utils.getToolbarHeight(getContext()) * 3 / 2));
             mBinding.rvFeeds.setAdapter(mAdapter);
         });
         mBinding.rvFeeds.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -67,11 +66,5 @@ public class FeedsFragment extends Fragment {
             Intent intent = new Intent(getActivity(), CreateFeedActivity.class);
             startActivity(intent);
         });
-    }
-
-    public static int getToolbarHeight(Context context) {
-        TypedArray styledAttributes = context.getTheme().obtainStyledAttributes(
-                new int[]{android.R.attr.actionBarSize});
-        return (int) styledAttributes.getDimension(0, 0);
     }
 }

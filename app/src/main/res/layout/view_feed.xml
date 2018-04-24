@@ -69,21 +69,11 @@
             app:layout_constraintTop_toBottomOf="@+id/imgProfile"
             tools:minHeight="200dp">
 
-            <ImageView
-                android:id="@+id/imgContent"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:clickable="true"
-                android:foreground="?attr/selectableItemBackground"
-                android:scaleType="centerCrop"
-                android:visibility="gone"/>
-
             <android.support.v4.view.ViewPager
                 android:id="@+id/vpPhotos"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:overScrollMode="never"
-                android:visibility="gone"/>
+                android:overScrollMode="never"/>
 
             <TextView
                 android:id="@+id/tvPhotosCount"

@@ -2,6 +2,7 @@ package com.petnbu.petnbu;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.util.DisplayMetrics;
 
 public final class Utils {
@@ -33,5 +34,11 @@ public final class Utils {
         DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
         int px = Math.round(dp * (displayMetrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT));
         return px;
+    }
+
+    public static int getToolbarHeight(Context context) {
+        TypedArray styledAttributes = context.getTheme().obtainStyledAttributes(
+                new int[]{android.R.attr.actionBarSize});
+        return (int) styledAttributes.getDimension(0, 0);
     }
 }

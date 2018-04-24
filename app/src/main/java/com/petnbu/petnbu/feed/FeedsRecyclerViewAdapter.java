@@ -10,13 +10,13 @@ import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
+import android.support.v4.util.ArrayMap;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.RecyclerView;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
-import android.util.SparseIntArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,6 +30,8 @@ import com.google.android.gms.common.internal.Preconditions;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.Utils;
 import com.petnbu.petnbu.databinding.ViewFeedBinding;
+import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.FeedUser;
 
 import java.util.List;
 import java.util.Locale;
@@ -38,7 +40,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
 
     public static final int IMAGE_PROFILE_RADIUS_CORNER = 10;
     private List<Feed> mFeeds;
-    private SparseIntArray lastSelectedPhotoPositions = new SparseIntArray();
+    private ArrayMap<String, Integer> lastSelectedPhotoPositions = new ArrayMap<>();
 
     private int maxPhotoHeight;
     private final int minPhotoHeight;
@@ -95,7 +97,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
         }
 
         private void displayText() {
-            SpannableStringBuilder builder = new SpannableStringBuilder(mFeed.getUserName());
+            SpannableStringBuilder builder = new SpannableStringBuilder(mFeed.getFeedUser().getDisplayName());
             builder.setSpan(new StyleSpan(Typeface.BOLD), 0, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             builder.setSpan(new ForegroundColorSpan(Color.BLACK), 0, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             builder.append(" ");
@@ -104,9 +106,10 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
         }
 
         private void displayUserInfo() {
-            mBinding.tvName.setText(mFeed.getUserName());
+            FeedUser feedUser = mFeed.getFeedUser();
+            mBinding.tvName.setText(feedUser.getDisplayName());
             mRequestManager.asBitmap()
-                    .load(mFeed.getUserAvatarUrl())
+                    .load(feedUser.getPhotoUrl())
                     .apply(RequestOptions.centerCropTransform())
                     .into(new BitmapImageViewTarget(mBinding.imgProfile) {
                         @Override
@@ -123,14 +126,20 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
             if(mFeed.getPhotos() != null && !mFeed.getPhotos().isEmpty()) {
                 constraintHeightForPhoto(mFeed.getPhotos().get(0).getWidth(), mFeed.getPhotos().get(0).getHeight());
 
-                mBinding.vpPhotos.setVisibility(View.VISIBLE);
-                mBinding.tvPhotosCount.setVisibility(View.VISIBLE);
-                mBinding.imgContent.setVisibility(View.GONE);
-
                 mBinding.vpPhotos.setAdapter(new PhotosPagerAdapter(mFeed, mRequestManager));
-                int currentPos = lastSelectedPhotoPositions.get(mFeed.getId(), 0);
+                int currentPos = 0;
+                Integer value = lastSelectedPhotoPositions.get(mFeed.getFeedId());
+                if(value != null) {
+                    currentPos = value.intValue();
+                }
                 mBinding.vpPhotos.setCurrentItem(currentPos);
-                mBinding.tvPhotosCount.setText(String.format(Locale.getDefault(), "%d/%d", currentPos + 1, mFeed.getPhotos().size()));
+
+                if(mFeed.getPhotos().size() > 1) {
+                    mBinding.tvPhotosCount.setVisibility(View.VISIBLE);
+                    mBinding.tvPhotosCount.setText(String.format(Locale.getDefault(), "%d/%d", currentPos + 1, mFeed.getPhotos().size()));
+                } else {
+                    mBinding.tvPhotosCount.setVisibility(View.GONE);
+                }
                 mBinding.vpPhotos.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
                     @Override
                     public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
@@ -140,7 +149,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
                     @Override
                     public void onPageSelected(int position) {
                         mBinding.tvPhotosCount.setText(String.format(Locale.getDefault(), "%d/%d", position + 1, mFeed.getPhotos().size()));
-                        lastSelectedPhotoPositions.put(mFeed.getId(), position);
+                        lastSelectedPhotoPositions.put(mFeed.getFeedId(), position);
                     }
 
                     @Override
@@ -148,15 +157,6 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
 
                     }
                 });
-            } else {
-                constraintHeightForPhoto(mFeed.getWidth(), mFeed.getHeight());
-
-                mBinding.vpPhotos.setVisibility(View.GONE);
-                mBinding.tvPhotosCount.setVisibility(View.GONE);
-                mBinding.imgContent.setVisibility(View.VISIBLE);
-                mRequestManager.load(mFeed.getPhotoUrl())
-                        .apply(RequestOptions.centerInsideTransform())
-                        .into(mBinding.imgContent);
             }
         }
 

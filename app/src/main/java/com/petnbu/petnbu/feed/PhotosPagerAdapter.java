@@ -11,6 +11,7 @@ import com.bumptech.glide.load.DecodeFormat;
 import com.bumptech.glide.request.RequestOptions;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.databinding.ViewFeedPhotosBinding;
+import com.petnbu.petnbu.model.Feed;
 
 public class PhotosPagerAdapter extends PagerAdapter {
 
@@ -43,7 +44,7 @@ public class PhotosPagerAdapter extends PagerAdapter {
         ViewFeedPhotosBinding viewFeedPhotosBinding = DataBindingUtil.bind(View.inflate(container.getContext(),
                 R.layout.view_feed_photos, null));
         mRequestManager
-                .load(mFeed.getPhotos().get(position).getUrl())
+                .load(mFeed.getPhotos().get(position).getOriginUrl())
                 .apply(RequestOptions.formatOf(DecodeFormat.PREFER_RGB_565))
                 .apply(RequestOptions.centerInsideTransform())
                 .into(viewFeedPhotosBinding.imgContent);

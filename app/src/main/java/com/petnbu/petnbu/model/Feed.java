@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.List;
 
 public class Feed {
+
     private String feedId;
     private FeedUser mFeedUser;
     private List<Photo> photos;
