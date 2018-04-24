@@ -24,7 +24,7 @@ public class WebServiceModule {
 
     @Singleton
     @Provides
-    WebService proveideWedService(FirebaseFirestore firebaseFirestore){
+    WebService provideWedService(FirebaseFirestore firebaseFirestore){
         return new FirebaseService(firebaseFirestore);
     }
 }

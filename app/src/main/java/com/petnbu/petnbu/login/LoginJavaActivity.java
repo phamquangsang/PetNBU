@@ -1,6 +1,10 @@
 package com.petnbu.petnbu.login;
 
 import android.app.DialogFragment;
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.Observer;
+import android.arch.persistence.room.Room;
+import android.arch.persistence.room.RoomDatabase;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
@@ -25,6 +29,7 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.petnbu.petnbu.AppExecutors;
 import com.petnbu.petnbu.MainActivity;
 import com.petnbu.petnbu.PetApplication;
 import com.petnbu.petnbu.R;
@@ -32,10 +37,14 @@ import com.petnbu.petnbu.SharedPrefUtil;
 import com.petnbu.petnbu.api.SuccessCallback;
 import com.petnbu.petnbu.api.WebService;
 import com.petnbu.petnbu.databinding.ActivityLoginJavaBinding;
+import com.petnbu.petnbu.db.PetDb;
+import com.petnbu.petnbu.db.UserDao;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.User;
 
 import javax.inject.Inject;
+
+import timber.log.Timber;
 
 public class LoginJavaActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -48,12 +57,22 @@ public class LoginJavaActivity extends AppCompatActivity implements View.OnClick
     private GoogleSignInClient mGoogleSignInClient;
     @Inject
     WebService mWebService;
+    @Inject
+    AppExecutors mAppExecutors;
+
+    @Inject
+    UserDao mUserDao;
+
+    @Inject
+    PetDb mPetDb;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        PetApplication.getWebComponent().inject(this);
+        PetApplication.getAppComponent().inject(this);
+//        PetDb db = Room.databaseBuilder(getApplication(), PetDb.class, "pet.db").build();;
+//        mUserDao = mPetDb.userDao();
 
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_login_java);
         mBinding.btnGoogleSignIn.setOnClickListener(this);
@@ -204,6 +223,7 @@ public class LoginJavaActivity extends AppCompatActivity implements View.OnClick
             public void onSuccess(User user) {
                 //user existed -> go to Main screen
                 SharedPrefUtil.saveUserId(getApplicationContext(), user.getUserId());
+                mAppExecutors.diskIO().execute(() -> mUserDao.insert(user));
                 openMainActivity();
             }
 

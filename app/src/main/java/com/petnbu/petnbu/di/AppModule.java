@@ -1,6 +1,11 @@
 package com.petnbu.petnbu.di;
 
 import android.app.Application;
+import android.arch.persistence.room.Room;
+
+import com.petnbu.petnbu.db.FeedDao;
+import com.petnbu.petnbu.db.PetDb;
+import com.petnbu.petnbu.db.UserDao;
 
 import javax.inject.Singleton;
 
@@ -10,7 +15,7 @@ import dagger.Provides;
 @Module
 public class AppModule {
 
-    Application mApplication;
+    private Application mApplication;
 
     public AppModule(Application application){
         mApplication = application;
@@ -22,5 +27,22 @@ public class AppModule {
         return mApplication;
     }
 
+    @Provides
+    @Singleton
+    PetDb provideDb(Application app){
+        return Room.databaseBuilder(app, PetDb.class, "pet.db").build();
+    }
+
+    @Provides
+    @Singleton
+    FeedDao provideFeedDao(PetDb db){
+        return db.feedDao();
+    }
+
+    @Provides
+    @Singleton
+    UserDao provideUserDao(PetDb db){
+        return db.userDao();
+    }
 
 }

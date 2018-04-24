@@ -1,11 +1,20 @@
 package com.petnbu.petnbu.model;
 
+import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.PrimaryKey;
+import android.arch.persistence.room.TypeConverters;
+import android.support.annotation.NonNull;
+
 import com.google.firebase.firestore.ServerTimestamp;
+import com.petnbu.petnbu.db.PetTypeConverters;
 
 import java.util.Date;
 
+@Entity(tableName = "users")
+@TypeConverters(PetTypeConverters.class)
 public class User {
 
+    @PrimaryKey @NonNull
     private String userId;
 
     private Photo avatar;
@@ -78,5 +87,17 @@ public class User {
 
     public void setTimeUpdated(Date timeUpdated) {
         this.timeUpdated = timeUpdated;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "userId='" + userId + '\'' +
+                ", avatar=" + avatar +
+                ", name='" + name + '\'' +
+                ", email='" + email + '\'' +
+                ", timeCreated=" + timeCreated +
+                ", timeUpdated=" + timeUpdated +
+                '}';
     }
 }

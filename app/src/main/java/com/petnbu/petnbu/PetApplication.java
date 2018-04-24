@@ -2,17 +2,18 @@ package com.petnbu.petnbu;
 
 import android.app.Application;
 
-import com.petnbu.petnbu.di.DaggerWebComponent;
-import com.petnbu.petnbu.di.WebComponent;
+import com.petnbu.petnbu.di.AppModule;
+import com.petnbu.petnbu.di.DaggerAppComponent;
+import com.petnbu.petnbu.di.AppComponent;
 
 import timber.log.Timber;
 
 public class PetApplication  extends Application{
 
-    private static WebComponent sWebComponent;
+    private static AppComponent sAppComponent;
 
-    public static WebComponent getWebComponent(){
-        return sWebComponent;
+    public static AppComponent getAppComponent(){
+        return sAppComponent;
     }
 
     public PetApplication() {
@@ -25,6 +26,6 @@ public class PetApplication  extends Application{
         if (BuildConfig.DEBUG) {
             Timber.plant(new Timber.DebugTree());
         }
-        sWebComponent = DaggerWebComponent.create();
+        sAppComponent = DaggerAppComponent.builder().appModule(new AppModule(this)).build();
     }
 }

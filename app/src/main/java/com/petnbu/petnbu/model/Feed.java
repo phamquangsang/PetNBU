@@ -1,12 +1,24 @@
 package com.petnbu.petnbu.model;
 
+import android.arch.persistence.room.Embedded;
+import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.PrimaryKey;
+import android.arch.persistence.room.TypeConverter;
+import android.arch.persistence.room.TypeConverters;
+import android.support.annotation.NonNull;
+
 import com.google.firebase.firestore.ServerTimestamp;
+import com.petnbu.petnbu.db.PetTypeConverters;
 
 import java.util.Date;
 import java.util.List;
 
+@Entity(tableName = "feeds")
+@TypeConverters(PetTypeConverters.class)
 public class Feed {
+    @PrimaryKey @NonNull
     private String feedId;
+    @Embedded
     private FeedUser mFeedUser;
     private List<Photo> photos;
     private int commentCount;
