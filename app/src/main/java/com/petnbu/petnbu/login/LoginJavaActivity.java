@@ -1,13 +1,10 @@
 package com.petnbu.petnbu.login;
 
-<<<<<<< HEAD
 import android.app.DialogFragment;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.persistence.room.Room;
 import android.arch.persistence.room.RoomDatabase;
-=======
->>>>>>> 842164d70d2760d8e8d8761246f4f9446c3e8cee
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
@@ -70,8 +67,6 @@ public class LoginJavaActivity extends AppCompatActivity implements View.OnClick
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         PetApplication.getAppComponent().inject(this);
-//        PetDb db = Room.databaseBuilder(getApplication(), PetDb.class, "pet.db").build();;
-//        mUserDao = mPetDb.userDao();
 
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_login_java);
         mBinding.btnGoogleSignIn.setOnClickListener(this);
