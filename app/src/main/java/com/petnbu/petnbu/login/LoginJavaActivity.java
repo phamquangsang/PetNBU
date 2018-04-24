@@ -1,15 +1,11 @@
 package com.petnbu.petnbu.login;
 
-import android.app.DialogFragment;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 
@@ -48,7 +44,6 @@ public class LoginJavaActivity extends AppCompatActivity implements View.OnClick
     private GoogleSignInClient mGoogleSignInClient;
     @Inject
     WebService mWebService;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,14 +100,8 @@ public class LoginJavaActivity extends AppCompatActivity implements View.OnClick
         // Firebase sign out
         mAuth.signOut();
 
-        // Google sign out
-        mGoogleSignInClient.signOut().addOnCompleteListener(this,
-                new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        updateUI(null);
-                    }
-                });
+        // Google sign out d
+        mGoogleSignInClient.signOut().addOnCompleteListener(this,  dtask -> updateUI(null));
     }
 
     private void revokeAccess() {
@@ -148,23 +137,18 @@ public class LoginJavaActivity extends AppCompatActivity implements View.OnClick
         showProgressbar();
         AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
         mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.d(TAG, "signInWithCredential:success");
-                            FirebaseUser user = mAuth.getCurrentUser();
-                            updateUI(user);
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        // Sign in success, update UI with the signed-in user's information
+                        Log.d(TAG, "signInWithCredential:success");
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        updateUI(user);
 
-                        } else {
-                            // If sign in fails, display a message to the user.
-                            Log.w(TAG, "signInWithCredential:failure", task.getException());
-                            Snackbar.make(mBinding.getRoot(), "Authentication Failed.", Snackbar.LENGTH_SHORT).show();
-                            updateUI(null);
-                        }
-
-                        // ...
+                    } else {
+                        // If sign in fails, display a message to the user.
+                        Log.w(TAG, "signInWithCredential:failure", task.getException());
+                        Snackbar.make(mBinding.getRoot(), "Authentication Failed.", Snackbar.LENGTH_SHORT).show();
+                        updateUI(null);
                     }
                 });
     }
@@ -173,7 +157,6 @@ public class LoginJavaActivity extends AppCompatActivity implements View.OnClick
         startActivity(new Intent(this, MainActivity.class));
         finish();
     }
-
 
     private void updateUI(FirebaseUser firebaseUser) {
         hideProgressDialog();

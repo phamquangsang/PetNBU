@@ -2,7 +2,6 @@ package com.petnbu.petnbu.api;
 
 
 import android.net.Uri;
-import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.google.android.gms.tasks.OnFailureListener;
@@ -20,6 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 
 public class StorageApi {
+
     public static final String TAG = StorageApi.class.getSimpleName();
 
     public static void updateImage(Uri file,
@@ -27,19 +27,12 @@ public class StorageApi {
                                    final OnFailureListener onFailureListener) {
         Log.i(TAG, "updateImage: update file " + file.toString());
         StorageReference ref = getStorageRef().child("image_" + System.currentTimeMillis() + file.getLastPathSegment());
-        ref.putFile(file).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                // Get a URL to the uploaded content
-                Uri downloadUrl = taskSnapshot.getDownloadUrl();
-                onSuccessListener.onSuccess(taskSnapshot);
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                onFailureListener.onFailure(e);
-            }
-        });
+        ref.putFile(file).addOnSuccessListener(taskSnapshot -> {
+            // Get a URL to the uploaded content
+            Uri downloadUrl = taskSnapshot.getDownloadUrl();
+            onSuccessListener.onSuccess(taskSnapshot);
+
+        }).addOnFailureListener(e -> onFailureListener.onFailure(e));
 
     }
 
@@ -49,6 +42,7 @@ public class StorageApi {
     }
 
     public static abstract class OnUploadingImage {
+
         private AtomicInteger mTotalImage;
         private List<String> mList;
         private List<String> mResult;
@@ -60,29 +54,21 @@ public class StorageApi {
         }
 
         public void start() {
-            for (String file :
-                    mList) {
-                OnSuccessListener<UploadTask.TaskSnapshot> successListener = new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                        mTotalImage.decrementAndGet();
-                        mResult.add(taskSnapshot.getDownloadUrl().toString());
-                        if (mTotalImage.get() == 0) {
-                            onCompleted(mResult);
-                        }
+            for (String file : mList) {
+                OnSuccessListener<UploadTask.TaskSnapshot> successListener = taskSnapshot -> {
+                    mTotalImage.decrementAndGet();
+                    mResult.add(taskSnapshot.getDownloadUrl().toString());
+                    if (mTotalImage.get() == 0) {
+                        onCompleted(mResult);
                     }
                 };
-                OnFailureListener failureListener = new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        mTotalImage.decrementAndGet();
-                        onFailed(e);
-                    }
+                OnFailureListener failureListener = e -> {
+                    mTotalImage.decrementAndGet();
+                    onFailed(e);
                 };
                 updateImage(Uri.parse(file), successListener, failureListener);
             }
         }
-
 
         public abstract void onCompleted(List<String> result);
 

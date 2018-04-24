@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "975478082520-nbfighg7a2fafk4m3cft0er0kd3d3quv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.petnbu.petnbu",
+            "certificate_hash": "d990da30e1dea1599cb75320fbaa0b4b886f8a5b"
+          }
+        },
+        {
           "client_id": "975478082520-3ober1fg4i82ivv1d6vv57vb1vmei98l.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

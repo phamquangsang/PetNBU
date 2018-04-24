@@ -2,10 +2,8 @@ package com.petnbu.petnbu.login
 
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import com.petnbu.petnbu.R
-
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
+import com.petnbu.petnbu.R
 
 
 class LoginActivity : AppCompatActivity() {
