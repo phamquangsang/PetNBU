@@ -16,7 +16,11 @@ import java.util.List;
 @Entity(tableName = "feeds")
 @TypeConverters(PetTypeConverters.class)
 public class Feed {
+<<<<<<< HEAD
     @PrimaryKey @NonNull
+=======
+
+>>>>>>> 842164d70d2760d8e8d8761246f4f9446c3e8cee
     private String feedId;
     @Embedded
     private FeedUser mFeedUser;

@@ -2,11 +2,8 @@ package com.petnbu.petnbu.api;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
-import android.support.annotation.NonNull;
 import android.util.Log;
 
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -70,8 +67,7 @@ public class FirebaseService implements WebService{
         mDb.collection(GLOBAL_FEEDS).orderBy("timeCreated", Query.Direction.DESCENDING)
                 .limit(limit).startAfter(dateAfter)
                 .get().addOnSuccessListener(queryDocumentSnapshots -> {
-                    for (DocumentSnapshot doc :
-                            queryDocumentSnapshots.getDocuments()) {
+                    for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
                         feeds.add(doc.toObject(Feed.class));
                     }
                     Log.i(TAG, String.format("onSuccess: loaded %d feed(s)", queryDocumentSnapshots.getDocuments().size()));
