@@ -13,6 +13,7 @@ import com.petnbu.petnbu.BaseBindingViewHolder;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.databinding.ViewCreateFeedCameraBinding;
 import com.petnbu.petnbu.databinding.ViewCreateFeedPhotosSelectedBinding;
+import com.petnbu.petnbu.model.Photo;
 
 import java.util.ArrayList;
 
@@ -21,14 +22,14 @@ public class PhotosAdapter extends RecyclerView.Adapter<BaseBindingViewHolder> {
     private final int VIEW_TYPE_CAMERA = 1;
     private final int VIEW_TYPE_PHOTO = 2;
 
-    private ArrayList<String> mMediaUrls;
+    private ArrayList<Photo> mPhotos;
     private RequestManager mRequestManager;
     private final int mImageSize;
     private final ItemClickListener mItemClickListener;
 
-    public PhotosAdapter(Context context, RequestManager requestManager, ArrayList<String> mediaUrls,
+    public PhotosAdapter(Context context, RequestManager requestManager, ArrayList<Photo> photos,
                          ItemClickListener itemClickListener, int imageSize) {
-        mMediaUrls = mediaUrls;
+        mPhotos = photos;
         mRequestManager = requestManager;
         mImageSize = imageSize;
         mItemClickListener = itemClickListener;
@@ -50,13 +51,13 @@ public class PhotosAdapter extends RecyclerView.Adapter<BaseBindingViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull BaseBindingViewHolder holder, int position) {
         if (!isCameraPos(position)) {
-            holder.bindData(mMediaUrls.get(position));
+            holder.bindData(mPhotos.get(position));
         }
     }
 
     @Override
     public int getItemCount() {
-        return mMediaUrls != null ? mMediaUrls.size() + 1 : 0;
+        return mPhotos != null ? mPhotos.size() + 1 : 0;
     }
 
     @Override
@@ -68,7 +69,18 @@ public class PhotosAdapter extends RecyclerView.Adapter<BaseBindingViewHolder> {
         return position == getItemCount() - 1;
     }
 
-    protected final class PhotoHolder extends BaseBindingViewHolder<ViewCreateFeedPhotosSelectedBinding, String> {
+    public void removeItem(int position) {
+        if(mPhotos != null && 0 <= position && position < mPhotos.size()) {
+            mPhotos.remove(position);
+            notifyItemRemoved(position);
+        }
+    }
+
+    public ArrayList<Photo> getPhotos() {
+        return mPhotos;
+    }
+
+    protected final class PhotoHolder extends BaseBindingViewHolder<ViewCreateFeedPhotosSelectedBinding, Photo> {
 
         private PhotoHolder(View itemView) {
             super(itemView);
@@ -79,15 +91,20 @@ public class PhotosAdapter extends RecyclerView.Adapter<BaseBindingViewHolder> {
 
             mBinding.imgContent.setOnClickListener(v -> {
                 if (mItemClickListener != null && getAdapterPosition() != RecyclerView.NO_POSITION) {
-                    mItemClickListener.onPhotoClicked(mMediaUrls.get(getAdapterPosition()));
+                    mItemClickListener.onPhotoClicked(mPhotos.get(getAdapterPosition()));
+                }
+            });
+            mBinding.layoutRemovePhoto.setOnClickListener(v -> {
+                if (mItemClickListener != null && getAdapterPosition() != RecyclerView.NO_POSITION) {
+                    mItemClickListener.onRemovePhotoClicked(getAdapterPosition());
                 }
             });
         }
 
         @Override
-        public void bindData(String url) {
+        public void bindData(Photo photo) {
             mRequestManager
-                    .load(url)
+                    .load(photo.getOriginUrl())
                     .apply(RequestOptions.centerInsideTransform())
                     .into(mBinding.imgContent);
         }
@@ -119,6 +136,8 @@ public class PhotosAdapter extends RecyclerView.Adapter<BaseBindingViewHolder> {
 
         void onCameraIconClicked();
 
-        void onPhotoClicked(String url);
+        void onPhotoClicked(Photo photo);
+
+        void onRemovePhotoClicked(int position);
     }
 }

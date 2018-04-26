@@ -10,8 +10,6 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.SetOptions;
 import com.petnbu.petnbu.model.Feed;
-import com.petnbu.petnbu.model.Resource;
-import com.petnbu.petnbu.model.Status;
 import com.petnbu.petnbu.model.User;
 
 import java.util.ArrayList;
@@ -39,6 +37,8 @@ public class FirebaseService implements WebService {
     public void createFeed(final Feed feed, final SuccessCallback<Void> callback) {
         DocumentReference doc = mDb.collection(GLOBAL_FEEDS).document();
         feed.setFeedId(doc.getId());
+        feed.setTimeCreated(null);
+        feed.setTimeUpdated(null);
         doc.set(feed)
                 .addOnSuccessListener(aVoid -> callback.onSuccess(null))
                 .addOnFailureListener(e -> callback.onFailed(e));

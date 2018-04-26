@@ -9,7 +9,7 @@
         android:layout_marginTop="12dp"
         android:background="#FFFFFF">
 
-        <ImageView
+        <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/imgProfile"
             android:layout_width="36dp"
             android:layout_height="36dp"
@@ -60,14 +60,13 @@
         <FrameLayout
             android:id="@+id/layoutMedia"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="200dp"
             android:layout_marginTop="8dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/imgProfile"
-            tools:minHeight="200dp">
+            app:layout_constraintTop_toBottomOf="@+id/imgProfile">
 
             <android.support.v4.view.ViewPager
                 android:id="@+id/vpPhotos"
@@ -178,91 +177,25 @@
             app:layout_constraintTop_toBottomOf="@+id/tvLikesCount"
             tools:text="this is a test contentthis is a test contentthis is a test contentthis is a test contentthis is a test content"/>
 
-        <!--<View-->
-        <!--android:id="@+id/separatorView"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="@dimen/tw_line_height"-->
-        <!--android:layout_marginLeft="8dp
-       "-->
-        <!--android:layout_marginRight="8dp
-       "-->
-        <!--android:layout_marginTop="8dp
-       "-->
-        <!--android:background="@color/tw_line_gray_color"-->
-        <!--app:layout_constraintEnd_toEndOf="parent"-->
-        <!--app:layout_constraintStart_toStartOf="parent"-->
-        <!--app:layout_constraintTop_toBottomOf="@+id/tvArticleTitle" />-->
+        <FrameLayout
+            android:id="@+id/layoutDisable"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#80FFFFFF"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
-        <!--<LinearLayout-->
-        <!--android:id="@+id/layoutLike"-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:layout_marginBottom="8dp"-->
-        <!--android:layout_marginLeft="8dp"-->
-        <!--android:layout_marginStart="8dp"-->
-        <!--android:layout_marginTop="8dp"-->
-        <!--android:clickable="true"-->
-        <!--android:focusable="true"-->
-        <!--android:orientation="horizontal"-->
-        <!--app:layout_constraintBottom_toBottomOf="parent"-->
-        <!--app:layout_constraintStart_toStartOf="parent"-->
-        <!--app:layout_constraintTop_toBottomOf="@+id/separatorView">-->
-
-        <!--<ImageView-->
-        <!--android:id="@+id/imgLike"-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:layout_margin="4dp"-->
-        <!--android:src="@drawable/tw_post_like"-->
-        <!--tools:ignore="ContentDescription" />-->
-
-        <!--<TextView-->
-        <!--android:id="@+id/tvLike"-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:textSize="14sp"-->
-        <!--tools:text="222" />-->
-        <!--</LinearLayout>-->
-
-        <!--<ImageView-->
-        <!--android:id="@+id/img_dot_1"-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:layout_margin="8dp"-->
-        <!--app:layout_constraintBottom_toBottomOf="parent"-->
-        <!--app:layout_constraintStart_toEndOf="@+id/layoutLike"-->
-        <!--app:layout_constraintTop_toBottomOf="@+id/separatorView"-->
-        <!--tools:ignore="ContentDescription" />-->
-
-        <!--<LinearLayout-->
-        <!--android:id="@+id/layoutComment"-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:layout_marginBottom="8dp"-->
-        <!--android:layout_marginLeft="5dp"-->
-        <!--android:layout_marginStart="5dp"-->
-        <!--android:layout_marginTop="8dp"-->
-        <!--android:clickable="true"-->
-        <!--android:focusable="true"-->
-        <!--android:orientation="horizontal"-->
-        <!--app:layout_constraintBottom_toBottomOf="parent"-->
-        <!--app:layout_constraintStart_toEndOf="@+id/img_dot_1"-->
-        <!--app:layout_constraintTop_toBottomOf="@+id/separatorView">-->
-
-        <!--<ImageView-->
-        <!--android:id="@+id/imgComment"-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:layout_margin="4dp"-->
-        <!--android:src="@drawable/tw_post_comment"-->
-        <!--tools:ignore="ContentDescription" />-->
-
-        <!--<TextView-->
-        <!--android:id="@+id/tvComment"-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:textSize="14sp"-->
-        <!--tools:text="22" />-->
-        <!--</LinearLayout>-->
+            <com.github.ybq.android.spinkit.SpinKitView
+                android:id="@+id/spin_kit"
+                style="@style/SpinKitView.Large.FadingCircle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                app:SpinKit_Color="?attr/colorPrimary"/>
+        </FrameLayout>
     </android.support.constraint.ConstraintLayout>
 </layout>

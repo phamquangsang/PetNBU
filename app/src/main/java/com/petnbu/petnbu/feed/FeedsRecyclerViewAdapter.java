@@ -2,14 +2,10 @@ package com.petnbu.petnbu.feed;
 
 import android.content.Context;
 import android.databinding.DataBindingUtil;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
-import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
-import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.support.v4.util.ArrayMap;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.RecyclerView;
@@ -24,8 +20,6 @@ import android.view.ViewGroup;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.request.RequestOptions;
-import com.bumptech.glide.request.target.BitmapImageViewTarget;
-import com.bumptech.glide.request.transition.Transition;
 import com.google.android.gms.common.internal.Preconditions;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.Utils;
@@ -35,6 +29,7 @@ import com.petnbu.petnbu.model.FeedUser;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 
 public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecyclerViewAdapter.ViewHolder> {
 
@@ -94,10 +89,12 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
             displayUserInfo();
             displayPhotos();
             displayText();
+
+            new Random().in
         }
 
         private void displayText() {
-            SpannableStringBuilder builder = new SpannableStringBuilder(mFeed.getFeedUser().getDisplayName());
+            SpannableStringBuilder builder = new SpannableStringBuilder(mFeed.getFeedUser().getDisplayName() + "");
             builder.setSpan(new StyleSpan(Typeface.BOLD), 0, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             builder.setSpan(new ForegroundColorSpan(Color.BLACK), 0, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             builder.append(" ");
@@ -108,18 +105,9 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
         private void displayUserInfo() {
             FeedUser feedUser = mFeed.getFeedUser();
             mBinding.tvName.setText(feedUser.getDisplayName());
-            mRequestManager.asBitmap()
-                    .load(feedUser.getPhotoUrl())
+            mRequestManager.load(feedUser.getPhotoUrl())
                     .apply(RequestOptions.centerCropTransform())
-                    .into(new BitmapImageViewTarget(mBinding.imgProfile) {
-                        @Override
-                        public void onResourceReady(Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                            RoundedBitmapDrawable cornerRadiusBitmapDrawable
-                                    = RoundedBitmapDrawableFactory.create(mBinding.imgProfile.getContext().getResources(), resource);
-                            cornerRadiusBitmapDrawable.setCornerRadius(IMAGE_PROFILE_RADIUS_CORNER);
-                            getView().setImageDrawable(cornerRadiusBitmapDrawable);
-                        }
-                    });
+                    .into(mBinding.imgProfile);
         }
 
         private void displayPhotos() {
