@@ -10,6 +10,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.SetOptions;
 import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Resource;
 import com.petnbu.petnbu.model.Status;
 import com.petnbu.petnbu.model.User;
@@ -42,6 +43,23 @@ public class FirebaseService implements WebService {
         doc.set(feed)
                 .addOnSuccessListener(aVoid -> callback.onSuccess(null))
                 .addOnFailureListener(e -> callback.onFailed(e));
+    }
+
+    @Override
+    public LiveData<ApiResponse<Void>> createFeed(Feed feed) {
+        MutableLiveData<ApiResponse<Void>> result = new MutableLiveData<>();
+        createFeed(feed, new SuccessCallback<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                result.setValue(new ApiResponse<>(aVoid, true, null));
+            }
+
+            @Override
+            public void onFailed(Exception e) {
+                result.setValue(new ApiResponse<>(null, false, e.getMessage()));
+            }
+        });
+        return result;
     }
 
     @Override

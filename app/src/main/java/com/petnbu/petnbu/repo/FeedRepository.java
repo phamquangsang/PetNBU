@@ -9,7 +9,9 @@ import com.petnbu.petnbu.api.ApiResponse;
 import com.petnbu.petnbu.api.WebService;
 import com.petnbu.petnbu.db.FeedDao;
 import com.petnbu.petnbu.db.PetDb;
+import com.petnbu.petnbu.db.UserDao;
 import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Resource;
 
 import java.util.List;
@@ -24,15 +26,18 @@ public class FeedRepository {
 
     private final FeedDao mFeedDao;
 
+    private final UserDao mUserDao;
+
     private final AppExecutors mAppExecutors;
 
     private final WebService mWebService;
 
 
     @Inject
-    public FeedRepository(PetDb petDb, FeedDao feedDao, AppExecutors appExecutors, WebService webService) {
+    public FeedRepository(PetDb petDb, FeedDao feedDao, UserDao userDao, AppExecutors appExecutors, WebService webService) {
         mPetDb = petDb;
         mFeedDao = feedDao;
+        mUserDao = userDao;
         mAppExecutors = appExecutors;
         mWebService = webService;
     }
@@ -63,4 +68,5 @@ public class FeedRepository {
             }
         }.asLiveData();
     }
+
 }

@@ -15,4 +15,5 @@ public interface UserDao {
 
     @Query("SELECT * FROM users WHERE userId = :id")
     LiveData<User> findById(String id);
+
 }

@@ -5,6 +5,8 @@ import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
 import android.arch.persistence.room.TypeConverter;
 import android.arch.persistence.room.TypeConverters;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 
@@ -13,6 +15,7 @@ import com.google.firebase.firestore.ServerTimestamp;
 import com.petnbu.petnbu.db.PetTypeConverters;
 
 import java.lang.annotation.Retention;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -20,7 +23,7 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 @Entity(tableName = "feeds")
 @TypeConverters(PetTypeConverters.class)
-public class Feed {
+public class Feed implements Parcelable {
 
     @Retention(SOURCE)
     @IntDef(value = {STATUS_NEW, STATUS_UPLOADING, STATUS_ERROR, STATUS_DONE})
@@ -147,4 +150,50 @@ public class Feed {
                 ", status=" + status +
                 '}';
     }
+
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.feedId);
+        dest.writeParcelable(this.mFeedUser, flags);
+        dest.writeList(this.photos);
+        dest.writeInt(this.commentCount);
+        dest.writeInt(this.likeCount);
+        dest.writeString(this.content);
+        dest.writeLong(this.timeCreated != null ? this.timeCreated.getTime() : -1);
+        dest.writeLong(this.timeUpdated != null ? this.timeUpdated.getTime() : -1);
+        dest.writeInt(this.status);
+    }
+
+    protected Feed(Parcel in) {
+        this.feedId = in.readString();
+        this.mFeedUser = in.readParcelable(FeedUser.class.getClassLoader());
+        this.photos = new ArrayList<Photo>();
+        in.readList(this.photos, Photo.class.getClassLoader());
+        this.commentCount = in.readInt();
+        this.likeCount = in.readInt();
+        this.content = in.readString();
+        long tmpTimeCreated = in.readLong();
+        this.timeCreated = tmpTimeCreated == -1 ? null : new Date(tmpTimeCreated);
+        long tmpTimeUpdated = in.readLong();
+        this.timeUpdated = tmpTimeUpdated == -1 ? null : new Date(tmpTimeUpdated);
+        this.status = in.readInt();
+    }
+
+    public static final Parcelable.Creator<Feed> CREATOR = new Parcelable.Creator<Feed>() {
+        @Override
+        public Feed createFromParcel(Parcel source) {
+            return new Feed(source);
+        }
+
+        @Override
+        public Feed[] newArray(int size) {
+            return new Feed[size];
+        }
+    };
 }

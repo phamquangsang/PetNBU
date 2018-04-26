@@ -2,6 +2,7 @@ package com.petnbu.petnbu.api;
 
 import android.arch.lifecycle.LiveData;
 
+import com.google.android.gms.common.api.Api;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.Resource;
@@ -12,6 +13,8 @@ import java.util.List;
 public interface WebService {
 
     public void createFeed(Feed feed, SuccessCallback<Void> callback);
+
+    public LiveData<ApiResponse<Void>> createFeed(Feed feed);
 
     public void updateFeed(Feed feed, SuccessCallback<Void> callback);
 
