@@ -4,17 +4,23 @@ import android.arch.lifecycle.LifecycleObserver;
 import android.arch.lifecycle.LifecycleOwner;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
+import android.arch.persistence.room.TypeConverters;
 import android.support.annotation.Nullable;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Log;
 
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.petnbu.petnbu.api.ApiResponse;
 import com.petnbu.petnbu.api.FirebaseService;
 import com.petnbu.petnbu.api.SuccessCallback;
 import com.petnbu.petnbu.api.WebService;
+import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Photo;
+import com.petnbu.petnbu.model.Resource;
+import com.petnbu.petnbu.model.Status;
+import com.petnbu.petnbu.repo.FeedRepository;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,6 +30,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import timber.log.Timber;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -42,14 +50,14 @@ public class FeedApiTest {
         List<Photo> photo1 = new ArrayList<>();
         photo1.add(new Photo("https://picsum.photos/1200/1300/?image=381", "https://picsum.photos/600/650/?image=381", "https://picsum.photos/300/325/?image=381", "https://picsum.photos/120/130/?image=381", 1200, 1300));
         photo1.add(new Photo("https://picsum.photos/1200/1300/?image=382", "https://picsum.photos/600/650/?image=382", "https://picsum.photos/300/325/?image=382", "https://picsum.photos/120/130/?image=382", 1200, 1300));
-        Feed feed = new Feed("1", userSang, photo1, 10, 12, "",new Date(), new Date());
+        Feed feed = new Feed("1", userSang, photo1, 10, 12, "", new Date(), new Date());
 
         FeedUser userNhat = new FeedUser("2", "https://developer.android.com/static/images/android_logo_2x.png", "Nhat Nhat");
         List<Photo> photo2 = new ArrayList<>();
         photo2.add(new Photo("https://picsum.photos/1000/600/?image=383", "https://picsum.photos/500/300/?image=383", "https://picsum.photos/250/150/?image=383", "https://picsum.photos/100/60/?image=383", 1000, 600));
         Feed feed1 = new Feed("2", userNhat, photo2, 12, 14, "", new Date(), new Date());
 
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 30; i++) {
             webService.createFeed(i % 2 == 0 ? feed : feed1, new SuccessCallback<Void>() {
                 @Override
                 public void onSuccess(Void aVoid) {
@@ -62,12 +70,30 @@ public class FeedApiTest {
                 }
             });
             try {
-                Thread.sleep(1000);
+                Thread.sleep(100);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
 
+
+
+
+    }
+
+    @Test
+    public void deleteRoom() throws InterruptedException {
+        PetDb petDb = PetApplication.getAppComponent().getPetDb();
+        petDb.feedDao().deleteAll();
+        LiveData<List<Feed>> result = petDb.feedDao().loadFeeds();
+        final CountDownLatch signal = new CountDownLatch(2);
+        result.observeForever(new Observer<List<Feed>>() {
+            @Override
+            public void onChanged(@Nullable List<Feed> feeds) {
+                signal.countDown();
+                assertThat(feeds == null || feeds.isEmpty(), is(true));
+            }
+        });
 
     }
 
@@ -77,23 +103,45 @@ public class FeedApiTest {
         FirebaseFirestore firestore = FirebaseFirestore.getInstance();
         WebService webService = new FirebaseService(firestore);
         Date date = new Date();
-        LiveData<List<Feed>> result = webService.getFeeds(date.getTime(), 30);
-        result.observeForever(new Observer<List<Feed>>() {
-            @Override
-            public void onChanged(@Nullable List<Feed> feeds) {
-                Log.i(TAG, "onChanged: feeds == null ? " + (feeds == null));
-                signal.countDown();
-                if (feeds != null) {
-                    assertThat(feeds.size(), is(30));
-                    for (int i = 0; i < feeds.size() - 1 ; i++) {
-                        assertThat(feeds.get(i).getTimeCreated().before(new Date()), is(true));
-                        assertThat(feeds.get(i + 1).getTimeCreated().getTime() <= feeds.get(i).getTimeCreated().getTime(), is(true));
-                    }
-                    signal.countDown();
+        LiveData<ApiResponse<List<Feed>>> result = webService.getFeeds(date.getTime(), 30);
+        result.observeForever(listApiResponse -> {
+            assert listApiResponse != null;
+            List<Feed> feeds = listApiResponse.body;
+            Log.i(TAG, "onChanged: feeds == null ? " + (feeds == null));
+            signal.countDown();
+            if (feeds != null) {
+                assertThat(feeds.size(), is(30));
+                for (int i = 0; i < feeds.size() - 1 ; i++) {
+                    assertThat(feeds.get(i).getTimeCreated().before(new Date()), is(true));
+                    assertThat(feeds.get(i + 1).getTimeCreated().getTime() <= feeds.get(i).getTimeCreated().getTime(), is(true));
                 }
+                signal.countDown();
             }
         });
         signal.await(30, TimeUnit.SECONDS);
+
+        FeedRepository repository = PetApplication.getAppComponent().getFeedRepo();
+
+        AppExecutors appExecutors = PetApplication.getAppComponent().getAppExecutor();
+        appExecutors.mainThread().execute(new Runnable() {
+            @Override
+            public void run() {
+                LiveData<Resource<List<Feed>>> resultLive = repository.loadFeeds();
+                resultLive.observeForever(new Observer<Resource<List<Feed>>>() {
+                    @Override
+                    public void onChanged(@Nullable Resource<List<Feed>> listResource) {
+                        if(listResource != null){
+                            Timber.i(listResource.toString());
+                            if (listResource.data != null) {
+                                Timber.i(String.valueOf(listResource.data.size()));
+                            }
+                        }
+                    }
+                });
+            }
+        });
+
+        signal.await(20, TimeUnit.SECONDS);
     }
 
 }

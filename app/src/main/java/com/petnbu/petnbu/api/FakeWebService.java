@@ -29,8 +29,8 @@ public class FakeWebService implements WebService {
     }
 
     @Override
-    public LiveData<List<Feed>> getFeeds(long after, int limit) {
-        MutableLiveData<List<Feed>> mFeeds = new MutableLiveData<>();
+    public LiveData<ApiResponse<List<Feed>>> getFeeds(long after, int limit) {
+        MutableLiveData<ApiResponse<List<Feed>>> mFeeds = new MutableLiveData<>();
         List<Feed> feeds = new ArrayList<>();
 
         // 1
@@ -211,7 +211,8 @@ public class FakeWebService implements WebService {
                 "", "", "", 1080, 612));
         feed.setPhotos(photos);
         feeds.add(feed);
-        mFeeds.setValue(feeds);
+        mFeeds.setValue(new ApiResponse<>(feeds, true, null));
+
         return mFeeds;
     }
 

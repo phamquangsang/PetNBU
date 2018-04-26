@@ -4,6 +4,7 @@ import android.arch.lifecycle.LiveData;
 
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.Photo;
+import com.petnbu.petnbu.model.Resource;
 import com.petnbu.petnbu.model.User;
 
 import java.util.List;
@@ -16,7 +17,7 @@ public interface WebService {
 
     public void getFeed(String feedId, SuccessCallback<Feed> callback);
 
-    public LiveData<List<Feed>> getFeeds(long after, int limit);
+    public LiveData<ApiResponse<List<Feed>>> getFeeds(long after, int limit);
 
     public void createUser(User user, SuccessCallback<Void> callback);
 

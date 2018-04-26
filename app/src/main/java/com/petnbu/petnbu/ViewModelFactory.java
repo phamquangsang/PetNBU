@@ -8,8 +8,9 @@ import android.support.annotation.VisibleForTesting;
 
 import com.petnbu.petnbu.api.FakeWebService;
 import com.petnbu.petnbu.api.WebService;
-import com.petnbu.petnbu.feed.FeedsRepository;
 import com.petnbu.petnbu.feed.FeedsViewModel;
+import com.petnbu.petnbu.repo.FeedRepository;
+
 
 public class ViewModelFactory extends ViewModelProvider.NewInstanceFactory {
 
@@ -18,16 +19,16 @@ public class ViewModelFactory extends ViewModelProvider.NewInstanceFactory {
 
     private final Application mApplication;
 
-    private final FeedsRepository mFeedsRepository;
+    private final FeedRepository mFeedsRepository;
 
     private final WebService mWebService;
 
-    public static ViewModelFactory getInstance(Application application) {
+    public static ViewModelFactory getInstance(Application application, FeedRepository feedRepo) {
 
         if (INSTANCE == null) {
             synchronized (ViewModelFactory.class) {
                 if (INSTANCE == null) {
-                    INSTANCE = new ViewModelFactory(application, FeedsRepository.getInstance());
+                    INSTANCE = new ViewModelFactory(application, feedRepo);
                 }
             }
         }
@@ -39,7 +40,7 @@ public class ViewModelFactory extends ViewModelProvider.NewInstanceFactory {
         INSTANCE = null;
     }
 
-    private ViewModelFactory(Application application, FeedsRepository feedsRepository) {
+    private ViewModelFactory(Application application, FeedRepository feedsRepository) {
         mApplication = application;
         mFeedsRepository = feedsRepository;
         mWebService = new FakeWebService();
@@ -49,7 +50,7 @@ public class ViewModelFactory extends ViewModelProvider.NewInstanceFactory {
     public <T extends ViewModel> T create(Class<T> modelClass) {
         if (modelClass.isAssignableFrom(FeedsViewModel.class)) {
             //noinspection unchecked
-            return (T) new FeedsViewModel(mApplication, mWebService);
+            return (T) new FeedsViewModel();
         }
         throw new IllegalArgumentException("Unknown ViewModel class: " + modelClass.getName());
     }

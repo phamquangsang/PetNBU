@@ -57,10 +57,4 @@ public class MainActivity extends AppCompatActivity {
     private void initialize() {
         mBinding.bottomNavigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
     }
-
-    public static FeedsViewModel obtainViewModel(FragmentActivity activity) {
-        // Use a Factory to inject dependencies into the ViewModel
-        ViewModelFactory factory = ViewModelFactory.getInstance(activity.getApplication());
-        return ViewModelProviders.of(activity, factory).get(FeedsViewModel.class);
-    }
 }

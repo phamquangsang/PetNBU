@@ -3,26 +3,31 @@ package com.petnbu.petnbu.feed;
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.ViewModel;
 import android.support.annotation.NonNull;
 
-import com.petnbu.petnbu.api.WebService;
+import com.petnbu.petnbu.PetApplication;
 import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.Resource;
+import com.petnbu.petnbu.repo.FeedRepository;
 
 import java.util.List;
 
-public class FeedsViewModel extends AndroidViewModel {
+import javax.inject.Inject;
 
-    private final int LIMIT_FEEDS = 10;
-    private final WebService mWebService;
-    private LiveData<List<Feed>> mFeedsLiveData;
+public class FeedsViewModel extends ViewModel {
 
-    public FeedsViewModel(@NonNull Application application, WebService webService) {
-        super(application);
-        mWebService = webService;
+    @Inject
+    FeedRepository mFeedRepository;
+    private LiveData<Resource<List<Feed>>> mFeedsLiveData;
+
+    public FeedsViewModel() {
+        PetApplication.getAppComponent().inject(this);
     }
 
-    public LiveData<List<Feed>> getFeeds() {
-        mFeedsLiveData = mWebService.getFeeds(0, LIMIT_FEEDS);
+
+    public LiveData<Resource<List<Feed>>> getFeeds() {
+        mFeedsLiveData = mFeedRepository.loadFeeds();
         return mFeedsLiveData;
     }
 

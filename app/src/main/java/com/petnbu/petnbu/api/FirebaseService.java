@@ -10,14 +10,18 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.SetOptions;
 import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.Resource;
+import com.petnbu.petnbu.model.Status;
 import com.petnbu.petnbu.model.User;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class FirebaseService implements WebService{
-    
+import timber.log.Timber;
+
+public class FirebaseService implements WebService {
+
     public static final String GLOBAL_FEEDS = "global_feeds";
 
     public static final String USERS = "users";
@@ -52,28 +56,34 @@ public class FirebaseService implements WebService{
     @Override
     public void getFeed(String feedId, SuccessCallback<Feed> callback) {
         mDb.collection(GLOBAL_FEEDS).document(feedId).get().addOnSuccessListener(documentSnapshot -> {
-            if(documentSnapshot.exists()){
+            if (documentSnapshot.exists()) {
                 callback.onSuccess(documentSnapshot.toObject(Feed.class));
-            }else{
+            } else {
                 callback.onFailed(new IllegalStateException(String.format("Feed Id: %s does not exist", feedId)));
             }
         }).addOnFailureListener(e -> callback.onFailed(e));
     }
 
-    public LiveData<List<Feed>> getFeeds(long after, int limit){
-        MutableLiveData<List<Feed>> feedsLive = new MutableLiveData<>();
-        List<Feed> feeds = new ArrayList<>(limit);
+    public LiveData<ApiResponse<List<Feed>>> getFeeds(long after, int limit) {
+        MutableLiveData<ApiResponse<List<Feed>>> result = new MutableLiveData<>();
         Date dateAfter = new Date(after);
         mDb.collection(GLOBAL_FEEDS).orderBy("timeCreated", Query.Direction.DESCENDING)
                 .limit(limit).startAfter(dateAfter)
-                .get().addOnSuccessListener(queryDocumentSnapshots -> {
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<Feed> feeds = new ArrayList<>(limit);
                     for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
                         feeds.add(doc.toObject(Feed.class));
                     }
-                    Log.i(TAG, String.format("onSuccess: loaded %d feed(s)", queryDocumentSnapshots.getDocuments().size()));
-                    feedsLive.setValue(feeds);
-                }).addOnFailureListener(e -> Log.e(TAG, "onFailure: ", e));
-        return feedsLive;
+                    Timber.i("onSuccess: loaded %d feed(s)", queryDocumentSnapshots.getDocuments().size());
+
+                    result.setValue(new ApiResponse<>(feeds, true, null));
+                }).addOnFailureListener(e -> {
+                    Timber.e( "onFailure: ", e);
+                    result.setValue(new ApiResponse<>(null, false, e.getMessage()));
+                });
+
+        return result;
     }
 
     @Override
@@ -88,9 +98,9 @@ public class FirebaseService implements WebService{
     public void getUser(String userId, SuccessCallback<User> callback) {
         mDb.collection(USERS).document(userId).get()
                 .addOnSuccessListener(documentSnapshot -> {
-                    if(documentSnapshot.exists()){
+                    if (documentSnapshot.exists()) {
                         callback.onSuccess(documentSnapshot.toObject(User.class));
-                    }else{
+                    } else {
                         callback.onFailed(new IllegalStateException("User not found"));
                     }
                 })

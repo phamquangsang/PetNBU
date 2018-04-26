@@ -1,6 +1,8 @@
 package com.petnbu.petnbu.feed;
 
 
+import android.arch.lifecycle.ViewModelProvider;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
@@ -39,8 +41,12 @@ public class FeedsFragment extends Fragment {
     }
 
     public void initialize() {
-        mFeedsViewModel = MainActivity.obtainViewModel(getActivity());
-        mFeedsViewModel.getFeeds().observe(this, feeds -> mAdapter.setFeeds(feeds));
+        mFeedsViewModel = ViewModelProviders.of(getActivity()).get(FeedsViewModel.class);
+        mFeedsViewModel.getFeeds().observe(this, feeds -> {
+            if(feeds.data != null){
+                mAdapter.setFeeds(feeds.data);
+            }
+        });
 
         mAdapter = new FeedsRecyclerViewAdapter(getContext(), new ArrayList<>());
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
