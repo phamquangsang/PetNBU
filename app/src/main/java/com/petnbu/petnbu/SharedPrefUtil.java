@@ -13,4 +13,10 @@ public class SharedPrefUtil {
         SharedPreferences setting = c.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         setting.edit().putString(KEY_LOGGED_USER_ID, userId).apply();
     }
+
+    public static String getUserId(Context c){
+        SharedPreferences setting = c.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        return setting.getString(KEY_LOGGED_USER_ID,"");
+    }
+
 }

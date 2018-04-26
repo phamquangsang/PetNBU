@@ -1,6 +1,8 @@
 package com.petnbu.petnbu.feed;
 
 
+import android.app.Activity;
+import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
@@ -17,10 +19,15 @@ import android.view.ViewGroup;
 
 import com.petnbu.petnbu.MainActivity;
 import com.petnbu.petnbu.R;
+import com.petnbu.petnbu.SharedPrefUtil;
 import com.petnbu.petnbu.Utils;
 import com.petnbu.petnbu.databinding.FragmentFeedsBinding;
+import com.petnbu.petnbu.model.Resource;
+import com.petnbu.petnbu.model.User;
 
 import java.util.ArrayList;
+
+import timber.log.Timber;
 
 public class FeedsFragment extends Fragment {
 
@@ -41,12 +48,16 @@ public class FeedsFragment extends Fragment {
     }
 
     public void initialize() {
-        mFeedsViewModel = ViewModelProviders.of(getActivity()).get(FeedsViewModel.class);
-        mFeedsViewModel.getFeeds().observe(this, feeds -> {
-            if(feeds.data != null){
-                mAdapter.setFeeds(feeds.data);
-            }
-        });
+        Activity activity = getActivity();
+        if(activity != null){
+            mFeedsViewModel = ViewModelProviders.of(getActivity()).get(FeedsViewModel.class);
+            mFeedsViewModel.getFeeds().observe(this, feeds -> {
+                if(feeds.data != null){
+                    mAdapter.setFeeds(feeds.data);
+                }
+            });
+        }
+
 
 
         mAdapter = new FeedsRecyclerViewAdapter(getContext(), new ArrayList<>());

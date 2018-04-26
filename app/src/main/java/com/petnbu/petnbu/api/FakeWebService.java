@@ -230,4 +230,9 @@ public class FakeWebService implements WebService {
     public void updateUser(User user, SuccessCallback<Void> callback) {
 
     }
+
+    @Override
+    public LiveData<ApiResponse<User>> getUser(String userId) {
+        return new MutableLiveData<>();
+    }
 }

@@ -2,6 +2,7 @@ package com.petnbu.petnbu.di;
 
 import android.app.Application;
 import android.arch.persistence.room.Room;
+import android.content.SharedPreferences;
 
 import com.petnbu.petnbu.db.FeedDao;
 import com.petnbu.petnbu.db.PetDb;
@@ -30,7 +31,7 @@ public class AppModule {
     @Provides
     @Singleton
     PetDb provideDb(Application app){
-        return Room.databaseBuilder(app, PetDb.class, "pet.db").build();
+        return Room.databaseBuilder(app, PetDb.class, "pet.db").fallbackToDestructiveMigration().build();
     }
 
     @Provides

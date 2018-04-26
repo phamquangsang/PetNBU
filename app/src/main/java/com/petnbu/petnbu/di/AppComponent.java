@@ -8,6 +8,7 @@ import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.feed.FeedsViewModel;
 import com.petnbu.petnbu.login.LoginJavaActivity;
 import com.petnbu.petnbu.repo.FeedRepository;
+import com.petnbu.petnbu.repo.UserRepository;
 
 import javax.inject.Singleton;
 
@@ -24,6 +25,8 @@ public interface AppComponent {
     PetDb getPetDb();
 
     FeedRepository getFeedRepo();
+
+    UserRepository getUserRepo();
 
     AppExecutors getAppExecutor();
 }

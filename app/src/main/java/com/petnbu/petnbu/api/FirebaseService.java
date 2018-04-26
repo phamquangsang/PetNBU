@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import dagger.Reusable;
 import timber.log.Timber;
 
 public class FirebaseService implements WebService {
@@ -105,6 +106,24 @@ public class FirebaseService implements WebService {
                     }
                 })
                 .addOnFailureListener(e -> callback.onFailed(e));
+    }
+
+    @Override
+    public LiveData<ApiResponse<User>> getUser(String userId) {
+        MutableLiveData<ApiResponse<User>> result = new MutableLiveData<>();
+
+        getUser(userId, new SuccessCallback<User>() {
+            @Override
+            public void onSuccess(User user) {
+                result.setValue(new ApiResponse<>(user, true, null));
+            }
+
+            @Override
+            public void onFailed(Exception e) {
+                result.setValue(new ApiResponse<>(null, false, e.getMessage()));
+            }
+        });
+        return result;
     }
 
     @Override

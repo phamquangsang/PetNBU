@@ -23,6 +23,8 @@ public interface WebService {
 
     public void getUser(String userId, SuccessCallback<User> callback);
 
+    public LiveData<ApiResponse<User>> getUser(String userId);
+
     public void updateUser(User user, SuccessCallback<Void> callback);
 
 }
