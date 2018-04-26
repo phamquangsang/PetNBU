@@ -57,4 +57,5 @@ public class MainActivity extends AppCompatActivity {
     private void initialize() {
         mBinding.bottomNavigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
     }
+
 }

@@ -1,10 +1,5 @@
 package com.petnbu.petnbu.login;
 
-import android.app.DialogFragment;
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.Observer;
-import android.arch.persistence.room.Room;
-import android.arch.persistence.room.RoomDatabase;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
@@ -39,8 +34,6 @@ import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.User;
 
 import javax.inject.Inject;
-
-import timber.log.Timber;
 
 public class LoginJavaActivity extends AppCompatActivity implements View.OnClickListener {
 

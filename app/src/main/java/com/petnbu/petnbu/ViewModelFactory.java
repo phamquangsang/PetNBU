@@ -11,7 +11,6 @@ import com.petnbu.petnbu.api.WebService;
 import com.petnbu.petnbu.feed.FeedsViewModel;
 import com.petnbu.petnbu.repo.FeedRepository;
 
-
 public class ViewModelFactory extends ViewModelProvider.NewInstanceFactory {
 
     @SuppressLint("StaticFieldLeak")

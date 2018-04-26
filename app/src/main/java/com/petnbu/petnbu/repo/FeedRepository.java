@@ -46,8 +46,8 @@ public class FeedRepository {
 
             @Override
             protected boolean shouldFetch(@Nullable List<Feed> data) {
-                return true;
-//                return data == null || data.isEmpty();
+//                return true;
+                return data == null || data.isEmpty();
             }
 
             @NonNull

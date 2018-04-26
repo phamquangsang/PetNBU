@@ -48,6 +48,7 @@ public class FeedsFragment extends Fragment {
             }
         });
 
+
         mAdapter = new FeedsRecyclerViewAdapter(getContext(), new ArrayList<>());
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
         mBinding.rvFeeds.setLayoutManager(linearLayoutManager);
