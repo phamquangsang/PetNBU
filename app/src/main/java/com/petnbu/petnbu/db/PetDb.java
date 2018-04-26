@@ -9,7 +9,7 @@ import android.arch.persistence.room.RoomDatabase;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.User;
 
-@Database(entities = {User.class, Feed.class}, version = 1)
+@Database(entities = {User.class, Feed.class}, version = 2)
 public abstract class PetDb extends RoomDatabase{
 
     abstract public FeedDao feedDao();

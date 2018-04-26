@@ -5,17 +5,32 @@ import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
 import android.arch.persistence.room.TypeConverter;
 import android.arch.persistence.room.TypeConverters;
+import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 
+import com.google.firebase.firestore.Exclude;
 import com.google.firebase.firestore.ServerTimestamp;
 import com.petnbu.petnbu.db.PetTypeConverters;
 
+import java.lang.annotation.Retention;
 import java.util.Date;
 import java.util.List;
+
+import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 @Entity(tableName = "feeds")
 @TypeConverters(PetTypeConverters.class)
 public class Feed {
+
+    @Retention(SOURCE)
+    @IntDef(value = {STATUS_NEW, STATUS_UPLOADING, STATUS_ERROR, STATUS_DONE})
+    public @interface LOCAL_STATUS{};
+
+    public static final int STATUS_NEW = 0;
+    public static final int STATUS_UPLOADING = 1;
+    public static final int STATUS_ERROR = 2;
+    public static final int STATUS_DONE = 3;
+
     @PrimaryKey @NonNull
     private String feedId;
     @Embedded
@@ -26,6 +41,10 @@ public class Feed {
     private String content;
     @ServerTimestamp private Date timeCreated;
     @ServerTimestamp private Date timeUpdated;
+
+    @Exclude
+    @LOCAL_STATUS
+    private int status;
 
     public Feed() {
     }
@@ -39,6 +58,7 @@ public class Feed {
         this.content = content;
         this.timeCreated = timeCreated;
         this.timeUpdated = timeUpdated;
+        status = STATUS_NEW;
     }
 
     public String getFeedId() {
@@ -105,6 +125,14 @@ public class Feed {
         this.content = content;
     }
 
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
     @Override
     public String toString() {
         return "Feed{" +
@@ -113,8 +141,10 @@ public class Feed {
                 ", photos=" + photos +
                 ", commentCount=" + commentCount +
                 ", likeCount=" + likeCount +
+                ", content='" + content + '\'' +
                 ", timeCreated=" + timeCreated +
                 ", timeUpdated=" + timeUpdated +
+                ", status=" + status +
                 '}';
     }
 }
