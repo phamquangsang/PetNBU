@@ -83,9 +83,14 @@ public class FeedsFragment extends Fragment {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
-                if (dy > 0 && mBinding.fabNewPost.getVisibility() == View.VISIBLE) {
+                View firstChild = recyclerView.getLayoutManager().getChildAt(0);
+                if (recyclerView.getChildAdapterPosition(firstChild) == 0) {
+                    if (firstChild.getY() < (Math.abs(firstChild.getHeight()))) {
+                        mBinding.fabNewPost.hide();
+                    }
+                } else if (dy > 0) {
                     mBinding.fabNewPost.hide();
-                } else if (dy < 0 && mBinding.fabNewPost.getVisibility() != View.VISIBLE) {
+                } else if (dy < 0) {
                     mBinding.fabNewPost.show();
                 }
             }

@@ -8,7 +8,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.bumptech.glide.RequestManager;
-import com.bumptech.glide.request.RequestOptions;
 import com.petnbu.petnbu.BaseBindingViewHolder;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.databinding.ViewCreateFeedCameraBinding;
@@ -105,7 +104,6 @@ public class PhotosAdapter extends RecyclerView.Adapter<BaseBindingViewHolder> {
         public void bindData(Photo photo) {
             mRequestManager
                     .load(photo.getOriginUrl())
-                    .apply(RequestOptions.centerInsideTransform())
                     .into(mBinding.imgContent);
         }
     }

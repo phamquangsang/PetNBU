@@ -2,11 +2,14 @@ package com.petnbu.petnbu.feed;
 
 import android.content.Context;
 import android.databinding.DataBindingUtil;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.util.ArrayMap;
 import android.support.v4.view.ViewPager;
 import android.support.v7.util.DiffUtil;
@@ -24,6 +27,8 @@ import android.view.ViewGroup;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.BitmapImageViewTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.google.android.gms.common.internal.Preconditions;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.Utils;
@@ -31,6 +36,7 @@ import com.petnbu.petnbu.databinding.ViewFeedBinding;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Photo;
+import com.petnbu.petnbu.util.ColorUtils;
 
 import java.util.Calendar;
 import java.util.List;
@@ -159,17 +165,16 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
                     mBinding.imgLike.setVisibility(View.GONE);
                     mBinding.imgComment.setVisibility(View.GONE);
                     mBinding.tvLikesCount.setVisibility(View.GONE);
-
-                    if(TextUtils.isEmpty(feed.getContent())) {
-                        mBinding.tvContent.setVisibility(View.GONE);
-                    } else {
-                        mBinding.tvContent.setVisibility(View.VISIBLE);
-                    }
                 } else {
                     mBinding.layoutDisable.setVisibility(View.GONE);
                     mBinding.imgLike.setVisibility(View.VISIBLE);
                     mBinding.imgComment.setVisibility(View.VISIBLE);
                     mBinding.tvLikesCount.setVisibility(View.VISIBLE);
+                    mBinding.tvContent.setVisibility(View.VISIBLE);
+                }
+                if(TextUtils.isEmpty(feed.getContent())) {
+                    mBinding.tvContent.setVisibility(View.GONE);
+                } else {
                     mBinding.tvContent.setVisibility(View.VISIBLE);
                 }
             }
@@ -178,9 +183,22 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
         private void displayUserInfo() {
             FeedUser feedUser = mFeed.getFeedUser();
             mBinding.tvName.setText(feedUser.getDisplayName());
-            mRequestManager.load(feedUser.getPhotoUrl())
+            mRequestManager.asBitmap()
+                    .load(feedUser.getPhotoUrl())
                     .apply(RequestOptions.centerCropTransform())
-                    .into(mBinding.imgProfile);
+                    .into(new BitmapImageViewTarget(mBinding.imgProfile) {
+                        @Override
+                        public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                            Context context = mBinding.imgProfile.getContext();
+                            if(ColorUtils.isDark(resource)) {
+                                mBinding.imgProfile.setBorderWidth(0);
+                            } else {
+                                mBinding.imgProfile.setBorderColor(ContextCompat.getColor(context, android.R.color.darker_gray));
+                                mBinding.imgProfile.setBorderWidth(1);
+                            }
+                            getView().setImageBitmap(resource);
+                        }
+                    });
         }
 
         private void displayTime() {

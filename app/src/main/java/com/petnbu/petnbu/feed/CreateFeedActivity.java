@@ -5,14 +5,17 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.ClipData;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.databinding.DataBindingUtil;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -27,11 +30,14 @@ import android.view.ViewTreeObserver;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.BitmapImageViewTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.github.ybq.android.spinkit.style.FadingCircle;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.Utils;
 import com.petnbu.petnbu.databinding.ActivityCreateFeedBinding;
 import com.petnbu.petnbu.model.Photo;
+import com.petnbu.petnbu.util.ColorUtils;
 import com.petnbu.petnbu.views.HorizontalSpaceItemDecoration;
 
 import java.util.ArrayList;
@@ -60,21 +66,35 @@ public class CreateFeedActivity extends AppCompatActivity {
     }
 
     private void setUp() {
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
         mRequestManager = Glide.with(this);
         mCreateFeedViewModel = ViewModelProviders.of(this).get(CreateFeedViewModel.class);
         mCreateFeedViewModel.createdFeedLiveData.observe(this, success -> finish());
         mCreateFeedViewModel.showLoadingLiveData.observe(this, this::setLoadingVisibility);
         mCreateFeedViewModel.loadUserInfos().observe(this, user -> {
             if(user != null) {
-                mRequestManager.load(user.getAvatar().getOriginUrl())
+                mRequestManager.asBitmap()
+                        .load(user.getAvatar().getOriginUrl())
                         .apply(RequestOptions.centerCropTransform())
-                        .into(mBinding.imgProfile);
+                        .into(new BitmapImageViewTarget(mBinding.imgProfile) {
+                            @Override
+                            public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                                Context context = mBinding.imgProfile.getContext();
+                                if(ColorUtils.isDark(resource)) {
+                                    mBinding.imgProfile.setBorderWidth(0);
+                                } else {
+                                    mBinding.imgProfile.setBorderColor(ContextCompat.getColor(context, android.R.color.darker_gray));
+                                    mBinding.imgProfile.setBorderWidth(1);
+                                }
+                                getView().setImageBitmap(resource);
+                            }
+                        });
                 mBinding.tvUserName.setText(user.getName());
             } else {
                 finish();
             }
         });
-
         requestReadExternalPermission();
 
         mBinding.edText.addTextChangedListener(new TextWatcher() {
@@ -168,6 +188,8 @@ public class CreateFeedActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_post) {
             mCreateFeedViewModel.createFeed(mBinding.edText.getText().toString().trim(), mSelectedPhotos);
+            finish();
+        } else if (item.getItemId() == android.R.id.home) {
             finish();
         }
         return super.onOptionsItemSelected(item);

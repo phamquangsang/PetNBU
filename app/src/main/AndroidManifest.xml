@@ -11,12 +11,12 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
 
     <application
+        android:name=".PetApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:name=".PetApplication"
         android:theme="@style/AppTheme.Launch">
         <activity
             android:name=".MainActivity"
@@ -36,11 +36,12 @@
         <activity
             android:name=".feed.CreateFeedActivity"
             android:screenOrientation="portrait"
-            android:windowSoftInputMode="adjustPan"
-            android:theme="@style/AppTheme"/>
+            android:theme="@style/AppTheme"
+            android:windowSoftInputMode="adjustPan"/>
 
-        <service android:name=".feed.CreateFeedService"
-                 android:permission="android.permission.BIND_JOB_SERVICE" />
+        <service
+            android:name=".feed.CreateFeedService"
+            android:permission="android.permission.BIND_JOB_SERVICE"/>
     </application>
 
 </manifest>
