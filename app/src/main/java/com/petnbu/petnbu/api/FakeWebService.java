@@ -12,10 +12,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FakeWebService implements WebService {
+    @Override
+    public void createFeed(Feed feed, SuccessCallback<Feed> callback) {
+        
+    }
 
     @Override
-    public void createFeed(Feed feed, SuccessCallback<Void> callback) {
-
+    public LiveData<ApiResponse<Feed>> createFeed(Feed feed) {
+        return null;
     }
 
     @Override

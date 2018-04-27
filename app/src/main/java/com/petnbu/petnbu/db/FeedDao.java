@@ -29,9 +29,16 @@ public abstract class FeedDao {
     @Update(onConflict = OnConflictStrategy.REPLACE)
     public abstract void updateAll(Feed... feeds);
 
-    @Query("SELECT * FROM feeds")
+    @Delete
+    public abstract void deleteFeed(Feed feed);
+
+    @Query("DELETE FROM feeds Where feedId = :feedId")
+    public abstract void deleteFeedById(String feedId);
+
+    @Query("SELECT * FROM feeds ORDER BY timeCreated DESC")
     public abstract LiveData<List<Feed>> loadFeeds();
 
     @Query("DELETE FROM feeds")
     public abstract void deleteAll();
+
 }

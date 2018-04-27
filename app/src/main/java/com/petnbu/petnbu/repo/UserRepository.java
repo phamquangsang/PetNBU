@@ -49,7 +49,7 @@ public class UserRepository {
             @NonNull
             @Override
             protected LiveData<User> loadFromDb() {
-                return mUserDao.findById(id);
+                return mUserDao.findLiveUserById(id);
             }
 
             @NonNull

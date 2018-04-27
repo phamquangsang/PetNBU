@@ -1,11 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <com.petnbu.petnbu.views.SquareImageView
-        android:id="@+id/imgContent"
+    <FrameLayout
+        android:id="@+id/layoutRoot"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:clickable="true"
-        android:foreground="?attr/selectableItemBackground"
-        android:scaleType="centerCrop"/>
+        android:layout_height="wrap_content">
+
+        <com.petnbu.petnbu.views.SquareImageView
+            android:id="@+id/imgContent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:foreground="?attr/selectableItemBackground"
+            android:scaleType="centerCrop"/>
+
+        <FrameLayout
+            android:id="@+id/layoutRemovePhoto"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|left"
+            android:padding="8dp"
+            android:background="?attr/selectableItemBackground">
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_close"
+                app:civ_border_color="#FFFFFF"
+                app:civ_border_width="2dp"
+                app:civ_circle_background_color="@android:color/black"/>
+        </FrameLayout>
+    </FrameLayout>
 </layout>

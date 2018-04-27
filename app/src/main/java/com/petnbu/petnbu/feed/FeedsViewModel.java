@@ -1,10 +1,7 @@
 package com.petnbu.petnbu.feed;
 
-import android.app.Application;
-import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.ViewModel;
-import android.support.annotation.NonNull;
 
 import com.petnbu.petnbu.PetApplication;
 import com.petnbu.petnbu.model.Feed;
@@ -19,12 +16,12 @@ public class FeedsViewModel extends ViewModel {
 
     @Inject
     FeedRepository mFeedRepository;
+
     private LiveData<Resource<List<Feed>>> mFeedsLiveData;
 
     public FeedsViewModel() {
         PetApplication.getAppComponent().inject(this);
     }
-
 
     public LiveData<Resource<List<Feed>>> getFeeds() {
         mFeedsLiveData = mFeedRepository.loadFeeds();

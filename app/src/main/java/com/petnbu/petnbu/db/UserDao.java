@@ -14,6 +14,9 @@ public interface UserDao {
     void insert(User user);
 
     @Query("SELECT * FROM users WHERE userId = :id")
-    LiveData<User> findById(String id);
+    LiveData<User> findLiveUserById(String id);
+
+    @Query("SELECT * FROM users WHERE userId = :id")
+    User findUserById(String id);
 
 }

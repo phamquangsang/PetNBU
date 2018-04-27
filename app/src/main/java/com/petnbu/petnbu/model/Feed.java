@@ -128,11 +128,12 @@ public class Feed implements Parcelable {
         this.content = content;
     }
 
+    @LOCAL_STATUS
     public int getStatus() {
         return status;
     }
 
-    public void setStatus(int status) {
+    public void setStatus(@LOCAL_STATUS int status) {
         this.status = status;
     }
 

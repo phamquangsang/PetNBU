@@ -12,9 +12,9 @@ import java.util.List;
 
 public interface WebService {
 
-    public void createFeed(Feed feed, SuccessCallback<Void> callback);
+    public void createFeed(Feed feed, SuccessCallback<Feed> callback);
 
-    public LiveData<ApiResponse<Void>> createFeed(Feed feed);
+    public LiveData<ApiResponse<Feed>> createFeed(Feed feed);
 
     public void updateFeed(Feed feed, SuccessCallback<Void> callback);
 
