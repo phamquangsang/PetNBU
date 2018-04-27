@@ -30,4 +30,11 @@
         <item name="backgroundSplit">?attr/colorAccent</item>
     </style>
 
+    <style name="DialogFragmentStyle" parent="Theme.AppCompat.Light.Dialog">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:windowMinWidthMajor">95%</item>
+        <item name="android:windowMinWidthMinor">95%</item>
+    </style>
+
 </resources>

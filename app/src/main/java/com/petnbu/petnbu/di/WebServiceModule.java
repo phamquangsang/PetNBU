@@ -13,7 +13,6 @@ import dagger.Provides;
 public class WebServiceModule {
 
     public WebServiceModule() {
-
     }
 
     @Singleton

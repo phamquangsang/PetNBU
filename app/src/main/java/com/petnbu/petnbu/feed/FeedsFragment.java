@@ -2,8 +2,6 @@ package com.petnbu.petnbu.feed;
 
 
 import android.app.Activity;
-import android.arch.lifecycle.Observer;
-import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
@@ -17,17 +15,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.petnbu.petnbu.MainActivity;
 import com.petnbu.petnbu.R;
-import com.petnbu.petnbu.SharedPrefUtil;
 import com.petnbu.petnbu.Utils;
 import com.petnbu.petnbu.databinding.FragmentFeedsBinding;
-import com.petnbu.petnbu.model.Resource;
-import com.petnbu.petnbu.model.User;
+import com.petnbu.petnbu.model.Photo;
 
 import java.util.ArrayList;
-
-import timber.log.Timber;
 
 public class FeedsFragment extends Fragment {
 
@@ -58,9 +51,27 @@ public class FeedsFragment extends Fragment {
             });
         }
 
+        mAdapter = new FeedsRecyclerViewAdapter(getContext(), new ArrayList<>(), new FeedsRecyclerViewAdapter.OnItemClickListener() {
+            @Override
+            public void onProfileClicked(String userId) {
 
+            }
 
-        mAdapter = new FeedsRecyclerViewAdapter(getContext(), new ArrayList<>());
+            @Override
+            public void onPhotoClicked(Photo photo) {
+
+            }
+
+            @Override
+            public void onLikeClicked(String feedId) {
+
+            }
+
+            @Override
+            public void onCommentClicked(String feedId) {
+
+            }
+        });
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
         mBinding.rvFeeds.setLayoutManager(linearLayoutManager);
         mBinding.rvFeeds.post(() -> {

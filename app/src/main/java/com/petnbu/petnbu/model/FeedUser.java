@@ -50,7 +50,6 @@ public class FeedUser implements Parcelable {
                 '}';
     }
 
-
     @Override
     public int describeContents() {
         return 0;
@@ -80,4 +79,25 @@ public class FeedUser implements Parcelable {
             return new FeedUser[size];
         }
     };
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        FeedUser feedUser = (FeedUser) o;
+
+        if (!getUserId().equals(feedUser.getUserId())) return false;
+        if (getPhotoUrl() != null ? !getPhotoUrl().equals(feedUser.getPhotoUrl()) : feedUser.getPhotoUrl() != null)
+            return false;
+        return getDisplayName() != null ? getDisplayName().equals(feedUser.getDisplayName()) : feedUser.getDisplayName() == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = getUserId().hashCode();
+        result = 31 * result + (getPhotoUrl() != null ? getPhotoUrl().hashCode() : 0);
+        result = 31 * result + (getDisplayName() != null ? getDisplayName().hashCode() : 0);
+        return result;
+    }
 }

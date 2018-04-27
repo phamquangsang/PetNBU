@@ -11,7 +11,6 @@ import com.petnbu.petnbu.db.FeedDao;
 import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.db.UserDao;
 import com.petnbu.petnbu.model.Feed;
-import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Resource;
 
 import java.util.List;
@@ -31,7 +30,6 @@ public class FeedRepository {
     private final AppExecutors mAppExecutors;
 
     private final WebService mWebService;
-
 
     @Inject
     public FeedRepository(PetDb petDb, FeedDao feedDao, UserDao userDao, AppExecutors appExecutors, WebService webService) {

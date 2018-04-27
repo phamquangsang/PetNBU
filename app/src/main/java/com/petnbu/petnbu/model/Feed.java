@@ -3,7 +3,6 @@ package com.petnbu.petnbu.model;
 import android.arch.persistence.room.Embedded;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
-import android.arch.persistence.room.TypeConverter;
 import android.arch.persistence.room.TypeConverters;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -152,7 +151,6 @@ public class Feed implements Parcelable {
                 '}';
     }
 
-
     @Override
     public int describeContents() {
         return 0;
@@ -174,7 +172,7 @@ public class Feed implements Parcelable {
     protected Feed(Parcel in) {
         this.feedId = in.readString();
         this.mFeedUser = in.readParcelable(FeedUser.class.getClassLoader());
-        this.photos = new ArrayList<Photo>();
+        this.photos = new ArrayList<>();
         in.readList(this.photos, Photo.class.getClassLoader());
         this.commentCount = in.readInt();
         this.likeCount = in.readInt();
@@ -197,4 +195,38 @@ public class Feed implements Parcelable {
             return new Feed[size];
         }
     };
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Feed feed = (Feed) o;
+
+        if (getCommentCount() != feed.getCommentCount()) return false;
+        if (getLikeCount() != feed.getLikeCount()) return false;
+        if (getStatus() != feed.getStatus()) return false;
+        if (!getFeedId().equals(feed.getFeedId())) return false;
+        if (!getFeedUser().equals(feed.getFeedUser())) return false;
+        if (getPhotos() != null ? !getPhotos().equals(feed.getPhotos()) : feed.getPhotos() != null)
+            return false;
+        if (getContent() != null ? !getContent().equals(feed.getContent()) : feed.getContent() != null)
+            return false;
+        if (!getTimeCreated().equals(feed.getTimeCreated())) return false;
+        return getTimeUpdated().equals(feed.getTimeUpdated());
+    }
+
+    @Override
+    public int hashCode() {
+        int result = getFeedId().hashCode();
+        result = 31 * result + getFeedUser().hashCode();
+        result = 31 * result + (getPhotos() != null ? getPhotos().hashCode() : 0);
+        result = 31 * result + getCommentCount();
+        result = 31 * result + getLikeCount();
+        result = 31 * result + (getContent() != null ? getContent().hashCode() : 0);
+        result = 31 * result + getTimeCreated().hashCode();
+        result = 31 * result + getTimeUpdated().hashCode();
+        result = 31 * result + getStatus();
+        return result;
+    }
 }

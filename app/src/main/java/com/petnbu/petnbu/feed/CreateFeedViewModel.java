@@ -2,21 +2,18 @@ package com.petnbu.petnbu.feed;
 
 import android.app.Application;
 import android.arch.lifecycle.ViewModel;
-import android.content.Intent;
 
 import com.petnbu.petnbu.PetApplication;
 import com.petnbu.petnbu.SharedPrefUtil;
 import com.petnbu.petnbu.SingleLiveEvent;
-import com.petnbu.petnbu.api.StorageApi;
 import com.petnbu.petnbu.api.SuccessCallback;
 import com.petnbu.petnbu.api.WebService;
-import com.petnbu.petnbu.db.UserDao;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Photo;
+import com.petnbu.petnbu.repo.UserRepository;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import javax.inject.Inject;
 
@@ -29,10 +26,10 @@ public class CreateFeedViewModel extends ViewModel {
     WebService mWebService;
 
     @Inject
-    Application mApplication;
+    UserRepository mUserRepository;
 
     @Inject
-    UserDao mUserDao;
+    Application mApplication;
 
     public CreateFeedViewModel() {
         PetApplication.getAppComponent().inject(this);

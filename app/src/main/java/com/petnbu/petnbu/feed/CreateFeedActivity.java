@@ -65,15 +65,7 @@ public class CreateFeedActivity extends AppCompatActivity {
     private void setUp() {
         mRequestManager = Glide.with(this);
         mCreateFeedViewModel = ViewModelProviders.of(this).get(CreateFeedViewModel.class);
-        mCreateFeedViewModel.createdFeedLiveData.observe(this, aBoolean -> {
-            if(aBoolean) {
-                // success
-                finish();
-            } else {
-                // failed
-
-            }
-        });
+        mCreateFeedViewModel.createdFeedLiveData.observe(this, success -> finish());
         mCreateFeedViewModel.showLoadingLiveData.observe(this, this::setLoadingVisibility);
         requestReadExternalPermission();
 

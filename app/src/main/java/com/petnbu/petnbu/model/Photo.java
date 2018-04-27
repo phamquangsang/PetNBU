@@ -4,6 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class Photo implements Parcelable {
+
     private String originUrl;
     private String largeUrl;
     private String smallUrl;
@@ -71,7 +72,6 @@ public class Photo implements Parcelable {
         this.height = height;
     }
 
-
     @Override
     public int describeContents() {
         return 0;
@@ -107,4 +107,33 @@ public class Photo implements Parcelable {
             return new Photo[size];
         }
     };
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Photo photo = (Photo) o;
+
+        if (getWidth() != photo.getWidth()) return false;
+        if (getHeight() != photo.getHeight()) return false;
+        if (getOriginUrl() != null ? !getOriginUrl().equals(photo.getOriginUrl()) : photo.getOriginUrl() != null)
+            return false;
+        if (getLargeUrl() != null ? !getLargeUrl().equals(photo.getLargeUrl()) : photo.getLargeUrl() != null)
+            return false;
+        if (getSmallUrl() != null ? !getSmallUrl().equals(photo.getSmallUrl()) : photo.getSmallUrl() != null)
+            return false;
+        return getThumbnailUrl() != null ? getThumbnailUrl().equals(photo.getThumbnailUrl()) : photo.getThumbnailUrl() == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = getOriginUrl() != null ? getOriginUrl().hashCode() : 0;
+        result = 31 * result + (getLargeUrl() != null ? getLargeUrl().hashCode() : 0);
+        result = 31 * result + (getSmallUrl() != null ? getSmallUrl().hashCode() : 0);
+        result = 31 * result + (getThumbnailUrl() != null ? getThumbnailUrl().hashCode() : 0);
+        result = 31 * result + getWidth();
+        result = 31 * result + getHeight();
+        return result;
+    }
 }
