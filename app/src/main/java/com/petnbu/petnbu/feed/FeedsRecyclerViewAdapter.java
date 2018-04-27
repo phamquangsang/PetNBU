@@ -14,6 +14,7 @@ import android.support.v7.widget.RecyclerView;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
+import android.text.format.DateUtils;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
@@ -31,6 +32,7 @@ import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Photo;
 
+import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
@@ -130,12 +132,16 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
         public void bindData(Feed feed) {
             mFeed = feed;
             displayUserInfo();
+            displayTime();
             displayPhotos();
             displayText();
 
             if (feed.getStatus() == Feed.STATUS_UPLOADING) {
                 mBinding.layoutRoot.setShouldInterceptEvents(true);
                 mBinding.layoutDisable.setVisibility(View.VISIBLE);
+                mBinding.spinKit.setVisibility(View.VISIBLE);
+                mBinding.layoutError.setVisibility(View.GONE);
+
                 mBinding.imgLike.setVisibility(View.GONE);
                 mBinding.imgComment.setVisibility(View.GONE);
                 mBinding.tvLikesCount.setVisibility(View.GONE);
@@ -146,25 +152,27 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
                 }
             } else {
                 mBinding.layoutRoot.setShouldInterceptEvents(false);
-                mBinding.layoutDisable.setVisibility(View.GONE);
-                mBinding.imgLike.setVisibility(View.VISIBLE);
-                mBinding.imgComment.setVisibility(View.VISIBLE);
-                mBinding.tvLikesCount.setVisibility(View.VISIBLE);
-                mBinding.tvContent.setVisibility(View.VISIBLE);
 
                 if (feed.getStatus() == Feed.STATUS_ERROR) {
+                    mBinding.spinKit.setVisibility(View.GONE);
+                    mBinding.layoutError.setVisibility(View.VISIBLE);
+                    mBinding.imgLike.setVisibility(View.GONE);
+                    mBinding.imgComment.setVisibility(View.GONE);
+                    mBinding.tvLikesCount.setVisibility(View.GONE);
 
+                    if(TextUtils.isEmpty(feed.getContent())) {
+                        mBinding.tvContent.setVisibility(View.GONE);
+                    } else {
+                        mBinding.tvContent.setVisibility(View.VISIBLE);
+                    }
+                } else {
+                    mBinding.layoutDisable.setVisibility(View.GONE);
+                    mBinding.imgLike.setVisibility(View.VISIBLE);
+                    mBinding.imgComment.setVisibility(View.VISIBLE);
+                    mBinding.tvLikesCount.setVisibility(View.VISIBLE);
+                    mBinding.tvContent.setVisibility(View.VISIBLE);
                 }
             }
-        }
-
-        private void displayText() {
-            SpannableStringBuilder builder = new SpannableStringBuilder(mFeed.getFeedUser().getDisplayName() + "");
-            builder.setSpan(new StyleSpan(Typeface.BOLD), 0, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            builder.setSpan(new ForegroundColorSpan(Color.BLACK), 0, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            builder.append(" ");
-            builder.append(mFeed.getContent());
-            mBinding.tvContent.setText(builder);
         }
 
         private void displayUserInfo() {
@@ -173,6 +181,11 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
             mRequestManager.load(feedUser.getPhotoUrl())
                     .apply(RequestOptions.centerCropTransform())
                     .into(mBinding.imgProfile);
+        }
+
+        private void displayTime() {
+            mBinding.tvDate.setText(DateUtils.getRelativeTimeSpanString(mFeed.getTimeCreated().getTime(),
+                    Calendar.getInstance().getTimeInMillis(), 0L, DateUtils.FORMAT_ABBREV_ALL));
         }
 
         private void displayPhotos() {
@@ -223,6 +236,15 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
 
             layoutParams.height = height > maxPhotoHeight ? maxPhotoHeight : height < minPhotoHeight ? minPhotoHeight : height;
             mBinding.layoutMedia.setLayoutParams(layoutParams);
+        }
+
+        private void displayText() {
+            SpannableStringBuilder builder = new SpannableStringBuilder(mFeed.getFeedUser().getDisplayName() + "");
+            builder.setSpan(new StyleSpan(Typeface.BOLD), 0, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            builder.setSpan(new ForegroundColorSpan(Color.BLACK), 0, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            builder.append(" ");
+            builder.append(mFeed.getContent());
+            mBinding.tvContent.setText(builder);
         }
     }
 

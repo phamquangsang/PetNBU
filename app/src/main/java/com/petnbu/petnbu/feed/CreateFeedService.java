@@ -1,11 +1,8 @@
 package com.petnbu.petnbu.feed;
 
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.Observer;
 import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.JobIntentService;
 
 import com.petnbu.petnbu.AppExecutors;
@@ -19,7 +16,6 @@ import com.petnbu.petnbu.db.UserDao;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Photo;
-import com.petnbu.petnbu.model.Status;
 import com.petnbu.petnbu.model.User;
 import com.petnbu.petnbu.util.IdUtil;
 
@@ -52,10 +48,10 @@ public class CreateFeedService extends JobIntentService{
         PetApplication.getAppComponent().inject(this);
     }
 
-    public static void enqueueWork(Context c, Feed feed){
-        Intent intent = new Intent(c, CreateFeedService.class);
+    public static void enqueueWork(Context context, Feed feed){
+        Intent intent = new Intent(context, CreateFeedService.class);
         intent.putExtra(FEED_EXTRA, feed);
-        enqueueWork(c, CreateFeedService.class, JOB_ID, intent);
+        enqueueWork(context, CreateFeedService.class, JOB_ID, intent);
     }
 
     @Override
@@ -65,7 +61,7 @@ public class CreateFeedService extends JobIntentService{
             return;
         }
         String feedId = IdUtil.generateID("feed");
-        if(feed.getFeedId() == null){
+        if(feed.getFeedId() == null) {
             feed.setFeedId(feedId);
         }else{
             feedId = feed.getFeedId();
@@ -107,10 +103,6 @@ public class CreateFeedService extends JobIntentService{
                 }
             }.start();
         }
-
-
-        //
-
     }
 
     private void uploadFeed(Feed feed, String temporaryFeedId) {

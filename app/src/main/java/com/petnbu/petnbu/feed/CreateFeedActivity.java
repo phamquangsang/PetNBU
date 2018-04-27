@@ -19,7 +19,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.text.Editable;
-import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -32,7 +31,6 @@ import com.github.ybq.android.spinkit.style.FadingCircle;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.Utils;
 import com.petnbu.petnbu.databinding.ActivityCreateFeedBinding;
-import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.views.HorizontalSpaceItemDecoration;
 
@@ -54,7 +52,6 @@ public class CreateFeedActivity extends AppCompatActivity {
     private ArrayList<Photo> mSelectedPhotos = new ArrayList<>();
     private boolean cameraClicked = false;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,6 +64,17 @@ public class CreateFeedActivity extends AppCompatActivity {
         mCreateFeedViewModel = ViewModelProviders.of(this).get(CreateFeedViewModel.class);
         mCreateFeedViewModel.createdFeedLiveData.observe(this, success -> finish());
         mCreateFeedViewModel.showLoadingLiveData.observe(this, this::setLoadingVisibility);
+        mCreateFeedViewModel.loadUserInfos().observe(this, user -> {
+            if(user != null) {
+                mRequestManager.load(user.getAvatar().getOriginUrl())
+                        .apply(RequestOptions.centerCropTransform())
+                        .into(mBinding.imgProfile);
+                mBinding.tvUserName.setText(user.getName());
+            } else {
+                finish();
+            }
+        });
+
         requestReadExternalPermission();
 
         mBinding.edText.addTextChangedListener(new TextWatcher() {
@@ -121,11 +129,6 @@ public class CreateFeedActivity extends AppCompatActivity {
                 mBinding.rvMedia.setLayoutParams(layoutParams);
             }
         });
-
-        mRequestManager.load("https://picsum.photos/54/54/?random")
-                .apply(RequestOptions.centerCropTransform())
-                .into(mBinding.imgProfile);
-        mBinding.tvUserName.setText("Nhat Pham");
     }
 
     protected boolean requestReadExternalPermission() {
@@ -164,10 +167,7 @@ public class CreateFeedActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_post) {
-            Feed feed = new Feed();
-            feed.setContent(mBinding.edText.getText().toString());
-            feed.setPhotos(mSelectedPhotos);
-            CreateFeedService.enqueueWork(this, feed);
+            mCreateFeedViewModel.createFeed(mBinding.edText.getText().toString().trim(), mSelectedPhotos);
             finish();
         }
         return super.onOptionsItemSelected(item);
@@ -222,7 +222,8 @@ public class CreateFeedActivity extends AppCompatActivity {
                             photo.setHeight(options.outHeight);
                             mSelectedPhotos.add(photo);
                         }
-                        mPhotosAdapter.notifyItemRangeInserted(mSelectedPhotos.size() - clipData.getItemCount(), clipData.getItemCount());
+                        mPhotosAdapter.notifyItemRangeInserted(mSelectedPhotos.size() - clipData.getItemCount(),
+                                clipData.getItemCount());
                     }
                 }
                 checkToEnablePostMenu();
@@ -233,8 +234,7 @@ public class CreateFeedActivity extends AppCompatActivity {
     }
 
     private void checkToEnablePostMenu() {
-        Utils.enableMenuItem(this, postMenuItem,
-                !TextUtils.isEmpty(mBinding.edText.getText().toString().trim()) || !mPhotosAdapter.getPhotos().isEmpty());
+        Utils.enableMenuItem(this, postMenuItem, !mPhotosAdapter.getPhotos().isEmpty());
     }
 
     private void setLoadingVisibility(boolean visible) {
