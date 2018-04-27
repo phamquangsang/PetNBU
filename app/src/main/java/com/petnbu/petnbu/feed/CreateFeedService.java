@@ -8,6 +8,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.JobIntentService;
 
+import com.petnbu.petnbu.AppExecutors;
 import com.petnbu.petnbu.PetApplication;
 import com.petnbu.petnbu.SharedPrefUtil;
 import com.petnbu.petnbu.api.StorageApi;
@@ -28,6 +29,8 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import timber.log.Timber;
+
 public class CreateFeedService extends JobIntentService{
 
     private static int JOB_ID = 1000;
@@ -39,6 +42,9 @@ public class CreateFeedService extends JobIntentService{
 
     @Inject
     UserDao mUserDao;
+
+    @Inject
+    AppExecutors mAppExecutors;
 
     private static final String FEED_EXTRA = "feed_extra";
 
@@ -64,6 +70,7 @@ public class CreateFeedService extends JobIntentService{
         }else{
             feedId = feed.getFeedId();
         }
+        Timber.i("received feed %s", feed);
         User user = mUserDao.findUserById(SharedPrefUtil.getUserId(getApplication()));
         FeedUser feedUser = new FeedUser(user.getUserId(), user.getAvatar().getOriginUrl(), user.getName());
         feed.setFeedUser(feedUser);
@@ -79,20 +86,28 @@ public class CreateFeedService extends JobIntentService{
         }
 
         final String localFeedId = feedId;
-        new StorageApi.OnUploadingImage(photoUrls){
-            @Override
-            public void onCompleted(List<String> result) {
-                for (int i = 0; i < result.size(); i++) {
-                    feed.getPhotos().get(i).setOriginUrl(result.get(i));
-                }
-                uploadFeed(feed, localFeedId);
-            }
 
-            @Override
-            public void onFailed(Exception e) {
-                updateLocalFeedError(feed);
-            }
-        };
+        if(photoUrls.isEmpty()){
+            uploadFeed(feed, localFeedId);
+        }else{
+            new StorageApi.OnUploadingImage(photoUrls){
+                @Override
+                public void onCompleted(List<String> result) {
+                    Timber.i("update %d photos complete", result.size());
+                    for (int i = 0; i < result.size(); i++) {
+                        feed.getPhotos().get(i).setOriginUrl(result.get(i));
+                    }
+                    uploadFeed(feed, localFeedId);
+                }
+
+                @Override
+                public void onFailed(Exception e) {
+                    Timber.e("upload photos failed with exception", e);
+                    updateLocalFeedError(feed);
+                }
+            }.start();
+        }
+
 
         //
 
@@ -102,13 +117,17 @@ public class CreateFeedService extends JobIntentService{
         mWebService.createFeed(feed, new SuccessCallback<Feed>() {
             @Override
             public void onSuccess(Feed newFeed) {
-                mFeedDao.deleteFeedById(temporaryFeedId);
-                newFeed.setStatus(Feed.STATUS_DONE);
-                mFeedDao.insert(newFeed);
+                Timber.i("upload feed succeed %s", newFeed.toString());
+                mAppExecutors.diskIO().execute(() -> {
+                    mFeedDao.deleteFeedById(temporaryFeedId);
+                    newFeed.setStatus(Feed.STATUS_DONE);
+                    mFeedDao.insert(newFeed);
+                });
             }
 
             @Override
             public void onFailed(Exception e) {
+                Timber.e("uploadFeed error", e);
                 updateLocalFeedError(feed);
             }
         });
@@ -116,6 +135,6 @@ public class CreateFeedService extends JobIntentService{
 
     private void updateLocalFeedError(Feed feed) {
         feed.setStatus(Feed.STATUS_ERROR);
-        mFeedDao.update(feed);
+        mAppExecutors.diskIO().execute(() -> mFeedDao.update(feed));
     }
 }

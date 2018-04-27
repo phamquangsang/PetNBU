@@ -37,8 +37,8 @@ public class FirebaseService implements WebService {
         DocumentReference doc = mDb.collection(GLOBAL_FEEDS).document();
         final String oldId = feed.getFeedId();
         feed.setFeedId(doc.getId());
-        feed.setTimeCreated(null);
-        feed.setTimeUpdated(null);
+        feed.setTimeCreated(new Date());
+        feed.setTimeUpdated(new Date());
         doc.set(feed)
                 .addOnSuccessListener(aVoid -> callback.onSuccess(feed))
                 .addOnFailureListener(e -> {
