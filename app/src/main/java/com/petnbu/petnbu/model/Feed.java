@@ -44,8 +44,8 @@ public class Feed implements Parcelable {
     @ServerTimestamp private Date timeCreated;
     @ServerTimestamp private Date timeUpdated;
 
-    @Exclude
     @LOCAL_STATUS
+    @Exclude
     private int status;
 
     public Feed() {
@@ -128,6 +128,7 @@ public class Feed implements Parcelable {
     }
 
     @LOCAL_STATUS
+    @Exclude
     public int getStatus() {
         return status;
     }

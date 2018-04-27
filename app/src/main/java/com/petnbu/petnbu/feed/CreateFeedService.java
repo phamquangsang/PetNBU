@@ -102,7 +102,7 @@ public class CreateFeedService extends JobIntentService{
 
                 @Override
                 public void onFailed(Exception e) {
-                    Timber.e("upload photos failed with exception", e);
+                    Timber.e("upload photos failed with exception %s", e.toString());
                     updateLocalFeedError(feed);
                 }
             }.start();
