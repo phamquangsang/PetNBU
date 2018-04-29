@@ -4,6 +4,7 @@ package com.petnbu.petnbu.jobs;
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 
+import com.firebase.jobdispatcher.FirebaseJobDispatcher;
 import com.firebase.jobdispatcher.JobParameters;
 import com.firebase.jobdispatcher.JobService;
 import com.google.gson.Gson;
@@ -116,7 +117,6 @@ public class CreateFeedJob extends JobService {
             });
         }catch (Exception e) {
             Timber.e(e);
-            return false;
         }
         return true;
     }
@@ -133,9 +133,10 @@ public class CreateFeedJob extends JobService {
             public void onSuccess(Feed newFeed) {
                 Timber.i("upload mFeed succeed %s", newFeed.toString());
                 mAppExecutors.diskIO().execute(() -> {
-                    mFeedDao.deleteFeedById(temporaryFeedId);
+                    Timber.i("update feedId from %s to %s", temporaryFeedId, newFeed.getFeedId());
+                    mFeedDao.updateFeedId(temporaryFeedId, newFeed.getFeedId());
                     newFeed.setStatus(Feed.STATUS_DONE);
-                    mFeedDao.insert(newFeed);
+                    mFeedDao.update(newFeed);
                     jobFinished(mParams, false);
                 });
             }

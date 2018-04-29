@@ -23,6 +23,9 @@ public abstract class FeedDao {
     @Update(onConflict = OnConflictStrategy.REPLACE)
     public abstract void update(Feed feed);
 
+    @Query("UPDATE feeds set feedId = :newId where feedId = :feedId")
+    public abstract void updateFeedId(String feedId, String newId);
+
     @Update(onConflict = OnConflictStrategy.REPLACE)
     public abstract void updateAll(List<Feed> feeds);
 
