@@ -73,42 +73,6 @@ public class Photo implements Parcelable {
     }
 
     @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(this.originUrl);
-        dest.writeString(this.largeUrl);
-        dest.writeString(this.smallUrl);
-        dest.writeString(this.thumbnailUrl);
-        dest.writeInt(this.width);
-        dest.writeInt(this.height);
-    }
-
-    protected Photo(Parcel in) {
-        this.originUrl = in.readString();
-        this.largeUrl = in.readString();
-        this.smallUrl = in.readString();
-        this.thumbnailUrl = in.readString();
-        this.width = in.readInt();
-        this.height = in.readInt();
-    }
-
-    public static final Parcelable.Creator<Photo> CREATOR = new Parcelable.Creator<Photo>() {
-        @Override
-        public Photo createFromParcel(Parcel source) {
-            return new Photo(source);
-        }
-
-        @Override
-        public Photo[] newArray(int size) {
-            return new Photo[size];
-        }
-    };
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -135,5 +99,54 @@ public class Photo implements Parcelable {
         result = 31 * result + getWidth();
         result = 31 * result + getHeight();
         return result;
+    }
+
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.originUrl);
+        dest.writeString(this.largeUrl);
+        dest.writeString(this.smallUrl);
+        dest.writeString(this.thumbnailUrl);
+        dest.writeInt(this.width);
+        dest.writeInt(this.height);
+    }
+
+    protected Photo(Parcel in) {
+        this.originUrl = in.readString();
+        this.largeUrl = in.readString();
+        this.smallUrl = in.readString();
+        this.thumbnailUrl = in.readString();
+        this.width = in.readInt();
+        this.height = in.readInt();
+    }
+
+    public static final Creator<Photo> CREATOR = new Creator<Photo>() {
+        @Override
+        public Photo createFromParcel(Parcel source) {
+            return new Photo(source);
+        }
+
+        @Override
+        public Photo[] newArray(int size) {
+            return new Photo[size];
+        }
+    };
+
+    @Override
+    public String toString() {
+        return "Photo{" +
+                "originUrl='" + originUrl + '\'' +
+                ", largeUrl='" + largeUrl + '\'' +
+                ", smallUrl='" + smallUrl + '\'' +
+                ", thumbnailUrl='" + thumbnailUrl + '\'' +
+                ", width=" + width +
+                ", height=" + height +
+                '}';
     }
 }

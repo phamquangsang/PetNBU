@@ -153,51 +153,6 @@ public class Feed implements Parcelable {
     }
 
     @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(this.feedId);
-        dest.writeParcelable(this.mFeedUser, flags);
-        dest.writeList(this.photos);
-        dest.writeInt(this.commentCount);
-        dest.writeInt(this.likeCount);
-        dest.writeString(this.content);
-        dest.writeLong(this.timeCreated != null ? this.timeCreated.getTime() : -1);
-        dest.writeLong(this.timeUpdated != null ? this.timeUpdated.getTime() : -1);
-        dest.writeInt(this.status);
-    }
-
-    protected Feed(Parcel in) {
-        this.feedId = in.readString();
-        this.mFeedUser = in.readParcelable(FeedUser.class.getClassLoader());
-        this.photos = new ArrayList<>();
-        in.readList(this.photos, Photo.class.getClassLoader());
-        this.commentCount = in.readInt();
-        this.likeCount = in.readInt();
-        this.content = in.readString();
-        long tmpTimeCreated = in.readLong();
-        this.timeCreated = tmpTimeCreated == -1 ? null : new Date(tmpTimeCreated);
-        long tmpTimeUpdated = in.readLong();
-        this.timeUpdated = tmpTimeUpdated == -1 ? null : new Date(tmpTimeUpdated);
-        this.status = in.readInt();
-    }
-
-    public static final Parcelable.Creator<Feed> CREATOR = new Parcelable.Creator<Feed>() {
-        @Override
-        public Feed createFromParcel(Parcel source) {
-            return new Feed(source);
-        }
-
-        @Override
-        public Feed[] newArray(int size) {
-            return new Feed[size];
-        }
-    };
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -230,4 +185,48 @@ public class Feed implements Parcelable {
         result = 31 * result + getStatus();
         return result;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.feedId);
+        dest.writeParcelable(this.mFeedUser, flags);
+        dest.writeTypedList(this.photos);
+        dest.writeInt(this.commentCount);
+        dest.writeInt(this.likeCount);
+        dest.writeString(this.content);
+        dest.writeLong(this.timeCreated != null ? this.timeCreated.getTime() : -1);
+        dest.writeLong(this.timeUpdated != null ? this.timeUpdated.getTime() : -1);
+        dest.writeInt(this.status);
+    }
+
+    protected Feed(Parcel in) {
+        this.feedId = in.readString();
+        this.mFeedUser = in.readParcelable(getClass().getClassLoader());
+        this.photos = in.createTypedArrayList(Photo.CREATOR);
+        this.commentCount = in.readInt();
+        this.likeCount = in.readInt();
+        this.content = in.readString();
+        long tmpTimeCreated = in.readLong();
+        this.timeCreated = tmpTimeCreated == -1 ? null : new Date(tmpTimeCreated);
+        long tmpTimeUpdated = in.readLong();
+        this.timeUpdated = tmpTimeUpdated == -1 ? null : new Date(tmpTimeUpdated);
+        this.status = in.readInt();
+    }
+
+    public static final Creator<Feed> CREATOR = new Creator<Feed>() {
+        @Override
+        public Feed createFromParcel(Parcel source) {
+            return new Feed(source);
+        }
+
+        @Override
+        public Feed[] newArray(int size) {
+            return new Feed[size];
+        }
+    };
 }

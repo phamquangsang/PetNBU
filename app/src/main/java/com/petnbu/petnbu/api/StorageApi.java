@@ -33,7 +33,6 @@ public class StorageApi {
             onSuccessListener.onSuccess(taskSnapshot);
 
         }).addOnFailureListener(e -> onFailureListener.onFailure(e));
-
     }
 
     public static StorageReference getStorageRef() {

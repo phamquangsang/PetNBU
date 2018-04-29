@@ -51,36 +51,6 @@ public class FeedUser implements Parcelable {
     }
 
     @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(this.userId);
-        dest.writeString(this.photoUrl);
-        dest.writeString(this.displayName);
-    }
-
-    protected FeedUser(Parcel in) {
-        this.userId = in.readString();
-        this.photoUrl = in.readString();
-        this.displayName = in.readString();
-    }
-
-    public static final Parcelable.Creator<FeedUser> CREATOR = new Parcelable.Creator<FeedUser>() {
-        @Override
-        public FeedUser createFromParcel(Parcel source) {
-            return new FeedUser(source);
-        }
-
-        @Override
-        public FeedUser[] newArray(int size) {
-            return new FeedUser[size];
-        }
-    };
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -100,4 +70,35 @@ public class FeedUser implements Parcelable {
         result = 31 * result + (getDisplayName() != null ? getDisplayName().hashCode() : 0);
         return result;
     }
+
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.userId);
+        dest.writeString(this.photoUrl);
+        dest.writeString(this.displayName);
+    }
+
+    protected FeedUser(Parcel in) {
+        this.userId = in.readString();
+        this.photoUrl = in.readString();
+        this.displayName = in.readString();
+    }
+
+    public static final Creator<FeedUser> CREATOR = new Creator<FeedUser>() {
+        @Override
+        public FeedUser createFromParcel(Parcel source) {
+            return new FeedUser(source);
+        }
+
+        @Override
+        public FeedUser[] newArray(int size) {
+            return new FeedUser[size];
+        }
+    };
 }

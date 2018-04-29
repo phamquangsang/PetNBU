@@ -1,10 +1,12 @@
 package com.petnbu.petnbu.di;
 
+import com.firebase.jobdispatcher.FirebaseJobDispatcher;
 import com.petnbu.petnbu.AppExecutors;
 import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.feed.CreateFeedService;
 import com.petnbu.petnbu.feed.CreateFeedViewModel;
 import com.petnbu.petnbu.feed.FeedsViewModel;
+import com.petnbu.petnbu.jobs.CreateFeedJob;
 import com.petnbu.petnbu.login.LoginJavaActivity;
 import com.petnbu.petnbu.repo.FeedRepository;
 import com.petnbu.petnbu.repo.UserRepository;
@@ -23,6 +25,8 @@ public interface AppComponent {
 
     void inject(CreateFeedService createFeedService);
 
+    void inject(CreateFeedJob createFeedJob);
+
     void inject(CreateFeedViewModel viewModel);
 
     PetDb getPetDb();
@@ -32,4 +36,8 @@ public interface AppComponent {
     UserRepository getUserRepo();
 
     AppExecutors getAppExecutor();
+
+    FirebaseJobDispatcher getJobDispatcher();
+
+
 }

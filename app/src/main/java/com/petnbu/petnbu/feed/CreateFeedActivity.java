@@ -1,7 +1,6 @@
 package com.petnbu.petnbu.feed;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.ClipData;
@@ -13,6 +12,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -42,10 +42,15 @@ import com.petnbu.petnbu.views.HorizontalSpaceItemDecoration;
 
 import java.util.ArrayList;
 
+import timber.log.Timber;
+
 public class CreateFeedActivity extends AppCompatActivity {
 
     public static final int PICK_IMAGE = 1;
     private static final int REQUEST_READ_EXTERNAL_PERMISSIONS = 8;
+
+    public static final int GALLERY_INTENT_CALLED = 3;
+    public static final int GALLERY_KITKAT_INTENT_CALLED = 2;
 
     private ActivityCreateFeedBinding mBinding;
     private CreateFeedViewModel mCreateFeedViewModel;
@@ -73,7 +78,7 @@ public class CreateFeedActivity extends AppCompatActivity {
         mCreateFeedViewModel.createdFeedLiveData.observe(this, success -> finish());
         mCreateFeedViewModel.showLoadingLiveData.observe(this, this::setLoadingVisibility);
         mCreateFeedViewModel.loadUserInfos().observe(this, user -> {
-            if(user != null) {
+            if (user != null) {
                 mRequestManager.asBitmap()
                         .load(user.getAvatar().getOriginUrl())
                         .apply(RequestOptions.centerCropTransform())
@@ -81,7 +86,7 @@ public class CreateFeedActivity extends AppCompatActivity {
                             @Override
                             public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
                                 Context context = mBinding.imgProfile.getContext();
-                                if(ColorUtils.isDark(resource)) {
+                                if (ColorUtils.isDark(resource)) {
                                     mBinding.imgProfile.setBorderWidth(0);
                                 } else {
                                     mBinding.imgProfile.setBorderColor(ContextCompat.getColor(context, android.R.color.darker_gray));
@@ -158,11 +163,19 @@ public class CreateFeedActivity extends AppCompatActivity {
             return true;
         } else {
             if (cameraClicked) {
-                Intent intent = new Intent();
-                intent.setType("image/*");
-                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-                intent.setAction(Intent.ACTION_GET_CONTENT);
-                startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE);
+
+                if (Build.VERSION.SDK_INT < 19) {
+                    Intent intent = new Intent();
+                    intent.setType("*/*");
+                    intent.setAction(Intent.ACTION_GET_CONTENT);
+                    startActivityForResult(intent, GALLERY_INTENT_CALLED);
+                } else {
+                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                    intent.addCategory(Intent.CATEGORY_OPENABLE);
+                    intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+                    intent.setType("*/*");
+                    startActivityForResult(intent, GALLERY_KITKAT_INTENT_CALLED);
+                }
 
                 cameraClicked = false;
             }
@@ -190,10 +203,12 @@ public class CreateFeedActivity extends AppCompatActivity {
             mCreateFeedViewModel.createFeed(mBinding.edText.getText().toString().trim(), mSelectedPhotos);
             finish();
         } else if (item.getItemId() == android.R.id.home) {
+
             finish();
         }
         return super.onOptionsItemSelected(item);
     }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -201,11 +216,19 @@ public class CreateFeedActivity extends AppCompatActivity {
             case REQUEST_READ_EXTERNAL_PERMISSIONS:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     if (cameraClicked) {
-                        Intent intent = new Intent();
-                        intent.setType("image/*");
-                        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-                        intent.setAction(Intent.ACTION_GET_CONTENT);
-                        startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE);
+
+                        if (Build.VERSION.SDK_INT < 19) {
+                            Intent intent = new Intent();
+                            intent.setType("*/*");
+                            intent.setAction(Intent.ACTION_GET_CONTENT);
+                            startActivityForResult(intent, GALLERY_INTENT_CALLED);
+                        } else {
+                            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                            intent.addCategory(Intent.CATEGORY_OPENABLE);
+                            intent.setType("*/*");
+                            intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+                            startActivityForResult(intent, GALLERY_KITKAT_INTENT_CALLED);
+                        }
 
                         cameraClicked = false;
                     }
@@ -219,23 +242,26 @@ public class CreateFeedActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == PICK_IMAGE) {
-            if (resultCode == Activity.RESULT_OK) {
-                if (data.getData() != null) {
+            if (resultCode == RESULT_OK) {
+                if(data.getData() != null){
                     Uri uri = data.getData();
+                    requestPersistablePermission(data, uri);
                     BitmapFactory.Options options = Utils.getBitmapSize(this, uri);
 
                     Photo photo = new Photo();
+                    Timber.i("decodeUri: %s", uri.toString());
                     photo.setOriginUrl(uri.toString());
                     photo.setWidth(options.outWidth);
                     photo.setHeight(options.outHeight);
                     mSelectedPhotos.add(photo);
                     mPhotosAdapter.notifyItemInserted(mSelectedPhotos.size() - 1);
-                } else {
+                }else{
                     ClipData clipData = data.getClipData();
                     if (clipData != null) {
                         for (int i = 0; i < clipData.getItemCount(); i++) {
                             ClipData.Item item = clipData.getItemAt(i);
                             Uri uri = item.getUri();
+                            requestPersistablePermission(data, uri);
                             BitmapFactory.Options options = Utils.getBitmapSize(this, uri);
 
                             Photo photo = new Photo();
@@ -248,10 +274,30 @@ public class CreateFeedActivity extends AppCompatActivity {
                                 clipData.getItemCount());
                     }
                 }
-                checkToEnablePostMenu();
+
             }
+            checkToEnablePostMenu();
         } else {
             super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+    private void requestPersistablePermission(Intent data, Uri uri) {
+        if (Build.VERSION.SDK_INT >= 19) {
+            uri = data.getData();
+            final int takeFlags = data.getFlags()
+                    & (Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+
+            try {
+                if (uri != null) {
+                    CreateFeedActivity.this.getContentResolver().takePersistableUriPermission(uri, takeFlags);
+                } else {
+                    //todo notify user something wrong with selected photo
+                }
+            } catch (SecurityException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -260,7 +306,7 @@ public class CreateFeedActivity extends AppCompatActivity {
     }
 
     private void setLoadingVisibility(boolean visible) {
-        if(visible) {
+        if (visible) {
             if (mProgressDialog == null) {
                 mProgressDialog = new ProgressDialog(this);
                 FadingCircle fadingCircle = new FadingCircle();

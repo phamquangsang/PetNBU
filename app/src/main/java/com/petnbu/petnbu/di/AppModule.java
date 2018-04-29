@@ -4,6 +4,8 @@ import android.app.Application;
 import android.arch.persistence.room.Room;
 import android.content.SharedPreferences;
 
+import com.firebase.jobdispatcher.FirebaseJobDispatcher;
+import com.firebase.jobdispatcher.GooglePlayDriver;
 import com.petnbu.petnbu.db.FeedDao;
 import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.db.UserDao;
@@ -44,6 +46,12 @@ public class AppModule {
     @Singleton
     UserDao provideUserDao(PetDb db){
         return db.userDao();
+    }
+
+    @Provides
+    @Singleton
+    FirebaseJobDispatcher provideDispatcher(Application application){
+        return new FirebaseJobDispatcher(new GooglePlayDriver(application));
     }
 
 }
