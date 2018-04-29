@@ -28,6 +28,8 @@ import javax.inject.Inject;
 
 import timber.log.Timber;
 
+//switch to CreateFeedJob
+@Deprecated
 public class CreateFeedService extends JobIntentService{
 
     private static int JOB_ID = 1000;
