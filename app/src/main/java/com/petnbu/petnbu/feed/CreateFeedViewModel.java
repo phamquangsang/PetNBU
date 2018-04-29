@@ -19,10 +19,12 @@ import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.Status;
 import com.petnbu.petnbu.model.User;
+import com.petnbu.petnbu.repo.FeedRepository;
 import com.petnbu.petnbu.repo.UserRepository;
 import com.petnbu.petnbu.util.IdUtil;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 import javax.inject.Inject;
 
@@ -33,6 +35,9 @@ public class CreateFeedViewModel extends ViewModel {
 
     @Inject
     UserRepository mUserRepository;
+
+    @Inject
+    FeedRepository mFeedRepository;
 
     @Inject
     Application mApplication;
@@ -55,22 +60,7 @@ public class CreateFeedViewModel extends ViewModel {
         Feed feed = new Feed();
         feed.setContent(content);
         feed.setPhotos(photos);
+        mFeedRepository.createNewFeed(feed);
 
-        feed.setFeedId(IdUtil.generateID("feed"));
-        scheduleCreateFeedJob(feed);
-//        CreateFeedService.enqueueWork(mApplication, feed);
-    }
-
-    private void scheduleCreateFeedJob(Feed feed) {
-        Gson gson = new Gson();
-        FirebaseJobDispatcher jobDispatcher = PetApplication.getAppComponent().getJobDispatcher();
-        Job job = jobDispatcher.newJobBuilder()
-                .setService(CreateFeedJob.class)
-                .setExtras(CreateFeedJob.putExtras(feed))
-                .setTag(feed.getFeedId())
-                .setConstraints(Constraint.ON_ANY_NETWORK)
-                .setTrigger(Trigger.executionWindow(0, 10))
-                .build();
-        jobDispatcher.mustSchedule(job);
     }
 }

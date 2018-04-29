@@ -41,6 +41,9 @@ public abstract class FeedDao {
     @Query("SELECT * FROM feeds ORDER BY timeCreated DESC")
     public abstract LiveData<List<Feed>> loadFeeds();
 
+    @Query("SELECT * FROM feeds WHERE feedId = :feedId")
+    public abstract Feed findFeedById(String feedId);
+
     @Query("DELETE FROM feeds")
     public abstract void deleteAll();
 

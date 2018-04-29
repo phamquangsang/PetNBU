@@ -4,22 +4,18 @@ package com.petnbu.petnbu.jobs;
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 
-import com.firebase.jobdispatcher.FirebaseJobDispatcher;
 import com.firebase.jobdispatcher.JobParameters;
 import com.firebase.jobdispatcher.JobService;
 import com.google.gson.Gson;
 import com.petnbu.petnbu.AppExecutors;
 import com.petnbu.petnbu.PetApplication;
-import com.petnbu.petnbu.SharedPrefUtil;
 import com.petnbu.petnbu.api.StorageApi;
 import com.petnbu.petnbu.api.SuccessCallback;
 import com.petnbu.petnbu.api.WebService;
 import com.petnbu.petnbu.db.FeedDao;
 import com.petnbu.petnbu.db.UserDao;
 import com.petnbu.petnbu.model.Feed;
-import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Photo;
-import com.petnbu.petnbu.model.User;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -30,7 +26,7 @@ import javax.inject.Inject;
 import timber.log.Timber;
 
 public class CreateFeedJob extends JobService {
-    private static String FEED_JSON_EXTRA = "feed-extra";
+    private static String FEED_ID_EXTRA = "feed-id-extra";
 
     private Feed mFeed;
 
@@ -48,10 +44,15 @@ public class CreateFeedJob extends JobService {
     @Inject
     AppExecutors mAppExecutors;
 
-    public static Bundle putExtras(Feed feedAsJson) {
+    public CreateFeedJob() {
+        super();
+        PetApplication.getAppComponent().inject(this);
+    }
+
+    public static Bundle putExtras(String localFeedId) {
         Bundle bundle = new Bundle();
         Gson gson = new Gson();
-        bundle.putString(FEED_JSON_EXTRA, gson.toJson(feedAsJson));
+        bundle.putString(FEED_ID_EXTRA, localFeedId);
         return bundle;
     }
 
@@ -59,65 +60,52 @@ public class CreateFeedJob extends JobService {
     @Override
     public boolean onStartJob(JobParameters params) {
         //kick of the service
-        try{
-            Bundle bundle = params.getExtras();
-            if(bundle == null){
-                return false;
+        Bundle bundle = params.getExtras();
+        if (bundle == null) {
+            return false;
+        }
+
+        final String feedId = bundle.getString(FEED_ID_EXTRA);
+        mAppExecutors.diskIO().execute(() -> {
+            mFeed = mFeedDao.findFeedById(feedId);
+            if (mFeed == null || mFeed.getStatus() != Feed.STATUS_UPLOADING) {
+                jobFinished(params, false);
+                return;
             }
 
-            Gson gson = new Gson();
-            mFeed = gson.fromJson(bundle.getString(FEED_JSON_EXTRA), Feed.class);
-
-            mParams = params;
-            if (mFeed == null || mFeed.getFeedId() == null) {
-                throw new IllegalStateException("Feed and its Id must be not null. " +
-                        "You should generate temporary Id using IdUtil.generateID()");
-            }
-
-            PetApplication.getAppComponent().inject(this);
             Timber.i("received mFeed %s", mFeed);
 
-            mAppExecutors.diskIO().execute(() -> {
-                User user = mUserDao.findUserById(SharedPrefUtil.getUserId(getApplication()));
-                FeedUser feedUser = new FeedUser(user.getUserId(), user.getAvatar().getOriginUrl(), user.getName());
-                mFeed.setFeedUser(feedUser);
-                if (mFeed.getTimeCreated() == null) {
-                    mFeed.setTimeCreated(new Date());
-                }
-                mFeed.setTimeUpdated(new Date());
-                mFeed.setStatus(Feed.STATUS_UPLOADING);
-                mFeedDao.insert(mFeed);
-                List<String> photoUrls = new ArrayList<>(mFeed.getPhotos().size());
-                for (Photo photo : mFeed.getPhotos()) {
-                    photoUrls.add(photo.getOriginUrl());
-                }
+            mFeed.setTimeUpdated(new Date());
+            List<String> photoUrls = new ArrayList<>(mFeed.getPhotos().size());
+            for (Photo photo : mFeed.getPhotos()) {
+                photoUrls.add(photo.getOriginUrl());
+            }
 
-                final String localFeedId = mFeed.getFeedId();
+            final String localFeedId = mFeed.getFeedId();
 
-                if (photoUrls.isEmpty()) {
-                    uploadFeed(mFeed, localFeedId);
-                } else {
-                    new StorageApi.OnUploadingImage(photoUrls) {
-                        @Override
-                        public void onCompleted(List<String> result) {
-                            Timber.i("update %d photos complete", result.size());
-                            for (int i = 0; i < result.size(); i++) {
-                                mFeed.getPhotos().get(i).setOriginUrl(result.get(i));
-                            }
-                            uploadFeed(mFeed, localFeedId);
+            if (photoUrls.isEmpty()) {
+                uploadFeed(mFeed, localFeedId);
+            } else {
+                new StorageApi.OnUploadingImage(photoUrls) {
+                    @Override
+                    public void onCompleted(List<String> result) {
+                        Timber.i("update %d photos complete", result.size());
+                        for (int i = 0; i < result.size(); i++) {
+                            mFeed.getPhotos().get(i).setOriginUrl(result.get(i));
                         }
+                        uploadFeed(mFeed, localFeedId);
+                    }
 
-                        @Override
-                        public void onFailed(Exception e) {
-                            Timber.e("upload photos failed with exception %s", e.toString());
-                            updateLocalFeedError(mFeed);
-                        }
-                    }.start();
-                }
-            });
-        }catch (Exception e) {
-            Timber.e(e);
-        }
+                    @Override
+                    public void onFailed(Exception e) {
+                        Timber.e("upload photos failed with exception %s", e.toString());
+                        updateLocalFeedError(mFeed);
+                    }
+                }.start();
+            }
+
+        });
+
         return true;
     }
 
@@ -145,6 +133,7 @@ public class CreateFeedJob extends JobService {
             public void onFailed(Exception e) {
                 Timber.e("uploadFeed error", e);
                 updateLocalFeedError(feed);
+                jobFinished(mParams, true);
             }
         });
     }

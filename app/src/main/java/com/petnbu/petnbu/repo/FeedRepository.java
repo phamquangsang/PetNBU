@@ -1,18 +1,31 @@
 package com.petnbu.petnbu.repo;
 
+import android.app.Application;
 import android.arch.lifecycle.LiveData;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.firebase.jobdispatcher.Constraint;
+import com.firebase.jobdispatcher.FirebaseJobDispatcher;
+import com.firebase.jobdispatcher.Job;
+import com.firebase.jobdispatcher.Trigger;
+import com.google.gson.Gson;
 import com.petnbu.petnbu.AppExecutors;
+import com.petnbu.petnbu.PetApplication;
+import com.petnbu.petnbu.SharedPrefUtil;
 import com.petnbu.petnbu.api.ApiResponse;
 import com.petnbu.petnbu.api.WebService;
 import com.petnbu.petnbu.db.FeedDao;
 import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.db.UserDao;
+import com.petnbu.petnbu.jobs.CreateFeedJob;
 import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Resource;
+import com.petnbu.petnbu.model.User;
+import com.petnbu.petnbu.util.IdUtil;
 
+import java.util.Date;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -31,17 +44,20 @@ public class FeedRepository {
 
     private final WebService mWebService;
 
+    private final Application mApplication;
+
     @Inject
-    public FeedRepository(PetDb petDb, FeedDao feedDao, UserDao userDao, AppExecutors appExecutors, WebService webService) {
+    public FeedRepository(PetDb petDb, FeedDao feedDao, UserDao userDao, AppExecutors appExecutors, WebService webService, Application application) {
         mPetDb = petDb;
         mFeedDao = feedDao;
         mUserDao = userDao;
         mAppExecutors = appExecutors;
         mWebService = webService;
+        mApplication = application;
     }
 
-    public LiveData<Resource<List<Feed>>> loadFeeds(){
-        return new NetworkBoundResource<List<Feed>, List<Feed>>(mAppExecutors){
+    public LiveData<Resource<List<Feed>>> loadFeeds() {
+        return new NetworkBoundResource<List<Feed>, List<Feed>>(mAppExecutors) {
             @Override
             protected void saveCallResult(@NonNull List<Feed> item) {
                 mFeedDao.insert(item);
@@ -65,6 +81,32 @@ public class FeedRepository {
                 return mWebService.getFeeds(System.currentTimeMillis(), 50);
             }
         }.asLiveData();
+    }
+
+    public void createNewFeed(Feed feed) {
+        mAppExecutors.diskIO().execute(() -> {
+            User user = mUserDao.findUserById(SharedPrefUtil.getUserId(mApplication));
+            FeedUser feedUser = new FeedUser(user.getUserId(), user.getAvatar().getOriginUrl(), user.getName());
+            feed.setStatus(Feed.STATUS_UPLOADING);
+            feed.setFeedUser(feedUser);
+            feed.setTimeCreated(new Date());
+            feed.setTimeUpdated(new Date());
+            feed.setFeedId(IdUtil.generateID("feed"));
+            mFeedDao.insert(feed);
+            scheduleCreateFeedJob(feed);
+        });
+    }
+
+    private void scheduleCreateFeedJob(Feed feed) {
+        FirebaseJobDispatcher jobDispatcher = PetApplication.getAppComponent().getJobDispatcher();
+        Job job = jobDispatcher.newJobBuilder()
+                .setService(CreateFeedJob.class)
+                .setExtras(CreateFeedJob.putExtras(feed.getFeedId()))
+                .setTag(feed.getFeedId())
+                .setConstraints(Constraint.ON_ANY_NETWORK)
+                .setTrigger(Trigger.executionWindow(0, 0))
+                .build();
+        jobDispatcher.mustSchedule(job);
     }
 
 }
