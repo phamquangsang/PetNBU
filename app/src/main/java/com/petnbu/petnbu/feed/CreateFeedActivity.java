@@ -1,6 +1,7 @@
 package com.petnbu.petnbu.feed;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.ClipData;
@@ -32,12 +33,22 @@ import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.BitmapImageViewTarget;
 import com.bumptech.glide.request.transition.Transition;
+import com.firebase.jobdispatcher.Constraint;
+import com.firebase.jobdispatcher.FirebaseJobDispatcher;
+import com.firebase.jobdispatcher.Job;
+import com.firebase.jobdispatcher.Trigger;
 import com.github.ybq.android.spinkit.style.FadingCircle;
+import com.google.gson.Gson;
+import com.petnbu.petnbu.PetApplication;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.Utils;
 import com.petnbu.petnbu.databinding.ActivityCreateFeedBinding;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.util.ColorUtils;
+import com.petnbu.petnbu.jobs.CreateFeedJob;
+import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.Photo;
+import com.petnbu.petnbu.util.IdUtil;
 import com.petnbu.petnbu.views.HorizontalSpaceItemDecoration;
 
 import java.util.ArrayList;
@@ -241,9 +252,9 @@ public class CreateFeedActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == PICK_IMAGE) {
+        if (requestCode == GALLERY_INTENT_CALLED || requestCode == GALLERY_KITKAT_INTENT_CALLED) {
             if (resultCode == RESULT_OK) {
-                if(data.getData() != null){
+                if (data.getData() != null) {
                     Uri uri = data.getData();
                     requestPersistablePermission(data, uri);
                     BitmapFactory.Options options = Utils.getBitmapSize(this, uri);
@@ -255,7 +266,7 @@ public class CreateFeedActivity extends AppCompatActivity {
                     photo.setHeight(options.outHeight);
                     mSelectedPhotos.add(photo);
                     mPhotosAdapter.notifyItemInserted(mSelectedPhotos.size() - 1);
-                }else{
+                } else {
                     ClipData clipData = data.getClipData();
                     if (clipData != null) {
                         for (int i = 0; i < clipData.getItemCount(); i++) {
