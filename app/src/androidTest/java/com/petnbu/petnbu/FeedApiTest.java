@@ -58,17 +58,7 @@ public class FeedApiTest {
         Feed feed1 = new Feed("2", userNhat, photo2, 12, 14, "", new Date(), new Date());
 
         for (int i = 0; i < 30; i++) {
-            webService.createFeed(i % 2 == 0 ? feed : feed1, new SuccessCallback<Feed>() {
-                @Override
-                public void onSuccess(Feed aVoid) {
-                    Log.i(TAG, "onSuccess: create feed success");
-                }
-
-                @Override
-                public void onFailed(Exception e) {
-                    Log.e(TAG, "onFailed: ", e);
-                }
-            });
+            webService.createFeed(i % 2 == 0 ? feed : feed1);
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {

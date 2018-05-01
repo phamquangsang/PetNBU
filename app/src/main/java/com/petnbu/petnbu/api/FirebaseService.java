@@ -33,57 +33,23 @@ public class FirebaseService implements WebService {
     }
 
     @Override
-    public void createFeed(final Feed feed, final SuccessCallback<Feed> callback) {
+    public LiveData<ApiResponse<Feed>> createFeed(Feed feed) {
+        MutableLiveData<ApiResponse<Feed>> result = new MutableLiveData<>();
+
         DocumentReference doc = mDb.collection(GLOBAL_FEEDS).document();
         final String oldId = feed.getFeedId();
         feed.setFeedId(doc.getId());
         feed.setTimeCreated(new Date());
         feed.setTimeUpdated(new Date());
         doc.set(feed)
-                .addOnSuccessListener(aVoid -> callback.onSuccess(feed))
+                .addOnSuccessListener(aVoid -> result.setValue(new ApiResponse<>(feed, true, null)))
                 .addOnFailureListener(e -> {
                     feed.setFeedId(oldId);
-                    callback.onFailed(e);
+                    result.setValue(new ApiResponse<>(null, false, e.getMessage()));
                 });
-    }
-
-    @Override
-    public LiveData<ApiResponse<Feed>> createFeed(Feed feed) {
-        MutableLiveData<ApiResponse<Feed>> result = new MutableLiveData<>();
-        createFeed(feed, new SuccessCallback<Feed>() {
-            @Override
-            public void onSuccess(Feed feed) {
-                result.setValue(new ApiResponse<>(feed, true, null));
-            }
-
-            @Override
-            public void onFailed(Exception e) {
-                result.setValue(new ApiResponse<>(null, false, e.getMessage()));
-            }
-        });
         return result;
     }
 
-    @Override
-    public void updateFeed(final Feed feed, final SuccessCallback<Void> callback) {
-        //set time updated to null so it will get value from server time
-        feed.setTimeUpdated(null);
-        Log.i(TAG, "updateFeed: time created not null" + (feed.getTimeCreated() != null));
-        mDb.collection(GLOBAL_FEEDS).document(feed.getFeedId()).set(feed, SetOptions.merge())
-                .addOnFailureListener(e -> callback.onFailed(e))
-                .addOnSuccessListener(aVoid -> callback.onSuccess(null));
-    }
-
-    @Override
-    public void getFeed(String feedId, SuccessCallback<Feed> callback) {
-        mDb.collection(GLOBAL_FEEDS).document(feedId).get().addOnSuccessListener(documentSnapshot -> {
-            if (documentSnapshot.exists()) {
-                callback.onSuccess(documentSnapshot.toObject(Feed.class));
-            } else {
-                callback.onFailed(new IllegalStateException(String.format("Feed Id: %s does not exist", feedId)));
-            }
-        }).addOnFailureListener(e -> callback.onFailed(e));
-    }
 
     public LiveData<ApiResponse<List<Feed>>> getFeeds(long after, int limit) {
         MutableLiveData<ApiResponse<List<Feed>>> result = new MutableLiveData<>();
@@ -108,41 +74,32 @@ public class FirebaseService implements WebService {
     }
 
     @Override
-    public void createUser(User user, SuccessCallback<Void> callback) {
+    public LiveData<ApiResponse<User>> createUser(User user) {
+        MutableLiveData<ApiResponse<User>> result = new MutableLiveData<>();
         DocumentReference userDoc = mDb.collection(USERS).document(user.getUserId());
         userDoc.set(user)
-                .addOnSuccessListener(aVoid -> callback.onSuccess(aVoid))
-                .addOnFailureListener(e -> callback.onFailed(e));
-    }
-
-    @Override
-    public void getUser(String userId, SuccessCallback<User> callback) {
-        mDb.collection(USERS).document(userId).get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        callback.onSuccess(documentSnapshot.toObject(User.class));
-                    } else {
-                        callback.onFailed(new IllegalStateException("User not found"));
-                    }
-                })
-                .addOnFailureListener(e -> callback.onFailed(e));
+                .addOnSuccessListener(aVoid -> result.setValue(new ApiResponse<>(user, true, null)))
+                .addOnFailureListener(e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
+        return result;
     }
 
     @Override
     public LiveData<ApiResponse<User>> getUser(String userId) {
+
         MutableLiveData<ApiResponse<User>> result = new MutableLiveData<>();
 
-        getUser(userId, new SuccessCallback<User>() {
-            @Override
-            public void onSuccess(User user) {
-                result.setValue(new ApiResponse<>(user, true, null));
-            }
+        mDb.collection(USERS).document(userId).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        User user = documentSnapshot.toObject(User.class);
+                        result.setValue(new ApiResponse<>(user, true, null));
+                    } else {
+                        result.setValue(new ApiResponse<>(null, false, "User not found"));
+                    }
+                })
+                .addOnFailureListener(e ->
+                        result.setValue(new ApiResponse<>(null, false, e.getMessage())));
 
-            @Override
-            public void onFailed(Exception e) {
-                result.setValue(new ApiResponse<>(null, false, e.getMessage()));
-            }
-        });
         return result;
     }
 

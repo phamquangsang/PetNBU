@@ -1,9 +1,12 @@
 package com.petnbu.petnbu.login;
 
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.Observer;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -25,6 +28,7 @@ import com.petnbu.petnbu.MainActivity;
 import com.petnbu.petnbu.PetApplication;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.SharedPrefUtil;
+import com.petnbu.petnbu.api.ApiResponse;
 import com.petnbu.petnbu.api.SuccessCallback;
 import com.petnbu.petnbu.api.WebService;
 import com.petnbu.petnbu.databinding.ActivityLoginJavaBinding;
@@ -192,29 +196,37 @@ public class LoginJavaActivity extends AppCompatActivity implements View.OnClick
         }
         Photo photo = new Photo(photoUrl, null, null, null, 0, 0);
         User user = new User(firebaseUser.getUid(), photo, firebaseUser.getDisplayName(), firebaseUser.getEmail(), null, null);
-        mWebService.getUser(firebaseUser.getUid(), new SuccessCallback<User>() {
+        LiveData<ApiResponse<User>> userResponse = mWebService.getUser(firebaseUser.getUid());
+        userResponse.observe(this, new Observer<ApiResponse<User>>() {
             @Override
-            public void onSuccess(User user) {
-                //user existed -> go to Main screen
-                SharedPrefUtil.saveUserId(getApplicationContext(), user.getUserId());
-                mAppExecutors.diskIO().execute(() -> mUserDao.insert(user));
-                openMainActivity();
-            }
-
-            @Override
-            public void onFailed(Exception e) {
-                mWebService.createUser(user, new SuccessCallback<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
+            public void onChanged(@Nullable ApiResponse<User> userApiResponse) {
+                if(userApiResponse != null){
+                    if (userApiResponse.isSucceed && userApiResponse.body != null){
+                        User user = userApiResponse.body;
+                        //user existed -> go to Main screen
                         SharedPrefUtil.saveUserId(getApplicationContext(), user.getUserId());
+                        mAppExecutors.diskIO().execute(() -> mUserDao.insert(user));
                         openMainActivity();
+                    }else{
+                        //user not existed -> create new user
+                        createNewUser(user);
                     }
+                }
+            }
+        });
 
-                    @Override
-                    public void onFailed(Exception e) {
-                        Snackbar.make(mBinding.getRoot(), "Error: "+e.getMessage(), Snackbar.LENGTH_LONG).show();
-                    }
-                });
+    }
+
+    private void createNewUser(User user) {
+        LiveData<ApiResponse<User>> apiResponse = mWebService.createUser(user);
+        apiResponse.observe(LoginJavaActivity.this, createUserApiResponse -> {
+            if(createUserApiResponse != null){
+                if(createUserApiResponse.isSucceed && createUserApiResponse.body != null){
+                    SharedPrefUtil.saveUserId(getApplicationContext(), createUserApiResponse.body.getUserId());
+                    openMainActivity();
+                }else{
+                    Snackbar.make(mBinding.getRoot(), "Error: "+ createUserApiResponse.errorMessage, Snackbar.LENGTH_LONG).show();
+                }
             }
         });
     }

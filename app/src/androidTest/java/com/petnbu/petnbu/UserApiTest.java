@@ -1,10 +1,12 @@
 package com.petnbu.petnbu;
 
+import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.support.annotation.Nullable;
 import android.support.test.runner.AndroidJUnit4;
 
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.petnbu.petnbu.api.ApiResponse;
 import com.petnbu.petnbu.api.FirebaseService;
 import com.petnbu.petnbu.api.SuccessCallback;
 import com.petnbu.petnbu.api.WebService;
@@ -36,16 +38,16 @@ public class UserApiTest {
         WebService webService = new FirebaseService(firebaseFirestore);
 
         CountDownLatch signal = new CountDownLatch(1);
-        webService.createUser(user, new SuccessCallback<Void>() {
+        LiveData<ApiResponse<User>> apiResponse = webService.createUser(user);
+        apiResponse.observeForever(new Observer<ApiResponse<User>>() {
             @Override
-            public void onSuccess(Void aVoid) {
-                signal.countDown();
-
-            }
-
-            @Override
-            public void onFailed(Exception e) {
-
+            public void onChanged(@Nullable ApiResponse<User> userApiResponse) {
+                if(userApiResponse != null){
+                    if(userApiResponse.isSucceed && userApiResponse.body != null){
+                        signal.countDown();
+                    }
+                    apiResponse.removeObserver(this);
+                }
             }
         });
 

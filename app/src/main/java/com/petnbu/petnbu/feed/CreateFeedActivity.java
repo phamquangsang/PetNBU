@@ -2,6 +2,7 @@ package com.petnbu.petnbu.feed;
 
 import android.Manifest;
 import android.app.ProgressDialog;
+import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.ClipData;
 import android.content.Context;
@@ -38,6 +39,7 @@ import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.Utils;
 import com.petnbu.petnbu.databinding.ActivityCreateFeedBinding;
 import com.petnbu.petnbu.model.Photo;
+import com.petnbu.petnbu.model.User;
 import com.petnbu.petnbu.util.ColorUtils;
 import com.petnbu.petnbu.views.HorizontalSpaceItemDecoration;
 
@@ -80,28 +82,33 @@ public class CreateFeedActivity extends AppCompatActivity {
         mCreateFeedViewModel.showLoadingLiveData.observe(this, this::setLoadingVisibility);
 
         setPlaceHolderLayoutVisibility(true);
-        mCreateFeedViewModel.loadUserInfos().observe(this, user -> {
-            if (user != null) {
-                mRequestManager.asBitmap()
-                        .load(user.getAvatar().getOriginUrl())
-                        .apply(RequestOptions.centerCropTransform())
-                        .into(new BitmapImageViewTarget(mBinding.imgProfile) {
-                            @Override
-                            public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                                Context context = mBinding.imgProfile.getContext();
-                                if (ColorUtils.isDark(resource)) {
-                                    mBinding.imgProfile.setBorderWidth(0);
-                                } else {
-                                    mBinding.imgProfile.setBorderColor(ContextCompat.getColor(context, android.R.color.darker_gray));
-                                    mBinding.imgProfile.setBorderWidth(1);
+        mCreateFeedViewModel.loadUserInfos().observe(this, new Observer<User>() {
+            @Override
+            public void onChanged(@Nullable User user) {
+                if (user != null) {
+                    Timber.i("user : %s", user.toString());
+                    mRequestManager.asBitmap()
+                            .load(user.getAvatar().getOriginUrl())
+                            .apply(RequestOptions.centerCropTransform())
+                            .into(new BitmapImageViewTarget(mBinding.imgProfile) {
+                                @Override
+                                public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                                    Context context = mBinding.imgProfile.getContext();
+                                    if (ColorUtils.isDark(resource)) {
+                                        mBinding.imgProfile.setBorderWidth(0);
+                                    } else {
+                                        mBinding.imgProfile.setBorderColor(ContextCompat.getColor(context, android.R.color.darker_gray));
+                                        mBinding.imgProfile.setBorderWidth(1);
+                                    }
+                                    getView().setImageBitmap(resource);
                                 }
-                                getView().setImageBitmap(resource);
-                            }
-                        });
-                mBinding.tvUserName.setText(user.getName());
-                setPlaceHolderLayoutVisibility(false);
-            } else {
-                finish();
+                            });
+                    mBinding.tvUserName.setText(user.getName());
+                    CreateFeedActivity.this.setPlaceHolderLayoutVisibility(false);
+                } else {
+                    Timber.i("user is null");
+//                    CreateFeedActivity.this.finish();
+                }
             }
         });
         requestReadExternalPermission();
@@ -169,14 +176,14 @@ public class CreateFeedActivity extends AppCompatActivity {
             if (cameraClicked) {
                 if (Build.VERSION.SDK_INT < 19) {
                     Intent intent = new Intent();
-                    intent.setType("*/*");
+                    intent.setType("image/*");
                     intent.setAction(Intent.ACTION_GET_CONTENT);
                     startActivityForResult(intent, GALLERY_INTENT_CALLED);
                 } else {
                     Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
                     intent.addCategory(Intent.CATEGORY_OPENABLE);
                     intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-                    intent.setType("*/*");
+                    intent.setType("image/*");
                     startActivityForResult(intent, GALLERY_KITKAT_INTENT_CALLED);
                 }
                 cameraClicked = false;

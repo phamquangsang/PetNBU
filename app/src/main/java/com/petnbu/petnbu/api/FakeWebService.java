@@ -12,24 +12,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FakeWebService implements WebService {
-    @Override
-    public void createFeed(Feed feed, SuccessCallback<Feed> callback) {
-        
-    }
+
 
     @Override
     public LiveData<ApiResponse<Feed>> createFeed(Feed feed) {
         return null;
     }
 
-    @Override
-    public void updateFeed(Feed feed, SuccessCallback<Void> callback) {
-
-    }
 
     @Override
-    public void getFeed(String feedId, SuccessCallback<Feed> callback) {
-
+    public LiveData<ApiResponse<User>> createUser(User user) {
+        return null;
     }
 
     @Override
@@ -218,16 +211,6 @@ public class FakeWebService implements WebService {
         mFeeds.setValue(new ApiResponse<>(feeds, true, null));
 
         return mFeeds;
-    }
-
-    @Override
-    public void createUser(User user, SuccessCallback<Void> callback) {
-
-    }
-
-    @Override
-    public void getUser(String userId, SuccessCallback<User> callback) {
-
     }
 
     @Override

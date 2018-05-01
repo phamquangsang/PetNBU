@@ -2,13 +2,17 @@ package com.petnbu.petnbu.jobs;
 
 
 import android.annotation.SuppressLint;
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.Observer;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 
 import com.firebase.jobdispatcher.JobParameters;
 import com.firebase.jobdispatcher.JobService;
 import com.google.gson.Gson;
 import com.petnbu.petnbu.AppExecutors;
 import com.petnbu.petnbu.PetApplication;
+import com.petnbu.petnbu.api.ApiResponse;
 import com.petnbu.petnbu.api.StorageApi;
 import com.petnbu.petnbu.api.SuccessCallback;
 import com.petnbu.petnbu.api.WebService;
@@ -116,24 +120,28 @@ public class CreateFeedJob extends JobService {
     }
 
     private void uploadFeed(Feed feed, String temporaryFeedId) {
-        mWebService.createFeed(feed, new SuccessCallback<Feed>() {
+        LiveData<ApiResponse<Feed>> apiResponse = mWebService.createFeed(feed);
+        apiResponse.observeForever(new Observer<ApiResponse<Feed>>() {
             @Override
-            public void onSuccess(Feed newFeed) {
-                Timber.i("upload mFeed succeed %s", newFeed.toString());
-                mAppExecutors.diskIO().execute(() -> {
-                    Timber.i("update feedId from %s to %s", temporaryFeedId, newFeed.getFeedId());
-                    mFeedDao.updateFeedId(temporaryFeedId, newFeed.getFeedId());
-                    newFeed.setStatus(Feed.STATUS_DONE);
-                    mFeedDao.update(newFeed);
-                    jobFinished(mParams, false);
-                });
-            }
-
-            @Override
-            public void onFailed(Exception e) {
-                Timber.e("uploadFeed error", e);
-                updateLocalFeedError(feed);
-                jobFinished(mParams, true);
+            public void onChanged(@Nullable ApiResponse<Feed> feedApiResponse) {
+                if (feedApiResponse != null) {
+                    if(feedApiResponse.isSucceed && feedApiResponse.body != null){
+                        Feed newFeed = feedApiResponse.body;
+                        Timber.i("upload mFeed succeed %s", newFeed.toString());
+                        mAppExecutors.diskIO().execute(() -> {
+                            Timber.i("update feedId from %s to %s", temporaryFeedId, newFeed.getFeedId());
+                            mFeedDao.updateFeedId(temporaryFeedId, newFeed.getFeedId());
+                            newFeed.setStatus(Feed.STATUS_DONE);
+                            mFeedDao.update(newFeed);
+                            jobFinished(mParams, false);
+                        });
+                    }else{
+                        Timber.e("uploadFeed error %s", feedApiResponse.errorMessage);
+                        updateLocalFeedError(feed);
+                        jobFinished(mParams, true);
+                    }
+                    apiResponse.removeObserver(this);
+                }
             }
         });
     }
