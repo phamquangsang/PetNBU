@@ -10,6 +10,7 @@ import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
@@ -51,20 +52,26 @@ public class FeedsFragment extends Fragment {
 
     public void initialize() {
         Activity activity = getActivity();
-        if(activity != null){
+        if (activity != null) {
             mFeedsViewModel = ViewModelProviders.of(getActivity()).get(FeedsViewModel.class);
             mFeedsViewModel.getFeeds().observe(this, feeds -> {
-                if(feeds.data != null){
+                if (feeds.data != null) {
                     mAdapter.setFeeds(feeds.data);
                 }
             });
 
             mFeedsViewModel.getLoadMoreState().observe(this, state -> {
-                Timber.i(state != null ? state.toString(): "null");
-                if(state != null && state.isRunning()){
-                    mBinding.progressBar.setVisibility(View.VISIBLE);
-                }else{
-                    mBinding.progressBar.setVisibility(View.GONE);
+                Timber.i(state != null ? state.toString() : "null");
+                if (state != null) {
+                    if (state.isRunning()) {
+                        mBinding.progressBar.setVisibility(View.VISIBLE);
+                    } else {
+                        mBinding.progressBar.setVisibility(View.GONE);
+                    }
+                    String errorMessage = state.getErrorMessageIfNotHandled();
+                    if(errorMessage != null){
+                        Snackbar.make(mBinding.getRoot(), errorMessage, Snackbar.LENGTH_LONG).show();
+                    }
                 }
             });
         }
@@ -82,7 +89,6 @@ public class FeedsFragment extends Fragment {
 
             @Override
             public void onLikeClicked(String feedId) {
-
             }
 
             @Override
