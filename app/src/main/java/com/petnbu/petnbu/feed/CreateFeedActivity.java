@@ -1,7 +1,6 @@
 package com.petnbu.petnbu.feed;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.ClipData;
@@ -26,6 +25,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewTreeObserver;
 
 import com.bumptech.glide.Glide;
@@ -33,22 +33,12 @@ import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.BitmapImageViewTarget;
 import com.bumptech.glide.request.transition.Transition;
-import com.firebase.jobdispatcher.Constraint;
-import com.firebase.jobdispatcher.FirebaseJobDispatcher;
-import com.firebase.jobdispatcher.Job;
-import com.firebase.jobdispatcher.Trigger;
 import com.github.ybq.android.spinkit.style.FadingCircle;
-import com.google.gson.Gson;
-import com.petnbu.petnbu.PetApplication;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.Utils;
 import com.petnbu.petnbu.databinding.ActivityCreateFeedBinding;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.util.ColorUtils;
-import com.petnbu.petnbu.jobs.CreateFeedJob;
-import com.petnbu.petnbu.model.Feed;
-import com.petnbu.petnbu.model.Photo;
-import com.petnbu.petnbu.util.IdUtil;
 import com.petnbu.petnbu.views.HorizontalSpaceItemDecoration;
 
 import java.util.ArrayList;
@@ -88,6 +78,8 @@ public class CreateFeedActivity extends AppCompatActivity {
         mCreateFeedViewModel = ViewModelProviders.of(this).get(CreateFeedViewModel.class);
         mCreateFeedViewModel.createdFeedLiveData.observe(this, success -> finish());
         mCreateFeedViewModel.showLoadingLiveData.observe(this, this::setLoadingVisibility);
+
+        setPlaceHolderLayoutVisibility(true);
         mCreateFeedViewModel.loadUserInfos().observe(this, user -> {
             if (user != null) {
                 mRequestManager.asBitmap()
@@ -107,6 +99,7 @@ public class CreateFeedActivity extends AppCompatActivity {
                             }
                         });
                 mBinding.tvUserName.setText(user.getName());
+                setPlaceHolderLayoutVisibility(false);
             } else {
                 finish();
             }
@@ -174,7 +167,6 @@ public class CreateFeedActivity extends AppCompatActivity {
             return true;
         } else {
             if (cameraClicked) {
-
                 if (Build.VERSION.SDK_INT < 19) {
                     Intent intent = new Intent();
                     intent.setType("*/*");
@@ -187,7 +179,6 @@ public class CreateFeedActivity extends AppCompatActivity {
                     intent.setType("*/*");
                     startActivityForResult(intent, GALLERY_KITKAT_INTENT_CALLED);
                 }
-
                 cameraClicked = false;
             }
         }
@@ -213,8 +204,8 @@ public class CreateFeedActivity extends AppCompatActivity {
         if (item.getItemId() == R.id.action_post) {
             mCreateFeedViewModel.createFeed(mBinding.edText.getText().toString().trim(), mSelectedPhotos);
             finish();
-        } else if (item.getItemId() == android.R.id.home) {
 
+        } else if (item.getItemId() == android.R.id.home) {
             finish();
         }
         return super.onOptionsItemSelected(item);
@@ -227,7 +218,6 @@ public class CreateFeedActivity extends AppCompatActivity {
             case REQUEST_READ_EXTERNAL_PERMISSIONS:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     if (cameraClicked) {
-
                         if (Build.VERSION.SDK_INT < 19) {
                             Intent intent = new Intent();
                             intent.setType("*/*");
@@ -240,7 +230,6 @@ public class CreateFeedActivity extends AppCompatActivity {
                             intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
                             startActivityForResult(intent, GALLERY_KITKAT_INTENT_CALLED);
                         }
-
                         cameraClicked = false;
                     }
                 }
@@ -285,7 +274,6 @@ public class CreateFeedActivity extends AppCompatActivity {
                                 clipData.getItemCount());
                     }
                 }
-
             }
             checkToEnablePostMenu();
         } else {
@@ -295,7 +283,6 @@ public class CreateFeedActivity extends AppCompatActivity {
 
     private void requestPersistablePermission(Intent data, Uri uri) {
         if (Build.VERSION.SDK_INT >= 19) {
-            uri = data.getData();
             final int takeFlags = data.getFlags()
                     & (Intent.FLAG_GRANT_READ_URI_PERMISSION
                     | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
@@ -334,6 +321,20 @@ public class CreateFeedActivity extends AppCompatActivity {
                 mProgressDialog.setCancelable(true);
                 mProgressDialog.dismiss();
             }
+        }
+    }
+
+    private void setPlaceHolderLayoutVisibility(boolean placeHolderLayoutVisibility) {
+        if(placeHolderLayoutVisibility) {
+            mBinding.tvUserName.setVisibility(View.GONE);
+            mBinding.tvUserNamePlaceHolder.setVisibility(View.VISIBLE);
+
+            mBinding.imgProfile.setCircleBackgroundColor(ContextCompat.getColor(this, R.color.placeholderBackground));
+        } else {
+            mBinding.tvUserName.setVisibility(View.VISIBLE);
+            mBinding.tvUserNamePlaceHolder.setVisibility(View.GONE);
+
+            mBinding.imgProfile.setCircleBackgroundColor(ContextCompat.getColor(this, android.R.color.transparent));
         }
     }
 }
