@@ -100,7 +100,7 @@ public class FirebaseService implements WebService {
 
                     result.setValue(new ApiResponse<>(feeds, true, null));
                 }).addOnFailureListener(e -> {
-                    Timber.e( "onFailure: ", e);
+                    Timber.e( "onFailure: %s", e.getMessage());
                     result.setValue(new ApiResponse<>(null, false, e.getMessage()));
                 });
 

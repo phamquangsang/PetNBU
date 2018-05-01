@@ -1,7 +1,6 @@
 package com.petnbu.petnbu.feed;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.ClipData;
@@ -33,22 +32,12 @@ import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.BitmapImageViewTarget;
 import com.bumptech.glide.request.transition.Transition;
-import com.firebase.jobdispatcher.Constraint;
-import com.firebase.jobdispatcher.FirebaseJobDispatcher;
-import com.firebase.jobdispatcher.Job;
-import com.firebase.jobdispatcher.Trigger;
 import com.github.ybq.android.spinkit.style.FadingCircle;
-import com.google.gson.Gson;
-import com.petnbu.petnbu.PetApplication;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.Utils;
 import com.petnbu.petnbu.databinding.ActivityCreateFeedBinding;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.util.ColorUtils;
-import com.petnbu.petnbu.jobs.CreateFeedJob;
-import com.petnbu.petnbu.model.Feed;
-import com.petnbu.petnbu.model.Photo;
-import com.petnbu.petnbu.util.IdUtil;
 import com.petnbu.petnbu.views.HorizontalSpaceItemDecoration;
 
 import java.util.ArrayList;

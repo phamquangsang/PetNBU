@@ -43,7 +43,7 @@ public class UserRepository {
 
             @Override
             protected boolean shouldFetch(@Nullable User data) {
-                return true;
+                return false;
             }
 
             @NonNull
@@ -56,6 +56,11 @@ public class UserRepository {
             @Override
             protected LiveData<ApiResponse<User>> createCall() {
                 return mWebService.getUser(id);
+            }
+
+            @Override
+            protected void deleteDataFromDb() {
+
             }
         }.asLiveData();
     }

@@ -24,15 +24,19 @@ import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Resource;
 import com.petnbu.petnbu.model.User;
 import com.petnbu.petnbu.util.IdUtil;
+import com.petnbu.petnbu.util.RateLimiter;
 
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
 @Singleton
 public class FeedRepository {
+
+    public static final int FEEDS_PER_PAGE = 10;
 
     private final PetDb mPetDb;
 
@@ -45,6 +49,8 @@ public class FeedRepository {
     private final WebService mWebService;
 
     private final Application mApplication;
+
+    private final RateLimiter<String> mRateLimiter = new RateLimiter<>(10, TimeUnit.SECONDS);
 
     @Inject
     public FeedRepository(PetDb petDb, FeedDao feedDao, UserDao userDao, AppExecutors appExecutors, WebService webService, Application application) {
@@ -65,8 +71,7 @@ public class FeedRepository {
 
             @Override
             protected boolean shouldFetch(@Nullable List<Feed> data) {
-                return true;
-//                return data == null || data.isEmpty();
+                return data == null || data.isEmpty() || mRateLimiter.shouldFetch("feeds");
             }
 
             @NonNull
@@ -78,9 +83,20 @@ public class FeedRepository {
             @NonNull
             @Override
             protected LiveData<ApiResponse<List<Feed>>> createCall() {
-                return mWebService.getFeeds(System.currentTimeMillis(), 50);
+                return mWebService.getFeeds(System.currentTimeMillis(), FEEDS_PER_PAGE);
+            }
+
+            @Override
+            protected void deleteDataFromDb() {
+                mFeedDao.deleteAllExcludeStatus(Feed.STATUS_UPLOADING);
             }
         }.asLiveData();
+    }
+
+    public LiveData<Resource<Boolean>> fetchNextPage(Feed lastFeed) {
+        FetchNextPageFeed fetchNextPageTask = new FetchNextPageFeed(lastFeed, mWebService, mPetDb, mAppExecutors);
+        mAppExecutors.networkIO().execute(fetchNextPageTask);
+        return fetchNextPageTask.getLiveData();
     }
 
     public void createNewFeed(Feed feed) {

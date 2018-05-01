@@ -44,7 +44,12 @@ public abstract class FeedDao {
     @Query("SELECT * FROM feeds WHERE feedId = :feedId")
     public abstract Feed findFeedById(String feedId);
 
+    @Query("SELECT * FROM feeds ORDER BY timeCreated LIMIT 1")
+    public abstract Feed findOldestFeed();
+
     @Query("DELETE FROM feeds")
     public abstract void deleteAll();
 
+    @Query("DELETE FROM feeds where status != :status")
+    public abstract void deleteAllExcludeStatus(@Feed.LOCAL_STATUS int status);
 }

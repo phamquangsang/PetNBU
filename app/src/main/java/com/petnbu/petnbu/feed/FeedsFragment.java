@@ -18,9 +18,12 @@ import android.view.ViewGroup;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.Utils;
 import com.petnbu.petnbu.databinding.FragmentFeedsBinding;
+import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.Photo;
 
 import java.util.ArrayList;
+
+import timber.log.Timber;
 
 public class FeedsFragment extends Fragment {
 
@@ -47,6 +50,17 @@ public class FeedsFragment extends Fragment {
             mFeedsViewModel.getFeeds().observe(this, feeds -> {
                 if(feeds.data != null){
                     mAdapter.setFeeds(feeds.data);
+                }
+            });
+
+            mFeedsViewModel.getLoadMoreState().observe(this, state -> {
+                Timber.i(state != null ? state.toString(): "null");
+                if(state != null && state.isRunning()){
+                    mAdapter.setLoading(true);
+                    mBinding.progressBar.setVisibility(View.VISIBLE);
+                }else{
+                    mAdapter.setLoading(false);
+                    mBinding.progressBar.setVisibility(View.GONE);
                 }
             });
         }
@@ -87,6 +101,14 @@ public class FeedsFragment extends Fragment {
                     mBinding.fabNewPost.hide();
                 } else if (dy < 0) {
                     mBinding.fabNewPost.show();
+                }
+
+                LinearLayoutManager layoutManager = (LinearLayoutManager)
+                        recyclerView.getLayoutManager();
+                int lastPosition = layoutManager
+                        .findLastVisibleItemPosition();
+                if (lastPosition == mAdapter.getItemCount() - 1) {
+                    mFeedsViewModel.loadNextPage();
                 }
             }
         });

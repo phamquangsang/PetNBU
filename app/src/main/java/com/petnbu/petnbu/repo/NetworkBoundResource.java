@@ -74,6 +74,9 @@ public abstract class NetworkBoundResource<ResultType, RequestType> {
             //noinspection ConstantConditions
             if (response.isSuccessful()) {
                 appExecutors.diskIO().execute(() -> {
+                    if(shouldDeleteOldData()){
+                        deleteDataFromDb();
+                    }
                     saveCallResult(processResponse(response));
                     appExecutors.mainThread().execute(() ->
                             // we specially request a new live data,
@@ -108,6 +111,14 @@ public abstract class NetworkBoundResource<ResultType, RequestType> {
 
     @MainThread
     protected abstract boolean shouldFetch(@Nullable ResultType data);
+
+    @WorkerThread
+    protected abstract void deleteDataFromDb();
+
+    @MainThread
+    protected boolean shouldDeleteOldData(){
+        return false;
+    }
 
     @NonNull
     @MainThread

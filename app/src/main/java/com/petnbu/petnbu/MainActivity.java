@@ -6,10 +6,13 @@ import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
+import android.widget.Toast;
 
+import com.firebase.jobdispatcher.FirebaseJobDispatcher;
 import com.google.firebase.auth.FirebaseAuth;
 import com.petnbu.petnbu.databinding.ActivityMainBinding;
 import com.petnbu.petnbu.feed.FeedsViewModel;
@@ -38,7 +41,6 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        setTheme(R.style.AppTheme);
         super.onCreate(savedInstanceState);
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
 
