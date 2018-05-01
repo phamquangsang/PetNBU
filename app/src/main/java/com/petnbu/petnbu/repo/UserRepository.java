@@ -15,6 +15,8 @@ import com.petnbu.petnbu.model.User;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import timber.log.Timber;
+
 @Singleton
 public class UserRepository {
 
@@ -35,6 +37,7 @@ public class UserRepository {
     }
 
     public LiveData<Resource<User>> getUserById(@NonNull String id){
+        Timber.i("getUserById: %s", id);
         return new NetworkBoundResource<User, User>(mAppExecutors){
             @Override
             protected void saveCallResult(@NonNull User item) {
@@ -43,7 +46,7 @@ public class UserRepository {
 
             @Override
             protected boolean shouldFetch(@Nullable User data) {
-                return false;
+                return true;
             }
 
             @NonNull
