@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.example.github.util;
+package com.petnbu.petnbu.util;
 
 import android.os.SystemClock;
 import android.support.v4.util.ArrayMap;
