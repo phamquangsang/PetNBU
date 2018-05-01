@@ -2,6 +2,8 @@ package com.petnbu.petnbu.feed;
 
 
 import android.app.Activity;
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
@@ -9,6 +11,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -20,8 +23,11 @@ import com.petnbu.petnbu.Utils;
 import com.petnbu.petnbu.databinding.FragmentFeedsBinding;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.Photo;
+import com.petnbu.petnbu.model.Resource;
+import com.petnbu.petnbu.model.Status;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import timber.log.Timber;
 
@@ -109,6 +115,20 @@ public class FeedsFragment extends Fragment {
                     mFeedsViewModel.loadNextPage();
                 }
             }
+        });
+
+        mBinding.pullToRefresh.setOnRefreshListener(() ->
+        {
+            LiveData<Resource<List<Feed>>> refreshing = mFeedsViewModel.refresh();
+            refreshing.observe(FeedsFragment.this, new Observer<Resource<List<Feed>>>() {
+                @Override
+                public void onChanged(@Nullable Resource<List<Feed>> listResource) {
+                    if (listResource != null && listResource.status != Status.LOADING) {
+                        mBinding.pullToRefresh.setRefreshing(false);
+                        refreshing.removeObserver(this);
+                    }
+                }
+            });
         });
 
         mBinding.fabNewPost.setOnClickListener(v -> {

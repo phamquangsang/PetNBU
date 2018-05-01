@@ -74,7 +74,7 @@ public abstract class NetworkBoundResource<ResultType, RequestType> {
             //noinspection ConstantConditions
             if (response.isSuccessful()) {
                 appExecutors.diskIO().execute(() -> {
-                    if(shouldDeleteOldData()){
+                    if(shouldDeleteOldData(response.body)){
                         deleteDataFromDb();
                     }
                     saveCallResult(processResponse(response));
@@ -116,7 +116,7 @@ public abstract class NetworkBoundResource<ResultType, RequestType> {
     protected abstract void deleteDataFromDb();
 
     @MainThread
-    protected boolean shouldDeleteOldData(){
+    protected boolean shouldDeleteOldData(RequestType body){
         return false;
     }
 

@@ -9,7 +9,6 @@ import com.firebase.jobdispatcher.Constraint;
 import com.firebase.jobdispatcher.FirebaseJobDispatcher;
 import com.firebase.jobdispatcher.Job;
 import com.firebase.jobdispatcher.Trigger;
-import com.google.gson.Gson;
 import com.petnbu.petnbu.AppExecutors;
 import com.petnbu.petnbu.PetApplication;
 import com.petnbu.petnbu.SharedPrefUtil;
@@ -87,6 +86,11 @@ public class FeedRepository {
             }
 
             @Override
+            protected boolean shouldDeleteOldData(List<Feed> body) {
+                return true;
+            }
+
+            @Override
             protected void deleteDataFromDb() {
                 mFeedDao.deleteAllExcludeStatus(Feed.STATUS_UPLOADING);
             }
@@ -125,4 +129,39 @@ public class FeedRepository {
         jobDispatcher.mustSchedule(job);
     }
 
+    public LiveData<Resource<List<Feed>>> refresh() {
+        return new NetworkBoundResource<List<Feed>, List<Feed>>(mAppExecutors) {
+            @Override
+            protected void saveCallResult(@NonNull List<Feed> item) {
+                mFeedDao.insert(item);
+            }
+
+            @Override
+            protected boolean shouldFetch(@Nullable List<Feed> data) {
+                return true;
+            }
+
+            @NonNull
+            @Override
+            protected LiveData<List<Feed>> loadFromDb() {
+                return mFeedDao.loadFeeds();
+            }
+
+            @NonNull
+            @Override
+            protected LiveData<ApiResponse<List<Feed>>> createCall() {
+                return mWebService.getFeeds(System.currentTimeMillis(), FEEDS_PER_PAGE);
+            }
+
+            @Override
+            protected boolean shouldDeleteOldData(List<Feed> body) {
+                return true;
+            }
+
+            @Override
+            protected void deleteDataFromDb() {
+                mFeedDao.deleteAllExcludeStatus(Feed.STATUS_UPLOADING);
+            }
+        }.asLiveData();
+    }
 }
