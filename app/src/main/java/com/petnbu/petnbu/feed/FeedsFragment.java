@@ -56,10 +56,8 @@ public class FeedsFragment extends Fragment {
             mFeedsViewModel.getLoadMoreState().observe(this, state -> {
                 Timber.i(state != null ? state.toString(): "null");
                 if(state != null && state.isRunning()){
-                    mAdapter.setLoading(true);
                     mBinding.progressBar.setVisibility(View.VISIBLE);
                 }else{
-                    mAdapter.setLoading(false);
                     mBinding.progressBar.setVisibility(View.GONE);
                 }
             });
