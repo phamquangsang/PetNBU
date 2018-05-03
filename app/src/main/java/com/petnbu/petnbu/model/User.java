@@ -1,6 +1,7 @@
 package com.petnbu.petnbu.model;
 
 import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
 import android.arch.persistence.room.TypeConverters;
 import android.support.annotation.NonNull;
@@ -32,6 +33,7 @@ public class User {
     public User() {
     }
 
+    @Ignore
     public User(String userId, Photo avatar, String name, String email, Date timeCreated, Date timeUpdated) {
         this.userId = userId;
         this.avatar = avatar;

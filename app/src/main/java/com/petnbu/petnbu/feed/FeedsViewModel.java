@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 
 import com.petnbu.petnbu.PetApplication;
 import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.FeedPaging;
 import com.petnbu.petnbu.model.Resource;
 import com.petnbu.petnbu.repo.FeedRepository;
 
@@ -42,11 +43,8 @@ public class FeedsViewModel extends ViewModel {
 
     public void loadNextPage() {
         if (mFeedsLiveData.getValue() != null) {
-            List<Feed> feeds = mFeedsLiveData.getValue().data;
-            if (feeds != null && !feeds.isEmpty()) {
-                Feed lastFeed = feeds.get(feeds.size() - 1);
-                loadMoreHandler.loadNextPage(lastFeed);
-            }
+            loadMoreHandler.loadNextPage(FeedPaging.GLOBAL_FEEDS_PAGING_ID);
+
         }
     }
 
@@ -110,13 +108,13 @@ public class FeedsViewModel extends ViewModel {
             loadMoreState.setValue(new LoadMoreState(false, null));
         }
 
-        public void loadNextPage(Feed lastFeed) {
-            if(!hasMore || loadMoreState.getValue() == null || loadMoreState.getValue().running){
+        public void loadNextPage(String pagingId) {
+            if (!hasMore || loadMoreState.getValue() == null || loadMoreState.getValue().running) {
                 return;
             }
             Timber.i("loadNextPage");
             unregister();
-            nextPageLiveData = feedRepo.fetchNextPage(lastFeed);
+            nextPageLiveData = feedRepo.fetchNextPage(pagingId);
             loadMoreState.setValue(new LoadMoreState(true, null));
             nextPageLiveData.observeForever(this);
 

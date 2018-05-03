@@ -9,6 +9,7 @@ import android.arch.persistence.room.Query;
 import android.arch.persistence.room.Update;
 
 import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.FeedPaging;
 
 import java.util.List;
 
@@ -41,6 +42,9 @@ public abstract class FeedDao {
     @Query("SELECT * FROM feeds ORDER BY timeCreated DESC")
     public abstract LiveData<List<Feed>> loadFeeds();
 
+    @Query("SELECT * FROM feeds WHERE feedId IN (:ids) ORDER BY timeCreated DESC")
+    public abstract LiveData<List<Feed>> loadFeeds(List<String> ids);
+
     @Query("SELECT * FROM feeds WHERE feedId = :feedId")
     public abstract Feed findFeedById(String feedId);
 
@@ -52,4 +56,22 @@ public abstract class FeedDao {
 
     @Query("DELETE FROM feeds where status != :status")
     public abstract void deleteAllExcludeStatus(@Feed.LOCAL_STATUS int status);
+
+    @Query("Select * from feed_paging where pagingId = :id")
+    abstract public LiveData<FeedPaging> loadFeedPaging(String id);
+
+    @Query("Select * from feed_paging where pagingId = :id")
+    abstract public FeedPaging findFeedPaging(String id);
+
+
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    abstract public void insert(FeedPaging paging);
+
+    @Update(onConflict = OnConflictStrategy.REPLACE)
+    abstract public void update(FeedPaging paging);
+
+    @Query("DELETE FROM feed_paging where pagingId = :pagingId")
+    abstract public void deleteFeedPaging(String pagingId);
+
 }

@@ -2,6 +2,7 @@ package com.petnbu.petnbu.model;
 
 import android.arch.persistence.room.Embedded;
 import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
 import android.arch.persistence.room.TypeConverters;
 import android.os.Parcel;
@@ -26,7 +27,7 @@ public class Feed implements Parcelable {
 
     @Retention(SOURCE)
     @IntDef(value = {STATUS_NEW, STATUS_UPLOADING, STATUS_ERROR, STATUS_DONE})
-    public @interface LOCAL_STATUS{};
+    public @interface LOCAL_STATUS{}
 
     public static final int STATUS_NEW = 0;
     public static final int STATUS_UPLOADING = 1;
@@ -48,9 +49,13 @@ public class Feed implements Parcelable {
     @Exclude
     private int status;
 
+    @Exclude
+    private boolean likeInProgress;
+
     public Feed() {
     }
 
+    @Ignore
     public Feed(String feedId, FeedUser feedUser, List<Photo> photos, int commentCount, int likeCount, String content, Date timeCreated, Date timeUpdated) {
         this.feedId = feedId;
         mFeedUser = feedUser;
@@ -61,6 +66,7 @@ public class Feed implements Parcelable {
         this.timeCreated = timeCreated;
         this.timeUpdated = timeUpdated;
         status = STATUS_NEW;
+        this.likeInProgress = false;
     }
 
     public String getFeedId() {
@@ -125,6 +131,15 @@ public class Feed implements Parcelable {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    @Exclude
+    public boolean isLikeInProgress() {
+        return likeInProgress;
+    }
+
+    public void setLikeInProgress(boolean likeInProgress) {
+        this.likeInProgress = likeInProgress;
     }
 
     @LOCAL_STATUS

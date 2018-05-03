@@ -17,8 +17,10 @@ import com.petnbu.petnbu.api.StorageApi;
 import com.petnbu.petnbu.api.SuccessCallback;
 import com.petnbu.petnbu.api.WebService;
 import com.petnbu.petnbu.db.FeedDao;
+import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.db.UserDao;
 import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.FeedPaging;
 import com.petnbu.petnbu.model.Photo;
 
 import java.util.ArrayList;
@@ -44,6 +46,9 @@ public class CreateFeedJob extends JobService {
 
     @Inject
     UserDao mUserDao;
+
+    @Inject
+    PetDb mPetDb;
 
     @Inject
     AppExecutors mAppExecutors;
@@ -132,7 +137,26 @@ public class CreateFeedJob extends JobService {
                             Timber.i("update feedId from %s to %s", temporaryFeedId, newFeed.getFeedId());
                             mFeedDao.updateFeedId(temporaryFeedId, newFeed.getFeedId());
                             newFeed.setStatus(Feed.STATUS_DONE);
-                            mFeedDao.update(newFeed);
+
+                            FeedPaging currentPaging = mFeedDao.findFeedPaging(FeedPaging.GLOBAL_FEEDS_PAGING_ID);
+                            List<String> feedIds = currentPaging.getFeedIds();
+                            for (int i = 0, feedIdsSize = feedIds.size(); i < feedIdsSize; i++) {
+                                String id = feedIds.get(i);
+                                if (id.equals(temporaryFeedId)) {
+                                    currentPaging.getFeedIds().set(i, newFeed.getFeedId());
+                                    break;
+                                }
+                            }
+
+                            mPetDb.beginTransaction();
+                            try{
+                                mFeedDao.update(currentPaging);
+                                mFeedDao.update(newFeed);
+                                mPetDb.setTransactionSuccessful();
+                            } finally {
+                                mPetDb.endTransaction();
+                            }
+
                             jobFinished(mParams, false);
                         });
                     }else{

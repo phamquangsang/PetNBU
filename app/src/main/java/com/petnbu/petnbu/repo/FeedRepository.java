@@ -2,6 +2,8 @@ package com.petnbu.petnbu.repo;
 
 import android.app.Application;
 import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.MutableLiveData;
+import android.arch.lifecycle.Transformations;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -19,18 +21,22 @@ import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.db.UserDao;
 import com.petnbu.petnbu.jobs.CreateFeedJob;
 import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.FeedPaging;
 import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Resource;
 import com.petnbu.petnbu.model.User;
 import com.petnbu.petnbu.util.IdUtil;
 import com.petnbu.petnbu.util.RateLimiter;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+
+import timber.log.Timber;
 
 @Singleton
 public class FeedRepository {
@@ -64,19 +70,43 @@ public class FeedRepository {
     public LiveData<Resource<List<Feed>>> loadFeeds() {
         return new NetworkBoundResource<List<Feed>, List<Feed>>(mAppExecutors) {
             @Override
-            protected void saveCallResult(@NonNull List<Feed> item) {
-                mFeedDao.insert(item);
+            protected void saveCallResult(@NonNull List<Feed> items) {
+                List<String> listId = new ArrayList<>(items.size());
+                for (Feed item : items) {
+                    listId.add(item.getFeedId());
+                }
+                FeedPaging paging = new FeedPaging(FeedPaging.GLOBAL_FEEDS_PAGING_ID,
+                        listId, false,
+                        listId.get(listId.size() - 1));
+                mPetDb.beginTransaction();
+                try {
+                    mFeedDao.insert(items);
+                    mFeedDao.insert(paging);
+                    mPetDb.setTransactionSuccessful();
+                } finally {
+                    mPetDb.endTransaction();
+                }
+
             }
 
             @Override
             protected boolean shouldFetch(@Nullable List<Feed> data) {
-                return data == null || data.isEmpty() || mRateLimiter.shouldFetch("feeds");
+                return data == null || data.isEmpty();
             }
 
             @NonNull
             @Override
             protected LiveData<List<Feed>> loadFromDb() {
-                return mFeedDao.loadFeeds();
+                return Transformations.switchMap(mFeedDao.loadFeedPaging(FeedPaging.GLOBAL_FEEDS_PAGING_ID), input -> {
+                    if (input == null) {
+                        MutableLiveData<List<Feed>> data = new MutableLiveData<>();
+                        data.postValue(null);
+                        return data;
+                    } else {
+                        Timber.i("loadFeedsFromDb paging: %s", input.toString());
+                        return mFeedDao.loadFeeds(input.getFeedIds());
+                    }
+                });
             }
 
             @NonNull
@@ -92,13 +122,20 @@ public class FeedRepository {
 
             @Override
             protected void deleteDataFromDb() {
-                mFeedDao.deleteAllExcludeStatus(Feed.STATUS_UPLOADING);
+                mPetDb.beginTransaction();
+                try {
+                    mFeedDao.deleteAllExcludeStatus(Feed.STATUS_UPLOADING);
+                    mFeedDao.deleteFeedPaging(FeedPaging.GLOBAL_FEEDS_PAGING_ID);
+                    mPetDb.setTransactionSuccessful();
+                } finally {
+                    mPetDb.endTransaction();
+                }
             }
         }.asLiveData();
     }
 
-    public LiveData<Resource<Boolean>> fetchNextPage(Feed lastFeed) {
-        FetchNextPageFeed fetchNextPageTask = new FetchNextPageFeed(lastFeed, mWebService, mPetDb, mAppExecutors);
+    public LiveData<Resource<Boolean>> fetchNextPage(String pagingId) {
+        FetchNextPageFeed fetchNextPageTask = new FetchNextPageFeed(pagingId, mWebService, mPetDb, mAppExecutors);
         mAppExecutors.networkIO().execute(fetchNextPageTask);
         return fetchNextPageTask.getLiveData();
     }
@@ -112,7 +149,19 @@ public class FeedRepository {
             feed.setTimeCreated(new Date());
             feed.setTimeUpdated(new Date());
             feed.setFeedId(IdUtil.generateID("feed"));
-            mFeedDao.insert(feed);
+
+            FeedPaging currentFeedsPaging = mFeedDao.findFeedPaging(FeedPaging.GLOBAL_FEEDS_PAGING_ID);
+            currentFeedsPaging.getFeedIds().add(0, feed.getFeedId());
+
+            mPetDb.beginTransaction();
+            try {
+                mFeedDao.update(currentFeedsPaging);
+                mFeedDao.insert(feed);
+                mPetDb.setTransactionSuccessful();
+            } finally {
+                mPetDb.endTransaction();
+            }
+
             scheduleCreateFeedJob(feed);
         });
     }
@@ -132,8 +181,23 @@ public class FeedRepository {
     public LiveData<Resource<List<Feed>>> refresh() {
         return new NetworkBoundResource<List<Feed>, List<Feed>>(mAppExecutors) {
             @Override
-            protected void saveCallResult(@NonNull List<Feed> item) {
-                mFeedDao.insert(item);
+            protected void saveCallResult(@NonNull List<Feed> items) {
+                List<String> listId = new ArrayList<>(items.size());
+                for (Feed item : items) {
+                    listId.add(item.getFeedId());
+                }
+                FeedPaging paging = new FeedPaging(FeedPaging.GLOBAL_FEEDS_PAGING_ID,
+                        listId, false,
+                        listId.get(listId.size() - 1));
+                mPetDb.beginTransaction();
+                try {
+                    mFeedDao.insert(items);
+                    mFeedDao.insert(paging);
+                    mPetDb.setTransactionSuccessful();
+                } finally {
+                    mPetDb.endTransaction();
+                }
+
             }
 
             @Override
@@ -144,7 +208,15 @@ public class FeedRepository {
             @NonNull
             @Override
             protected LiveData<List<Feed>> loadFromDb() {
-                return mFeedDao.loadFeeds();
+                return Transformations.switchMap(mFeedDao.loadFeedPaging(FeedPaging.GLOBAL_FEEDS_PAGING_ID), input -> {
+                    if (input == null) {
+                        MutableLiveData<List<Feed>> data = new MutableLiveData<>();
+                        data.postValue(null);
+                        return data;
+                    } else {
+                        return mFeedDao.loadFeeds(input.getFeedIds());
+                    }
+                });
             }
 
             @NonNull
@@ -160,7 +232,14 @@ public class FeedRepository {
 
             @Override
             protected void deleteDataFromDb() {
-                mFeedDao.deleteAllExcludeStatus(Feed.STATUS_UPLOADING);
+                mPetDb.beginTransaction();
+                try {
+                    mFeedDao.deleteAllExcludeStatus(Feed.STATUS_UPLOADING);
+                    mFeedDao.deleteFeedPaging(FeedPaging.GLOBAL_FEEDS_PAGING_ID);
+                    mPetDb.setTransactionSuccessful();
+                } finally {
+                    mPetDb.endTransaction();
+                }
             }
         }.asLiveData();
     }

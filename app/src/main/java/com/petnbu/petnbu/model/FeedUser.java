@@ -1,5 +1,6 @@
 package com.petnbu.petnbu.model;
 
+import android.arch.persistence.room.Ignore;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -11,6 +12,7 @@ public class FeedUser implements Parcelable {
     public FeedUser() {
     }
 
+    @Ignore
     public FeedUser(String userId, String photoUrl, String displayName) {
         this.userId = userId;
         this.photoUrl = photoUrl;
