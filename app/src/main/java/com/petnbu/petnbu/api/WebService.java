@@ -18,6 +18,8 @@ public interface WebService {
 
     public LiveData<ApiResponse<User>> createUser(User user);
 
+    public LiveData<ApiResponse<Feed>> likeFeed(String feedId);
+
     public LiveData<ApiResponse<User>> getUser(String userId);
 
     public void updateUser(User user, SuccessCallback<Void> callback);

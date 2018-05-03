@@ -26,9 +26,11 @@ import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.Resource;
 import com.petnbu.petnbu.model.Status;
+import com.petnbu.petnbu.util.RateLimiter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import timber.log.Timber;
 
@@ -37,6 +39,7 @@ public class FeedsFragment extends Fragment {
     private FragmentFeedsBinding mBinding;
     private FeedsViewModel mFeedsViewModel;
     private FeedsRecyclerViewAdapter mAdapter;
+    private RateLimiter<String> mLikeClickLimiter = new RateLimiter<>(1, TimeUnit.SECONDS);
 
     public FeedsFragment() {
         // Required empty public constructor
@@ -89,6 +92,9 @@ public class FeedsFragment extends Fragment {
 
             @Override
             public void onLikeClicked(String feedId) {
+                 if(mLikeClickLimiter.shouldFetch(feedId)){
+                     Timber.i("like clicked");
+                 }
             }
 
             @Override
