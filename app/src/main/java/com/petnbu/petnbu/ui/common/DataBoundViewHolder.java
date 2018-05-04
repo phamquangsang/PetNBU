@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.example.github.ui.common;
+package com.petnbu.petnbu.ui.common;
 
 import android.databinding.ViewDataBinding;
 import android.support.v7.widget.RecyclerView;
