@@ -1,7 +1,11 @@
 package com.petnbu.petnbu.userprofile;
 
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProvider;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -11,11 +15,14 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.petnbu.petnbu.R;
+import com.petnbu.petnbu.feed.FeedsViewModel;
 import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.Resource;
 import com.petnbu.petnbu.userprofile.dummy.DummyContent;
 import com.petnbu.petnbu.userprofile.dummy.DummyContent.DummyItem;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A fragment representing a list of Items.
@@ -27,9 +34,13 @@ public class UserProfileFragment extends Fragment {
 
     // TODO: Customize parameter argument names
     private static final String ARG_COLUMN_COUNT = "column-count";
+    private static String ARG_USER_ID = "user-id";
     // TODO: Customize parameters
     private int mColumnCount = 1;
+    private String mUserId;
     private OnProfileFragmentInteractionListener mListener;
+    private FeedsViewModel mViewModel;
+    private ProfileFeedAdapter mAdapter;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -40,10 +51,11 @@ public class UserProfileFragment extends Fragment {
 
     // TODO: Customize parameter initialization
     @SuppressWarnings("unused")
-    public static UserProfileFragment newInstance(int columnCount) {
+    public static UserProfileFragment newInstance(int columnCount, String userId) {
         UserProfileFragment fragment = new UserProfileFragment();
         Bundle args = new Bundle();
         args.putInt(ARG_COLUMN_COUNT, columnCount);
+        args.putString(ARG_USER_ID, userId);
         fragment.setArguments(args);
         return fragment;
     }
@@ -54,6 +66,7 @@ public class UserProfileFragment extends Fragment {
 
         if (getArguments() != null) {
             mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
+            mUserId = getArguments().getString(ARG_USER_ID);
         }
     }
 
@@ -63,19 +76,54 @@ public class UserProfileFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_feed_profile_list, container, false);
 
         // Set the adapter
-        if (view instanceof RecyclerView) {
-            Context context = view.getContext();
-            RecyclerView recyclerView = (RecyclerView) view;
-            if (mColumnCount <= 1) {
-                recyclerView.setLayoutManager(new LinearLayoutManager(context));
-            } else {
-                recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
-            }
-            recyclerView.setAdapter(new ProfileFeedAdapter(new ArrayList<>(), mListener));
+        Context context = view.getContext();
+        RecyclerView recyclerView = view.findViewById(R.id.list);
+        if (mColumnCount <= 1) {
+            recyclerView.setLayoutManager(new LinearLayoutManager(context));
+        } else {
+            recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
         }
+        mAdapter = new ProfileFeedAdapter(mListener);
+        recyclerView.setAdapter(mAdapter);
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                if(recyclerView.getLayoutManager() instanceof LinearLayoutManager){
+                    LinearLayoutManager layoutManager = (LinearLayoutManager)
+                            recyclerView.getLayoutManager();
+                    int lastPosition = layoutManager
+                            .findLastVisibleItemPosition();
+                    if (lastPosition == mAdapter.getItemCount() - 1) {
+                        mViewModel.loadNextPage();
+                    }
+                }else{
+                    GridLayoutManager layoutManager = (GridLayoutManager) recyclerView.getLayoutManager();
+                    int lastPosition = layoutManager
+                            .findLastVisibleItemPosition();
+                    if (lastPosition/3 == mAdapter.getItemCount() / mColumnCount) {
+                        mViewModel.loadNextPage();
+                    }
+                }
+
+            }
+        });
         return view;
     }
 
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        mViewModel = ViewModelProviders.of(getActivity()).get(FeedsViewModel.class);
+        mViewModel.getFeeds(mUserId).observe(this, new Observer<Resource<List<Feed>>>() {
+            @Override
+            public void onChanged(@Nullable Resource<List<Feed>> feedsResource) {
+                if (feedsResource != null && feedsResource.data != null) {
+                    mAdapter.replace(feedsResource.data);
+                }
+            }
+        });
+    }
 
     @Override
     public void onAttach(Context context) {

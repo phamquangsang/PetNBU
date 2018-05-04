@@ -67,7 +67,7 @@ public class FeedRepository {
         mApplication = application;
     }
 
-    public LiveData<Resource<List<Feed>>> loadFeeds() {
+    public LiveData<Resource<List<Feed>>> loadFeeds(String pagingId) {
         return new NetworkBoundResource<List<Feed>, List<Feed>>(mAppExecutors) {
             @Override
             protected void saveCallResult(@NonNull List<Feed> items) {
@@ -75,7 +75,7 @@ public class FeedRepository {
                 for (Feed item : items) {
                     listId.add(item.getFeedId());
                 }
-                FeedPaging paging = new FeedPaging(FeedPaging.GLOBAL_FEEDS_PAGING_ID,
+                FeedPaging paging = new FeedPaging(pagingId,
                         listId, false,
                         listId.get(listId.size() - 1));
                 mPetDb.beginTransaction();
@@ -121,7 +121,7 @@ public class FeedRepository {
             }
 
             @Override
-            protected void deleteDataFromDb() {
+            protected void deleteDataFromDb(List<Feed> body) {
                 mPetDb.beginTransaction();
                 try {
                     mFeedDao.deleteAllExcludeStatus(Feed.STATUS_UPLOADING);
@@ -130,6 +130,37 @@ public class FeedRepository {
                 } finally {
                     mPetDb.endTransaction();
                 }
+            }
+        }.asLiveData();
+    }
+
+    public LiveData<Resource<Feed>> getFeed(String feedId){
+        return new NetworkBoundResource<Feed, Feed>(mAppExecutors){
+            @Override
+            protected void saveCallResult(@NonNull Feed item) {
+                mFeedDao.insert(item);
+            }
+
+            @Override
+            protected boolean shouldFetch(@Nullable Feed data) {
+                return data == null;
+            }
+
+            @Override
+            protected void deleteDataFromDb(Feed body) {
+                mFeedDao.deleteFeedById(feedId);
+            }
+
+            @NonNull
+            @Override
+            protected LiveData<Feed> loadFromDb() {
+                return mFeedDao.loadFeedById(feedId);
+            }
+
+            @NonNull
+            @Override
+            protected LiveData<ApiResponse<Feed>> createCall() {
+                return mWebService.getFeed(feedId);
             }
         }.asLiveData();
     }
@@ -231,7 +262,7 @@ public class FeedRepository {
             }
 
             @Override
-            protected void deleteDataFromDb() {
+            protected void deleteDataFromDb(List<Feed> body) {
                 mPetDb.beginTransaction();
                 try {
                     mFeedDao.deleteAllExcludeStatus(Feed.STATUS_UPLOADING);

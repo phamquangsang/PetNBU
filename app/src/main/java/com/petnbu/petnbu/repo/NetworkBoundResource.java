@@ -24,6 +24,7 @@ import com.petnbu.petnbu.util.Objects;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MediatorLiveData;
+import android.arch.lifecycle.Observer;
 import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -75,7 +76,7 @@ public abstract class NetworkBoundResource<ResultType, RequestType> {
             if (response.isSuccessful()) {
                 appExecutors.diskIO().execute(() -> {
                     if(shouldDeleteOldData(response.body)){
-                        deleteDataFromDb();
+                        deleteDataFromDb(response.body);
                     }
                     saveCallResult(processResponse(response));
                     appExecutors.mainThread().execute(() ->
@@ -113,7 +114,7 @@ public abstract class NetworkBoundResource<ResultType, RequestType> {
     protected abstract boolean shouldFetch(@Nullable ResultType data);
 
     @WorkerThread
-    protected abstract void deleteDataFromDb();
+    protected abstract void deleteDataFromDb(RequestType body);
 
     @MainThread
     protected boolean shouldDeleteOldData(RequestType body){

@@ -46,6 +46,9 @@ public abstract class FeedDao {
     public abstract LiveData<List<Feed>> loadFeeds(List<String> ids);
 
     @Query("SELECT * FROM feeds WHERE feedId = :feedId")
+    public abstract LiveData<Feed> loadFeedById(String feedId);
+
+    @Query("SELECT * FROM feeds WHERE feedId = :feedId")
     public abstract Feed findFeedById(String feedId);
 
     @Query("SELECT * FROM feeds ORDER BY timeCreated LIMIT 1")

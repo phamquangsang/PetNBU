@@ -23,9 +23,12 @@ import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.Utils;
 import com.petnbu.petnbu.databinding.FragmentFeedsBinding;
 import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.FeedPaging;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.Resource;
 import com.petnbu.petnbu.model.Status;
+import com.petnbu.petnbu.userprofile.UserProfileActivity;
+import com.petnbu.petnbu.userprofile.UserProfileFragment;
 import com.petnbu.petnbu.util.RateLimiter;
 
 import java.util.ArrayList;
@@ -57,8 +60,8 @@ public class FeedsFragment extends Fragment {
         Activity activity = getActivity();
         if (activity != null) {
             mFeedsViewModel = ViewModelProviders.of(getActivity()).get(FeedsViewModel.class);
-            mFeedsViewModel.getFeeds().observe(this, feeds -> {
-                if (feeds.data != null) {
+            mFeedsViewModel.getFeeds(FeedPaging.GLOBAL_FEEDS_PAGING_ID).observe(this, feeds -> {
+                if (feeds != null && feeds.data != null) {
                     mAdapter.setFeeds(feeds.data);
                 }
             });
@@ -82,7 +85,8 @@ public class FeedsFragment extends Fragment {
         mAdapter = new FeedsRecyclerViewAdapter(getContext(), new ArrayList<>(), new FeedsRecyclerViewAdapter.OnItemClickListener() {
             @Override
             public void onProfileClicked(String userId) {
-
+                Intent i = new Intent(getContext(), UserProfileActivity.class);
+                startActivity(i);
             }
 
             @Override

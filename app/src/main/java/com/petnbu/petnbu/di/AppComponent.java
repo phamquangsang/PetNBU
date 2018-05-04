@@ -9,6 +9,7 @@ import com.petnbu.petnbu.jobs.CreateFeedJob;
 import com.petnbu.petnbu.login.LoginJavaActivity;
 import com.petnbu.petnbu.repo.FeedRepository;
 import com.petnbu.petnbu.repo.UserRepository;
+import com.petnbu.petnbu.userprofile.UserProfileViewModel;
 
 import javax.inject.Singleton;
 
@@ -25,6 +26,8 @@ public interface AppComponent {
     void inject(CreateFeedJob createFeedJob);
 
     void inject(CreateFeedViewModel viewModel);
+
+    void inject(UserProfileViewModel userProfileViewModel);
 
     PetDb getPetDb();
 

@@ -62,7 +62,7 @@ public class UserRepository {
             }
 
             @Override
-            protected void deleteDataFromDb() {
+            protected void deleteDataFromDb(User body) {
 
             }
         }.asLiveData();

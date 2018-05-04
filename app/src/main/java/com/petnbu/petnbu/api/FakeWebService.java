@@ -227,4 +227,9 @@ public class FakeWebService implements WebService {
     public LiveData<ApiResponse<Feed>> likeFeed(String feedId) {
         return null;
     }
+
+    @Override
+    public LiveData<ApiResponse<Feed>> getFeed(String feedId) {
+        return null;
+    }
 }

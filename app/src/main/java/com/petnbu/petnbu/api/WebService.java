@@ -16,6 +16,8 @@ public interface WebService {
 
     public LiveData<ApiResponse<List<Feed>>> getFeeds(long after, int limit);
 
+    public LiveData<ApiResponse<Feed>> getFeed(String feedId);
+
     public LiveData<ApiResponse<User>> createUser(User user);
 
     public LiveData<ApiResponse<Feed>> likeFeed(String feedId);

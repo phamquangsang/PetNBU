@@ -78,6 +78,22 @@ public class FirebaseService implements WebService {
     }
 
     @Override
+    public LiveData<ApiResponse<Feed>> getFeed(String feedId) {
+        MutableLiveData<ApiResponse<Feed>> result = new MutableLiveData<>();
+        mDb.collection(GLOBAL_FEEDS).document(feedId)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    Feed feed = queryDocumentSnapshots.toObject(Feed.class);
+                    Timber.i("onSuccess: loaded %d feed(s)", feed);
+                    result.setValue(new ApiResponse<>(feed, true, null));
+                }).addOnFailureListener(e -> {
+            Timber.e( "onFailure: %s", e.getMessage());
+            result.setValue(new ApiResponse<>(null, false, e.getMessage()));
+        });
+        return result;
+    }
+
+    @Override
     public LiveData<ApiResponse<Feed>> likeFeed(String feedId) {
         mDb.runTransaction(new Transaction.Function<Feed>() {
             @Nullable
