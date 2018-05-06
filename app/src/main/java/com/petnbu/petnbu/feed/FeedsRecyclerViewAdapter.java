@@ -61,11 +61,6 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
         mOnItemClickListener = onItemClickListener;
     }
 
-    @Override
-    public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
-        super.onAttachedToRecyclerView(recyclerView);
-    }
-
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -133,6 +128,11 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
                     mOnItemClickListener.onCommentClicked(mFeeds.get(getAdapterPosition()).getFeedId());
                 }
             });
+            mBinding.tvViewComments.setOnClickListener(v -> {
+                if (mOnItemClickListener != null && getAdapterPosition() != RecyclerView.NO_POSITION) {
+                    mOnItemClickListener.onCommentClicked(mFeeds.get(getAdapterPosition()).getFeedId());
+                }
+            });
         }
 
         public void bindData(Feed feed) {
@@ -156,6 +156,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
                 } else {
                     mBinding.tvContent.setVisibility(View.VISIBLE);
                 }
+                mBinding.tvViewComments.setVisibility(View.GONE);
             } else {
                 mBinding.layoutRoot.setShouldInterceptEvents(false);
 
@@ -165,12 +166,14 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
                     mBinding.imgLike.setVisibility(View.GONE);
                     mBinding.imgComment.setVisibility(View.GONE);
                     mBinding.tvLikesCount.setVisibility(View.GONE);
+                    mBinding.tvViewComments.setVisibility(View.GONE);
                 } else {
                     mBinding.layoutDisable.setVisibility(View.GONE);
                     mBinding.imgLike.setVisibility(View.VISIBLE);
                     mBinding.imgComment.setVisibility(View.VISIBLE);
                     mBinding.tvLikesCount.setVisibility(View.VISIBLE);
                     mBinding.tvContent.setVisibility(View.VISIBLE);
+                    mBinding.tvViewComments.setVisibility(View.VISIBLE);
                 }
                 if(TextUtils.isEmpty(feed.getContent())) {
                     mBinding.tvContent.setVisibility(View.GONE);
@@ -260,7 +263,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
             SpannableStringBuilder builder = new SpannableStringBuilder(mFeed.getFeedUser().getDisplayName() + "");
             builder.setSpan(new StyleSpan(Typeface.BOLD), 0, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             builder.setSpan(new ForegroundColorSpan(Color.BLACK), 0, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            builder.append(" ");
+            builder.append("  ");
             builder.append(mFeed.getContent());
             mBinding.tvContent.setText(builder);
         }

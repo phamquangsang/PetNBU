@@ -4,7 +4,6 @@ import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.DocumentReference;
@@ -14,6 +13,7 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.firestore.Transaction;
+import com.petnbu.petnbu.model.Comment;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.User;
 
@@ -70,9 +70,9 @@ public class FirebaseService implements WebService {
                     Timber.i("onSuccess: loaded %d feed(s)", queryDocumentSnapshots.getDocuments().size());
                     result.setValue(new ApiResponse<>(feeds, true, null));
                 }).addOnFailureListener(e -> {
-                    Timber.e( "onFailure: %s", e.getMessage());
-                    result.setValue(new ApiResponse<>(null, false, e.getMessage()));
-                });
+            Timber.e("onFailure: %s", e.getMessage());
+            result.setValue(new ApiResponse<>(null, false, e.getMessage()));
+        });
 
         return result;
     }
@@ -84,10 +84,10 @@ public class FirebaseService implements WebService {
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     Feed feed = queryDocumentSnapshots.toObject(Feed.class);
-                    Timber.i("onSuccess: loaded %d feed(s)", feed);
+                    Timber.i("onSuccess: loaded %s feed(s)", feed);
                     result.setValue(new ApiResponse<>(feed, true, null));
                 }).addOnFailureListener(e -> {
-            Timber.e( "onFailure: %s", e.getMessage());
+            Timber.e("onFailure: %s", e.getMessage());
             result.setValue(new ApiResponse<>(null, false, e.getMessage()));
         });
         return result;
@@ -148,5 +148,15 @@ public class FirebaseService implements WebService {
         userDoc.set(user, SetOptions.merge())
                 .addOnSuccessListener(aVoid -> callback.onSuccess(aVoid))
                 .addOnFailureListener(e -> callback.onFailed(e));
+    }
+
+    @Override
+    public LiveData<ApiResponse<List<Comment>>> getComments(String feedId) {
+        return null;
+    }
+
+    @Override
+    public LiveData<ApiResponse<List<Comment>>> getCommentsByComment(String commentId) {
+        return null;
     }
 }

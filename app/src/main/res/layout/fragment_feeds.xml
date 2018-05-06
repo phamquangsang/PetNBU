@@ -20,9 +20,7 @@
                 android:clipToPadding="false"
                 android:paddingBottom="40dp"
                 app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
-
         </android.support.v4.widget.SwipeRefreshLayout>
-
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/fabNewPost"

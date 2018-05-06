@@ -5,6 +5,7 @@ import com.petnbu.petnbu.AppExecutors;
 import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.feed.CreateFeedViewModel;
 import com.petnbu.petnbu.feed.FeedsViewModel;
+import com.petnbu.petnbu.feed.comment.CommentsViewModel;
 import com.petnbu.petnbu.jobs.CreateFeedJob;
 import com.petnbu.petnbu.login.LoginJavaActivity;
 import com.petnbu.petnbu.repo.FeedRepository;
@@ -28,6 +29,8 @@ public interface AppComponent {
     void inject(CreateFeedViewModel viewModel);
 
     void inject(UserProfileViewModel userProfileViewModel);
+
+    void inject(CommentsViewModel commentsViewModel);
 
     PetDb getPetDb();
 

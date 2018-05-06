@@ -3,16 +3,17 @@ package com.petnbu.petnbu.api;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 
+import com.petnbu.petnbu.model.Comment;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.User;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class FakeWebService implements WebService {
-
 
     @Override
     public LiveData<ApiResponse<Feed>> createFeed(Feed feed) {
@@ -231,5 +232,141 @@ public class FakeWebService implements WebService {
     @Override
     public LiveData<ApiResponse<Feed>> getFeed(String feedId) {
         return null;
+    }
+
+    @Override
+    public LiveData<ApiResponse<List<Comment>>> getComments(String feedId) {
+        MutableLiveData<ApiResponse<List<Comment>>> commentsLiveData = new MutableLiveData<>();
+        List<Comment> comments = new ArrayList<>();
+
+        Comment comment = new Comment();
+        comment.setId("1");
+        comment.setContent("Well long live all those lies!!\n" +
+                "You tell yourself\n" +
+                "You'll be alright\n" +
+                "But there's no kiss goodbye\n" +
+                "And only the end\n" +
+                "And only the night");
+
+        FeedUser feedUser = new FeedUser();
+        feedUser.setUserId("1");
+        feedUser.setDisplayName("Nhat Pham");
+        feedUser.setPhotoUrl("https://lh4.googleusercontent.com/-pBi1Gc4MU6Y/AAAAAAAAAAI/AAAAAAAAA18/A7gZ4lFOrl8/s96-c/photo.jpg");
+        comment.setFeedUser(feedUser);
+        comment.setLikeCount(1);
+        comment.setCommentCount(5);
+        comment.setTimeCreated(new Date());
+
+        Comment latestComment = new Comment();
+        latestComment.setId("4");
+        latestComment.setContent("What is this What is this What is this What is this");
+
+        feedUser = new FeedUser();
+        feedUser.setUserId("2");
+        feedUser.setDisplayName("Sang Pham");
+        feedUser.setPhotoUrl("https://lh5.googleusercontent.com/-FJzPGWw8bAk/AAAAAAAAAAI/AAAAAAAAAu8/GohAJXC8_78/s96-c/photo.jpg");
+        latestComment.setFeedUser(feedUser);
+        comment.setLatestComment(latestComment);
+
+        comments.add(comment);
+
+        comment = new Comment();
+        comment.setId("2");
+        comment.setContent("What is this place");
+
+        feedUser = new FeedUser();
+        feedUser.setUserId("2");
+        feedUser.setDisplayName("Sang Pham");
+        feedUser.setPhotoUrl("https://lh5.googleusercontent.com/-FJzPGWw8bAk/AAAAAAAAAAI/AAAAAAAAAu8/GohAJXC8_78/s96-c/photo.jpg");
+        comment.setFeedUser(feedUser);
+        comment.setLikeCount(0);
+        comment.setCommentCount(1);
+        comment.setTimeCreated(new Date());
+        comments.add(comment);
+
+        comment = new Comment();
+        comment.setId("3");
+        comment.setContent("What is this thing");
+
+        feedUser = new FeedUser();
+        feedUser.setUserId("2");
+        feedUser.setDisplayName("Sang Pham");
+        feedUser.setPhotoUrl("https://lh5.googleusercontent.com/-FJzPGWw8bAk/AAAAAAAAAAI/AAAAAAAAAu8/GohAJXC8_78/s96-c/photo.jpg");
+        comment.setFeedUser(feedUser);
+        comment.setLikeCount(5);
+        comment.setCommentCount(0);
+        comment.setTimeCreated(new Date());
+        comments.add(comment);
+
+        commentsLiveData.setValue(new ApiResponse<>(comments, true, null));
+        return commentsLiveData;
+    }
+
+    @Override
+    public LiveData<ApiResponse<List<Comment>>> getCommentsByComment(String commentId) {
+        MutableLiveData<ApiResponse<List<Comment>>> commentsLiveData = new MutableLiveData<>();
+        List<Comment> comments = new ArrayList<>();
+
+        Comment comment = new Comment();
+        comment.setId("1");
+        comment.setContent("Well long live all those lies!!\n" +
+                "You tell yourself\n" +
+                "You'll be alright\n" +
+                "But there's no kiss goodbye\n" +
+                "And only the end\n" +
+                "And only the night");
+
+        FeedUser feedUser = new FeedUser();
+        feedUser.setUserId("1");
+        feedUser.setDisplayName("Nhat Pham");
+        feedUser.setPhotoUrl("https://lh4.googleusercontent.com/-pBi1Gc4MU6Y/AAAAAAAAAAI/AAAAAAAAA18/A7gZ4lFOrl8/s96-c/photo.jpg");
+        comment.setFeedUser(feedUser);
+        comment.setLikeCount(1);
+        comment.setCommentCount(5);
+        comment.setTimeCreated(new Date());
+
+        Comment latestComment = new Comment();
+        latestComment.setId("4");
+        latestComment.setContent("What is this What is this What is this What is this");
+
+        feedUser = new FeedUser();
+        feedUser.setUserId("2");
+        feedUser.setDisplayName("Sang Pham");
+        feedUser.setPhotoUrl("https://lh5.googleusercontent.com/-FJzPGWw8bAk/AAAAAAAAAAI/AAAAAAAAAu8/GohAJXC8_78/s96-c/photo.jpg");
+        latestComment.setFeedUser(feedUser);
+        comment.setLatestComment(latestComment);
+
+        comments.add(comment);
+
+        comment = new Comment();
+        comment.setId("2");
+        comment.setContent("What is this place");
+
+        feedUser = new FeedUser();
+        feedUser.setUserId("2");
+        feedUser.setDisplayName("Sang Pham");
+        feedUser.setPhotoUrl("https://lh5.googleusercontent.com/-FJzPGWw8bAk/AAAAAAAAAAI/AAAAAAAAAu8/GohAJXC8_78/s96-c/photo.jpg");
+        comment.setFeedUser(feedUser);
+        comment.setLikeCount(0);
+        comment.setCommentCount(1);
+        comment.setTimeCreated(new Date());
+        comments.add(comment);
+
+        comment = new Comment();
+        comment.setId("3");
+        comment.setContent("What is this thing");
+
+        feedUser = new FeedUser();
+        feedUser.setUserId("2");
+        feedUser.setDisplayName("Sang Pham");
+        feedUser.setPhotoUrl("https://lh5.googleusercontent.com/-FJzPGWw8bAk/AAAAAAAAAAI/AAAAAAAAAu8/GohAJXC8_78/s96-c/photo.jpg");
+        comment.setFeedUser(feedUser);
+        comment.setLikeCount(5);
+        comment.setCommentCount(0);
+        comment.setTimeCreated(new Date());
+        comments.add(comment);
+
+        commentsLiveData.setValue(new ApiResponse<>(comments, true, null));
+        return commentsLiveData;
     }
 }
