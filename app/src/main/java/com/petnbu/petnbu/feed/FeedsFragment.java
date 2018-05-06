@@ -12,7 +12,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -22,13 +21,13 @@ import android.view.ViewGroup;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.Utils;
 import com.petnbu.petnbu.databinding.FragmentFeedsBinding;
+import com.petnbu.petnbu.feed.comment.CommentsActivity;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedPaging;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.Resource;
 import com.petnbu.petnbu.model.Status;
 import com.petnbu.petnbu.userprofile.UserProfileActivity;
-import com.petnbu.petnbu.userprofile.UserProfileFragment;
 import com.petnbu.petnbu.util.RateLimiter;
 
 import java.util.ArrayList;
@@ -110,7 +109,7 @@ public class FeedsFragment extends Fragment {
 
             @Override
             public void onCommentClicked(String feedId) {
-
+                startActivity(CommentsActivity.newIntent(getActivity(), feedId));
             }
         });
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());

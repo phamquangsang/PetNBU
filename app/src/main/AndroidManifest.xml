@@ -48,10 +48,13 @@
                 <action android:name="com.firebase.jobdispatcher.ACTION_EXECUTE"/>
             </intent-filter>
         </service>
-
         <activity android:name=".userprofile.UserProfileActivity"
                   android:theme="@style/AppTheme.NoActionBar">
         </activity>
+        <activity
+            android:name=".feed.comment.CommentsActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar"/>
     </application>
 
 </manifest>

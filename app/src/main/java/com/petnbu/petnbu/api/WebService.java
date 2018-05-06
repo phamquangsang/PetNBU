@@ -2,10 +2,8 @@ package com.petnbu.petnbu.api;
 
 import android.arch.lifecycle.LiveData;
 
-import com.google.android.gms.common.api.Api;
+import com.petnbu.petnbu.model.Comment;
 import com.petnbu.petnbu.model.Feed;
-import com.petnbu.petnbu.model.Photo;
-import com.petnbu.petnbu.model.Resource;
 import com.petnbu.petnbu.model.User;
 
 import java.util.List;
@@ -32,6 +30,9 @@ public interface WebService {
 
     public void updateUser(User user, SuccessCallback<Void> callback);
 
+    public LiveData<ApiResponse<List<Comment>>> getComments(String feedId);
+
+    public LiveData<ApiResponse<List<Comment>>> getCommentsByComment(String commentId);
 }
 
 

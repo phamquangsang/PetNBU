@@ -185,6 +185,19 @@
                 app:layout_goneMarginTop="8dp"
                 tools:text="this is a test contentthis is a test contentthis is a test contentthis is a test contentthis is a test content"/>
 
+            <TextView
+                android:id="@+id/tvViewComments"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:fontFamily="sans-serif"
+                android:text="View all 141 comments"
+                android:textSize="14sp"
+                android:textColor="@android:color/secondary_text_light_nodisable"
+                app:layout_constraintLeft_toLeftOf="@+id/tvLikesCount"
+                app:layout_constraintStart_toStartOf="@+id/tvLikesCount"
+                app:layout_constraintTop_toBottomOf="@+id/tvContent"/>
+
             <FrameLayout
                 android:id="@+id/layoutDisable"
                 android:layout_width="0dp"
@@ -204,15 +217,15 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    app:SpinKit_Color="?attr/colorPrimary"/>
+                    app:SpinKit_Color="@color/colorPrimary"/>
 
                 <LinearLayout
                     android:id="@+id/layoutError"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:visibility="gone"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:visibility="gone">
 
                     <ImageView
                         android:layout_width="wrap_content"

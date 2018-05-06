@@ -14,4 +14,6 @@
     <string name="oops">Oops!</string>
     <string name="error">Error</string>
     <string name="error.unknown">Something went wrong. Please try again</string>
+
+    <string name="feed.view.previous.replies">View %s previous replies</string>
 </resources>
