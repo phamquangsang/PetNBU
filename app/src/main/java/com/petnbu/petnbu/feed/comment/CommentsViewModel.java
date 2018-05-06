@@ -52,11 +52,11 @@ public class CommentsViewModel extends ViewModel {
 
     public LiveData<User> loadUserInfos() {
         return Transformations.switchMap(mUserRepository.getUserById(SharedPrefUtil.getUserId(mApplication)), userResource -> {
-            if(userResource.status.equals(Status.SUCCESS)) {
-                MutableLiveData<User> userLiveData = new MutableLiveData<>();
+            MutableLiveData<User> userLiveData = new MutableLiveData<>();
+            if(userResource != null && userResource.data != null) {
                 userLiveData.setValue(userResource.data);
-                return userLiveData;
-            } else return null;
+            }
+            return userLiveData;
         });
     }
 
