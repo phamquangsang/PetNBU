@@ -14,7 +14,13 @@ public interface WebService {
 
     public LiveData<ApiResponse<Feed>> createFeed(Feed feed);
 
-    public LiveData<ApiResponse<List<Feed>>> getFeeds(long after, int limit);
+    public LiveData<ApiResponse<List<Feed>>> getGlobalFeeds(long after, int limit);
+
+    public LiveData<ApiResponse<List<Feed>>> getGlobalFeeds(String afterFeedId, int limit);
+
+    public LiveData<ApiResponse<List<Feed>>> getUserFeed(String userId, long after, int limit);
+
+    public LiveData<ApiResponse<List<Feed>>> getUserFeed(String userId, String afterFeedId, int limit);
 
     public LiveData<ApiResponse<Feed>> getFeed(String feedId);
 

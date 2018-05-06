@@ -4,6 +4,7 @@ import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
+import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -14,15 +15,21 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.bumptech.glide.Glide;
 import com.petnbu.petnbu.R;
+import com.petnbu.petnbu.databinding.FragmentFeedProfileListBinding;
 import com.petnbu.petnbu.feed.FeedsViewModel;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.Resource;
+import com.petnbu.petnbu.model.User;
 import com.petnbu.petnbu.userprofile.dummy.DummyContent;
 import com.petnbu.petnbu.userprofile.dummy.DummyContent.DummyItem;
 
+import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+
+import timber.log.Timber;
 
 /**
  * A fragment representing a list of Items.
@@ -39,8 +46,9 @@ public class UserProfileFragment extends Fragment {
     private int mColumnCount = 1;
     private String mUserId;
     private OnProfileFragmentInteractionListener mListener;
-    private FeedsViewModel mViewModel;
+    private UserProfileViewModel mViewModel;
     private ProfileFeedAdapter mAdapter;
+    private FragmentFeedProfileListBinding mBinding;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -73,19 +81,17 @@ public class UserProfileFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_feed_profile_list, container, false);
+        mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_feed_profile_list, container, false);
 
         // Set the adapter
-        Context context = view.getContext();
-        RecyclerView recyclerView = view.findViewById(R.id.list);
         if (mColumnCount <= 1) {
-            recyclerView.setLayoutManager(new LinearLayoutManager(context));
+            mBinding.list.setLayoutManager(new LinearLayoutManager(getContext()));
         } else {
-            recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
+            mBinding.list.setLayoutManager(new GridLayoutManager(getContext(), mColumnCount));
         }
         mAdapter = new ProfileFeedAdapter(mListener);
-        recyclerView.setAdapter(mAdapter);
-        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+        mBinding.list.setAdapter(mAdapter);
+        mBinding.list.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 if(recyclerView.getLayoutManager() instanceof LinearLayoutManager){
@@ -94,33 +100,39 @@ public class UserProfileFragment extends Fragment {
                     int lastPosition = layoutManager
                             .findLastVisibleItemPosition();
                     if (lastPosition == mAdapter.getItemCount() - 1) {
-                        mViewModel.loadNextPage();
+                        mViewModel.loadNextPage(mUserId);
                     }
                 }else{
                     GridLayoutManager layoutManager = (GridLayoutManager) recyclerView.getLayoutManager();
                     int lastPosition = layoutManager
                             .findLastVisibleItemPosition();
                     if (lastPosition/3 == mAdapter.getItemCount() / mColumnCount) {
-                        mViewModel.loadNextPage();
+                        mViewModel.loadNextPage(mUserId);
                     }
                 }
 
             }
         });
-        return view;
+        return mBinding.getRoot();
     }
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-
-        mViewModel = ViewModelProviders.of(getActivity()).get(FeedsViewModel.class);
-        mViewModel.getFeeds(mUserId).observe(this, new Observer<Resource<List<Feed>>>() {
-            @Override
-            public void onChanged(@Nullable Resource<List<Feed>> feedsResource) {
-                if (feedsResource != null && feedsResource.data != null) {
-                    mAdapter.replace(feedsResource.data);
-                }
+        mViewModel = ViewModelProviders.of(getActivity()).get(UserProfileViewModel.class);
+        mViewModel.getFeeds(mUserId).observe(this, feedsResource -> {
+            Timber.i("onChanged %s :", feedsResource == null ? "null" : feedsResource.toString());
+            if (feedsResource != null && feedsResource.data != null) {
+                mAdapter.replace(feedsResource.data);
+            }
+        });
+        mViewModel.getUser(mUserId).observe(this, userResource -> {
+            if(userResource != null && userResource.data!=null){
+                User user = userResource.data;
+                mBinding.tvUserNamePlaceHolder.setVisibility(View.GONE);
+                mBinding.tvUserName.setVisibility(View.VISIBLE);
+                mBinding.tvUserName.setText(user.getName());
+                Glide.with(mBinding.imgProfile).load(user.getAvatar().getOriginUrl()).into(mBinding.imgProfile);
             }
         });
     }

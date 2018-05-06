@@ -62,8 +62,15 @@ public class FeedsFragment extends Fragment {
             mFeedsViewModel = ViewModelProviders.of(getActivity()).get(FeedsViewModel.class);
             mFeedsViewModel.getFeeds(FeedPaging.GLOBAL_FEEDS_PAGING_ID).observe(this, feeds -> {
                 if (feeds != null && feeds.data != null) {
+                    if (feeds.status == Status.LOADING) {
+                        mBinding.pullToRefresh.setRefreshing(true);
+                    } else {
+                        mBinding.pullToRefresh.setRefreshing(false);
+                    }
+
                     mAdapter.setFeeds(feeds.data);
                 }
+
             });
 
             mFeedsViewModel.getLoadMoreState().observe(this, state -> {
@@ -75,7 +82,7 @@ public class FeedsFragment extends Fragment {
                         mBinding.progressBar.setVisibility(View.GONE);
                     }
                     String errorMessage = state.getErrorMessageIfNotHandled();
-                    if(errorMessage != null){
+                    if (errorMessage != null) {
                         Snackbar.make(mBinding.getRoot(), errorMessage, Snackbar.LENGTH_LONG).show();
                     }
                 }
@@ -85,7 +92,7 @@ public class FeedsFragment extends Fragment {
         mAdapter = new FeedsRecyclerViewAdapter(getContext(), new ArrayList<>(), new FeedsRecyclerViewAdapter.OnItemClickListener() {
             @Override
             public void onProfileClicked(String userId) {
-                Intent i = new Intent(getContext(), UserProfileActivity.class);
+                Intent i = UserProfileActivity.newIntent(getActivity(), userId);
                 startActivity(i);
             }
 
@@ -96,9 +103,9 @@ public class FeedsFragment extends Fragment {
 
             @Override
             public void onLikeClicked(String feedId) {
-                 if(mLikeClickLimiter.shouldFetch(feedId)){
-                     Timber.i("like clicked");
-                 }
+                if (mLikeClickLimiter.shouldFetch(feedId)) {
+                    Timber.i("like clicked");
+                }
             }
 
             @Override

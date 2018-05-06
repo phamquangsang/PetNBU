@@ -26,7 +26,7 @@ public class FakeWebService implements WebService {
     }
 
     @Override
-    public LiveData<ApiResponse<List<Feed>>> getFeeds(long after, int limit) {
+    public LiveData<ApiResponse<List<Feed>>> getGlobalFeeds(long after, int limit) {
         MutableLiveData<ApiResponse<List<Feed>>> mFeeds = new MutableLiveData<>();
         List<Feed> feeds = new ArrayList<>();
 
@@ -214,6 +214,11 @@ public class FakeWebService implements WebService {
     }
 
     @Override
+    public LiveData<ApiResponse<List<Feed>>> getGlobalFeeds(String afterFeedId, int limit) {
+        return null;
+    }
+
+    @Override
     public void updateUser(User user, SuccessCallback<Void> callback) {
 
     }
@@ -230,6 +235,16 @@ public class FakeWebService implements WebService {
 
     @Override
     public LiveData<ApiResponse<Feed>> getFeed(String feedId) {
+        return null;
+    }
+
+    @Override
+    public LiveData<ApiResponse<List<Feed>>> getUserFeed(String userId, long after, int limit) {
+        return null;
+    }
+
+    @Override
+    public LiveData<ApiResponse<List<Feed>>> getUserFeed(String userId, String afterFeedId, int limit) {
         return null;
     }
 }

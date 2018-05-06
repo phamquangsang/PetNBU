@@ -10,7 +10,7 @@ import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedPaging;
 import com.petnbu.petnbu.model.User;
 
-@Database(entities = {User.class, Feed.class, FeedPaging.class}, version = 3)
+@Database(entities = {User.class, Feed.class, FeedPaging.class}, version = 5)
 public abstract class PetDb extends RoomDatabase{
 
     abstract public FeedDao feedDao();

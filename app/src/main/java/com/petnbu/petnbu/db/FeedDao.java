@@ -60,6 +60,9 @@ public abstract class FeedDao {
     @Query("DELETE FROM feeds where status != :status")
     public abstract void deleteAllExcludeStatus(@Feed.LOCAL_STATUS int status);
 
+    @Query("DELETE FROM feeds WHERE feedId in (:ids) AND status != 1")
+    public abstract void deleteFeeds(List<String> ids);
+
     @Query("Select * from feed_paging where pagingId = :id")
     abstract public LiveData<FeedPaging> loadFeedPaging(String id);
 

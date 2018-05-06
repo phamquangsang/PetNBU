@@ -1,6 +1,5 @@
 package com.petnbu.petnbu.repo;
 
-import android.app.MediaRouteActionProvider;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.Observer;
@@ -18,7 +17,7 @@ import com.petnbu.petnbu.model.Status;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FetchNextPageFeed implements Runnable {
+public class FetchNextPageGlobalFeed implements Runnable {
 
     //data boolean return if new feed has more item or not
     private final MutableLiveData<Resource<Boolean>> mLiveData = new MutableLiveData<>();
@@ -27,7 +26,7 @@ public class FetchNextPageFeed implements Runnable {
     private final AppExecutors mAppExecutors;
     private final String mPagingId;
 
-    public FetchNextPageFeed(String pagingId, WebService webService, PetDb petDb, AppExecutors appExecutors) {
+    public FetchNextPageGlobalFeed(String pagingId, WebService webService, PetDb petDb, AppExecutors appExecutors) {
         mPagingId = pagingId;
         mWebService = webService;
         mPetDb = petDb;
@@ -41,7 +40,6 @@ public class FetchNextPageFeed implements Runnable {
             mLiveData.postValue(null);
             return;
         }
-        Feed oldestFeed = mPetDb.feedDao().findFeedById(currentPaging.getOldestFeedId());
 
         if (currentPaging.isEnded()) {
             mLiveData.postValue(new Resource<>(Status.SUCCESS, true, null));
@@ -49,7 +47,7 @@ public class FetchNextPageFeed implements Runnable {
         }
 
         mLiveData.postValue(new Resource<>(Status.LOADING, null, null));
-        LiveData<ApiResponse<List<Feed>>> result = mWebService.getFeeds(oldestFeed.getTimeCreated().getTime(), FeedRepository.FEEDS_PER_PAGE);
+        LiveData<ApiResponse<List<Feed>>> result = mWebService.getGlobalFeeds(currentPaging.getOldestFeedId(), FeedRepository.FEEDS_PER_PAGE);
         result.observeForever(new Observer<ApiResponse<List<Feed>>>() {
             @Override
             public void onChanged(@Nullable ApiResponse<List<Feed>> listApiResponse) {

@@ -1,25 +1,27 @@
 package com.petnbu.petnbu;
 
-import android.arch.lifecycle.LifecycleObserver;
-import android.arch.lifecycle.LifecycleOwner;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
-import android.arch.persistence.room.TypeConverters;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Log;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.WriteBatch;
 import com.petnbu.petnbu.api.ApiResponse;
 import com.petnbu.petnbu.api.FirebaseService;
-import com.petnbu.petnbu.api.SuccessCallback;
 import com.petnbu.petnbu.api.WebService;
+import com.petnbu.petnbu.db.FeedDao;
 import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.FeedPaging;
 import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.Resource;
-import com.petnbu.petnbu.model.Status;
 import com.petnbu.petnbu.repo.FeedRepository;
 
 import org.junit.Test;
@@ -39,6 +41,23 @@ import static org.hamcrest.MatcherAssert.assertThat;
 @RunWith(AndroidJUnit4.class)
 public class FeedApiTest {
     private static final String TAG = FeedApiTest.class.getSimpleName();
+
+    @Test
+    public void testLoadFeed() {
+        FeedUser userNhat = new FeedUser("2", "https://developer.android.com/static/images/android_logo_2x.png", "Nhat Nhat");
+        List<Photo> photo2 = new ArrayList<>();
+        photo2.add(new Photo("https://picsum.photos/1000/600/?image=383", "https://picsum.photos/500/300/?image=383", "https://picsum.photos/250/150/?image=383", "https://picsum.photos/100/60/?image=383", 1000, 600));
+        Feed feed1 = new Feed("2", userNhat, photo2, 12, 14, "", new Date(), new Date());
+
+        AppExecutors appExecutors = PetApplication.getAppComponent().getAppExecutor();
+        PetDb petDb = PetApplication.getAppComponent().getPetDb();
+        appExecutors.diskIO().execute(() -> {
+            petDb.feedDao().insert(feed1);
+
+        });
+
+
+    }
 
     @Test
     public void testFeedsCreateApi() {
@@ -67,8 +86,6 @@ public class FeedApiTest {
         }
 
 
-
-
     }
 
     @Test
@@ -93,7 +110,7 @@ public class FeedApiTest {
         FirebaseFirestore firestore = FirebaseFirestore.getInstance();
         WebService webService = new FirebaseService(firestore);
         Date date = new Date();
-        LiveData<ApiResponse<List<Feed>>> result = webService.getFeeds(date.getTime(), 30);
+        LiveData<ApiResponse<List<Feed>>> result = webService.getGlobalFeeds(date.getTime(), 30);
         result.observeForever(listApiResponse -> {
             assert listApiResponse != null;
             List<Feed> feeds = listApiResponse.body;
@@ -101,7 +118,7 @@ public class FeedApiTest {
             signal.countDown();
             if (feeds != null) {
                 assertThat(feeds.size(), is(30));
-                for (int i = 0; i < feeds.size() - 1 ; i++) {
+                for (int i = 0; i < feeds.size() - 1; i++) {
                     assertThat(feeds.get(i).getTimeCreated().before(new Date()), is(true));
                     assertThat(feeds.get(i + 1).getTimeCreated().getTime() <= feeds.get(i).getTimeCreated().getTime(), is(true));
                 }
@@ -116,11 +133,11 @@ public class FeedApiTest {
         appExecutors.mainThread().execute(new Runnable() {
             @Override
             public void run() {
-                LiveData<Resource<List<Feed>>> resultLive = repository.loadFeeds();
+                LiveData<Resource<List<Feed>>> resultLive = repository.loadFeeds(FeedPaging.GLOBAL_FEEDS_PAGING_ID);
                 resultLive.observeForever(new Observer<Resource<List<Feed>>>() {
                     @Override
                     public void onChanged(@Nullable Resource<List<Feed>> listResource) {
-                        if(listResource != null){
+                        if (listResource != null) {
                             Timber.i(listResource.toString());
                             if (listResource.data != null) {
                                 Timber.i(String.valueOf(listResource.data.size()));
@@ -134,4 +151,39 @@ public class FeedApiTest {
         signal.await(20, TimeUnit.SECONDS);
     }
 
+
+    @Test
+    public void migrateData() throws InterruptedException {
+        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+        final CountDownLatch signal = new CountDownLatch(2);
+        WebService webService = new FirebaseService(firestore);
+
+        webService.getGlobalFeeds(System.currentTimeMillis(), 200).observeForever(new Observer<ApiResponse<List<Feed>>>() {
+            @Override
+            public void onChanged(@Nullable ApiResponse<List<Feed>> listApiResponse) {
+                WriteBatch batch = firestore.batch();
+                if (listApiResponse != null && listApiResponse.isSucceed) {
+                    List<Feed> list = listApiResponse.body;
+                    for (Feed item : list) {
+                        String path = String.format("user_feeds/%s/feeds/%s", item.getFeedUser().getUserId(), item.getFeedId());
+                        DocumentReference ref = firestore.document(path);
+                        batch.set(ref, item);
+                    }
+                }
+                batch.commit().addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Timber.i("succeed");
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Timber.e(e);
+                    }
+                });
+            }
+        });
+
+        signal.await(20, TimeUnit.SECONDS);
+    }
 }

@@ -15,7 +15,6 @@ import com.google.firebase.firestore.ServerTimestamp;
 import com.petnbu.petnbu.db.PetTypeConverters;
 
 import java.lang.annotation.Retention;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -37,7 +36,7 @@ public class Feed implements Parcelable {
     @PrimaryKey @NonNull
     private String feedId;
     @Embedded
-    private FeedUser mFeedUser;
+    private FeedUser feedUser;
     private List<Photo> photos;
     private int commentCount;
     private int likeCount;
@@ -58,7 +57,7 @@ public class Feed implements Parcelable {
     @Ignore
     public Feed(String feedId, FeedUser feedUser, List<Photo> photos, int commentCount, int likeCount, String content, Date timeCreated, Date timeUpdated) {
         this.feedId = feedId;
-        mFeedUser = feedUser;
+        this.feedUser = feedUser;
         this.photos = photos;
         this.commentCount = commentCount;
         this.likeCount = likeCount;
@@ -78,11 +77,11 @@ public class Feed implements Parcelable {
     }
 
     public FeedUser getFeedUser() {
-        return mFeedUser;
+        return feedUser;
     }
 
     public void setFeedUser(FeedUser feedUser) {
-        mFeedUser = feedUser;
+        this.feedUser = feedUser;
     }
 
     public List<Photo> getPhotos() {
@@ -156,7 +155,7 @@ public class Feed implements Parcelable {
     public String toString() {
         return "Feed{" +
                 "feedId='" + feedId + '\'' +
-                ", mFeedUser=" + mFeedUser +
+                ", feedUser=" + feedUser +
                 ", photos=" + photos +
                 ", commentCount=" + commentCount +
                 ", likeCount=" + likeCount +
@@ -174,30 +173,32 @@ public class Feed implements Parcelable {
 
         Feed feed = (Feed) o;
 
-        if (getCommentCount() != feed.getCommentCount()) return false;
-        if (getLikeCount() != feed.getLikeCount()) return false;
-        if (getStatus() != feed.getStatus()) return false;
-        if (!getFeedId().equals(feed.getFeedId())) return false;
-        if (!getFeedUser().equals(feed.getFeedUser())) return false;
-        if (getPhotos() != null ? !getPhotos().equals(feed.getPhotos()) : feed.getPhotos() != null)
+        if (commentCount != feed.commentCount) return false;
+        if (likeCount != feed.likeCount) return false;
+        if (status != feed.status) return false;
+        if (likeInProgress != feed.likeInProgress) return false;
+        if (!feedId.equals(feed.feedId)) return false;
+        if (feedUser != null ? !feedUser.equals(feed.feedUser) : feed.feedUser != null)
             return false;
-        if (getContent() != null ? !getContent().equals(feed.getContent()) : feed.getContent() != null)
+        if (photos != null ? !photos.equals(feed.photos) : feed.photos != null) return false;
+        if (content != null ? !content.equals(feed.content) : feed.content != null) return false;
+        if (timeCreated != null ? !timeCreated.equals(feed.timeCreated) : feed.timeCreated != null)
             return false;
-        if (!getTimeCreated().equals(feed.getTimeCreated())) return false;
-        return getTimeUpdated().equals(feed.getTimeUpdated());
+        return timeUpdated != null ? timeUpdated.equals(feed.timeUpdated) : feed.timeUpdated == null;
     }
 
     @Override
     public int hashCode() {
-        int result = getFeedId().hashCode();
-        result = 31 * result + getFeedUser().hashCode();
-        result = 31 * result + (getPhotos() != null ? getPhotos().hashCode() : 0);
-        result = 31 * result + getCommentCount();
-        result = 31 * result + getLikeCount();
-        result = 31 * result + (getContent() != null ? getContent().hashCode() : 0);
-        result = 31 * result + getTimeCreated().hashCode();
-        result = 31 * result + getTimeUpdated().hashCode();
-        result = 31 * result + getStatus();
+        int result = feedId.hashCode();
+        result = 31 * result + (feedUser != null ? feedUser.hashCode() : 0);
+        result = 31 * result + (photos != null ? photos.hashCode() : 0);
+        result = 31 * result + commentCount;
+        result = 31 * result + likeCount;
+        result = 31 * result + (content != null ? content.hashCode() : 0);
+        result = 31 * result + (timeCreated != null ? timeCreated.hashCode() : 0);
+        result = 31 * result + (timeUpdated != null ? timeUpdated.hashCode() : 0);
+        result = 31 * result + status;
+        result = 31 * result + (likeInProgress ? 1 : 0);
         return result;
     }
 
@@ -209,7 +210,7 @@ public class Feed implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(this.feedId);
-        dest.writeParcelable(this.mFeedUser, flags);
+        dest.writeParcelable(this.feedUser, flags);
         dest.writeTypedList(this.photos);
         dest.writeInt(this.commentCount);
         dest.writeInt(this.likeCount);
@@ -217,11 +218,12 @@ public class Feed implements Parcelable {
         dest.writeLong(this.timeCreated != null ? this.timeCreated.getTime() : -1);
         dest.writeLong(this.timeUpdated != null ? this.timeUpdated.getTime() : -1);
         dest.writeInt(this.status);
+        dest.writeByte(this.likeInProgress ? (byte) 1 : (byte) 0);
     }
 
     protected Feed(Parcel in) {
         this.feedId = in.readString();
-        this.mFeedUser = in.readParcelable(getClass().getClassLoader());
+        this.feedUser = in.readParcelable(FeedUser.class.getClassLoader());
         this.photos = in.createTypedArrayList(Photo.CREATOR);
         this.commentCount = in.readInt();
         this.likeCount = in.readInt();
@@ -231,6 +233,7 @@ public class Feed implements Parcelable {
         long tmpTimeUpdated = in.readLong();
         this.timeUpdated = tmpTimeUpdated == -1 ? null : new Date(tmpTimeUpdated);
         this.status = in.readInt();
+        this.likeInProgress = in.readByte() != 0;
     }
 
     public static final Creator<Feed> CREATOR = new Creator<Feed>() {

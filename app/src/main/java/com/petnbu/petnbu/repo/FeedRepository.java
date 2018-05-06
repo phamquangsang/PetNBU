@@ -55,7 +55,7 @@ public class FeedRepository {
 
     private final Application mApplication;
 
-    private final RateLimiter<String> mRateLimiter = new RateLimiter<>(10, TimeUnit.SECONDS);
+    private final RateLimiter<String> mRateLimiter = new RateLimiter<>(10, TimeUnit.MINUTES);
 
     @Inject
     public FeedRepository(PetDb petDb, FeedDao feedDao, UserDao userDao, AppExecutors appExecutors, WebService webService, Application application) {
@@ -91,7 +91,7 @@ public class FeedRepository {
 
             @Override
             protected boolean shouldFetch(@Nullable List<Feed> data) {
-                return data == null || data.isEmpty();
+                return true;
             }
 
             @NonNull
@@ -112,7 +112,7 @@ public class FeedRepository {
             @NonNull
             @Override
             protected LiveData<ApiResponse<List<Feed>>> createCall() {
-                return mWebService.getFeeds(System.currentTimeMillis(), FEEDS_PER_PAGE);
+                return mWebService.getGlobalFeeds(System.currentTimeMillis(), FEEDS_PER_PAGE);
             }
 
             @Override
@@ -123,9 +123,9 @@ public class FeedRepository {
             @Override
             protected void deleteDataFromDb(List<Feed> body) {
                 mPetDb.beginTransaction();
+                FeedPaging paging = mFeedDao.findFeedPaging(pagingId);
                 try {
-                    mFeedDao.deleteAllExcludeStatus(Feed.STATUS_UPLOADING);
-                    mFeedDao.deleteFeedPaging(FeedPaging.GLOBAL_FEEDS_PAGING_ID);
+                    mFeedDao.deleteFeedPaging(pagingId);
                     mPetDb.setTransactionSuccessful();
                 } finally {
                     mPetDb.endTransaction();
@@ -165,10 +165,89 @@ public class FeedRepository {
         }.asLiveData();
     }
 
+    public LiveData<Resource<List<Feed>>> loadUserFeeds(String userId) {
+        return new NetworkBoundResource<List<Feed>, List<Feed>>(mAppExecutors) {
+            @Override
+            protected void saveCallResult(@NonNull List<Feed> items) {
+                if(items.isEmpty()){
+                    return;
+                }
+                List<String> listId = new ArrayList<>(items.size());
+                for (Feed item : items) {
+                    listId.add(item.getFeedId());
+                }
+                FeedPaging paging = new FeedPaging(userId,
+                        listId, false,
+                        listId.get(listId.size() - 1));
+                mPetDb.beginTransaction();
+                try {
+                    mFeedDao.insert(items);
+                    mFeedDao.insert(paging);
+                    mPetDb.setTransactionSuccessful();
+                } finally {
+                    mPetDb.endTransaction();
+                }
+
+            }
+
+            @Override
+            protected boolean shouldFetch(@Nullable List<Feed> data) {
+                return data == null || data.isEmpty() || mRateLimiter.shouldFetch(userId);
+            }
+
+            @NonNull
+            @Override
+            protected LiveData<List<Feed>> loadFromDb() {
+                return Transformations.switchMap(mFeedDao.loadFeedPaging(userId), input -> {
+                    if (input == null) {
+                        MutableLiveData<List<Feed>> data = new MutableLiveData<>();
+                        data.postValue(null);
+                        return data;
+                    } else {
+                        Timber.i("loadFeedsFromDb paging: %s", input.toString());
+                        return mFeedDao.loadFeeds(input.getFeedIds());
+                    }
+                });
+            }
+
+            @NonNull
+            @Override
+            protected LiveData<ApiResponse<List<Feed>>> createCall() {
+                Date now = new Date();
+                return mWebService.getUserFeed(userId, now.getTime(), FEEDS_PER_PAGE);
+            }
+
+            @Override
+            protected boolean shouldDeleteOldData(List<Feed> body) {
+                boolean shouldDelete = body.isEmpty() || mRateLimiter.shouldFetch(userId);
+                Timber.i("loadUserProfile: should delete = %s", shouldDelete);
+                return shouldDelete;
+            }
+
+            @Override
+            protected void deleteDataFromDb(List<Feed> body) {
+                Timber.i("deleting old query for userId: %s", userId);
+                mPetDb.beginTransaction();
+                try {
+                    mFeedDao.deleteFeedPaging(userId);
+                    mPetDb.setTransactionSuccessful();
+                } finally {
+                    mPetDb.endTransaction();
+                }
+            }
+        }.asLiveData();
+    }
+
     public LiveData<Resource<Boolean>> fetchNextPage(String pagingId) {
-        FetchNextPageFeed fetchNextPageTask = new FetchNextPageFeed(pagingId, mWebService, mPetDb, mAppExecutors);
+        FetchNextPageGlobalFeed fetchNextPageTask = new FetchNextPageGlobalFeed(pagingId, mWebService, mPetDb, mAppExecutors);
         mAppExecutors.networkIO().execute(fetchNextPageTask);
         return fetchNextPageTask.getLiveData();
+    }
+
+    public LiveData<Resource<Boolean>> fetchNextUserFeedPage(String pagingId){
+        FetchNextPageUserFeed fetchNextPageUserFeed = new FetchNextPageUserFeed(pagingId, mWebService, mPetDb, mAppExecutors);
+        mAppExecutors.networkIO().execute(fetchNextPageUserFeed);
+        return fetchNextPageUserFeed.getLiveData();
     }
 
     public void createNewFeed(Feed feed) {
@@ -253,7 +332,7 @@ public class FeedRepository {
             @NonNull
             @Override
             protected LiveData<ApiResponse<List<Feed>>> createCall() {
-                return mWebService.getFeeds(System.currentTimeMillis(), FEEDS_PER_PAGE);
+                return mWebService.getGlobalFeeds(System.currentTimeMillis(), FEEDS_PER_PAGE);
             }
 
             @Override
@@ -264,8 +343,8 @@ public class FeedRepository {
             @Override
             protected void deleteDataFromDb(List<Feed> body) {
                 mPetDb.beginTransaction();
+                FeedPaging paging = mFeedDao.findFeedPaging(FeedPaging.GLOBAL_FEEDS_PAGING_ID);
                 try {
-                    mFeedDao.deleteAllExcludeStatus(Feed.STATUS_UPLOADING);
                     mFeedDao.deleteFeedPaging(FeedPaging.GLOBAL_FEEDS_PAGING_ID);
                     mPetDb.setTransactionSuccessful();
                 } finally {

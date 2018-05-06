@@ -43,7 +43,7 @@ public class CreateFeedViewModel extends ViewModel {
         LiveData<Resource<User>> userResourceLive = mUserRepository.getUserById(SharedPrefUtil.getUserId(mApplication));
         return Transformations.switchMap(userResourceLive, userResource -> {
             MutableLiveData<User> userLiveData = new MutableLiveData<>();
-            if(userResource != null  && userResource.status.equals(Status.SUCCESS)) {
+            if (userResource != null && userResource.data != null) {
                 userLiveData.setValue(userResource.data);
             } else {
                 userLiveData.setValue(null);
