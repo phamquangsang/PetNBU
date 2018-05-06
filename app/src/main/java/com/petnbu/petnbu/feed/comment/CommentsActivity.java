@@ -50,7 +50,7 @@ public class CommentsActivity extends AppCompatActivity {
         getSupportActionBar().setHomeButtonEnabled(true);
 
         mCommentsViewModel = ViewModelProviders.of(this).get(CommentsViewModel.class);
-        mCommentsViewModel.loadUserInfos().observe(this, user -> {
+        mCommentsViewModel.loadUserInfo().observe(this, user -> {
             if (user != null) {
                 Glide.with(this).asBitmap()
                         .load(user.getAvatar().getOriginUrl())

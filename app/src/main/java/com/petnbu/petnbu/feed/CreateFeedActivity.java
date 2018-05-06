@@ -2,7 +2,6 @@ package com.petnbu.petnbu.feed;
 
 import android.Manifest;
 import android.app.ProgressDialog;
-import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.ClipData;
 import android.content.Context;
@@ -39,7 +38,6 @@ import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.Utils;
 import com.petnbu.petnbu.databinding.ActivityCreateFeedBinding;
 import com.petnbu.petnbu.model.Photo;
-import com.petnbu.petnbu.model.User;
 import com.petnbu.petnbu.util.ColorUtils;
 import com.petnbu.petnbu.views.HorizontalSpaceItemDecoration;
 
@@ -49,7 +47,6 @@ import timber.log.Timber;
 
 public class CreateFeedActivity extends AppCompatActivity {
 
-    public static final int PICK_IMAGE = 1;
     private static final int REQUEST_READ_EXTERNAL_PERMISSIONS = 8;
 
     public static final int GALLERY_INTENT_CALLED = 3;
@@ -82,33 +79,29 @@ public class CreateFeedActivity extends AppCompatActivity {
         mCreateFeedViewModel.showLoadingLiveData.observe(this, this::setLoadingVisibility);
 
         setPlaceHolderLayoutVisibility(true);
-        mCreateFeedViewModel.loadUserInfos().observe(this, new Observer<User>() {
-            @Override
-            public void onChanged(@Nullable User user) {
-                if (user != null) {
-                    Timber.i("user : %s", user.toString());
-                    mRequestManager.asBitmap()
-                            .load(user.getAvatar().getOriginUrl())
-                            .apply(RequestOptions.centerCropTransform())
-                            .into(new BitmapImageViewTarget(mBinding.imgProfile) {
-                                @Override
-                                public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                                    Context context = mBinding.imgProfile.getContext();
-                                    if (ColorUtils.isDark(resource)) {
-                                        mBinding.imgProfile.setBorderWidth(0);
-                                    } else {
-                                        mBinding.imgProfile.setBorderColor(ContextCompat.getColor(context, android.R.color.darker_gray));
-                                        mBinding.imgProfile.setBorderWidth(1);
-                                    }
-                                    getView().setImageBitmap(resource);
+        mCreateFeedViewModel.loadUserInfo().observe(this, user -> {
+            if (user != null) {
+                Timber.i("user : %s", user.toString());
+                mRequestManager.asBitmap()
+                        .load(user.getAvatar().getOriginUrl())
+                        .apply(RequestOptions.centerCropTransform())
+                        .into(new BitmapImageViewTarget(mBinding.imgProfile) {
+                            @Override
+                            public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                                Context context = mBinding.imgProfile.getContext();
+                                if (ColorUtils.isDark(resource)) {
+                                    mBinding.imgProfile.setBorderWidth(0);
+                                } else {
+                                    mBinding.imgProfile.setBorderColor(ContextCompat.getColor(context, android.R.color.darker_gray));
+                                    mBinding.imgProfile.setBorderWidth(1);
                                 }
-                            });
-                    mBinding.tvUserName.setText(user.getName());
-                    CreateFeedActivity.this.setPlaceHolderLayoutVisibility(false);
-                } else {
-                    Timber.i("user is null");
-//                    CreateFeedActivity.this.finish();
-                }
+                                getView().setImageBitmap(resource);
+                            }
+                        });
+                mBinding.tvUserName.setText(user.getName());
+                CreateFeedActivity.this.setPlaceHolderLayoutVisibility(false);
+            } else {
+                Timber.i("user is null");
             }
         });
         requestReadExternalPermission();

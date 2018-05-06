@@ -50,11 +50,13 @@ public class CommentsViewModel extends ViewModel {
         mWebService = new FakeWebService();
     }
 
-    public LiveData<User> loadUserInfos() {
+    public LiveData<User> loadUserInfo() {
         return Transformations.switchMap(mUserRepository.getUserById(SharedPrefUtil.getUserId(mApplication)), userResource -> {
             MutableLiveData<User> userLiveData = new MutableLiveData<>();
             if(userResource != null && userResource.data != null) {
                 userLiveData.setValue(userResource.data);
+            } else {
+                userLiveData.setValue(null);
             }
             return userLiveData;
         });
