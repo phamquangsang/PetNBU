@@ -11,8 +11,6 @@ import com.petnbu.petnbu.SharedPrefUtil;
 import com.petnbu.petnbu.SingleLiveEvent;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.Photo;
-import com.petnbu.petnbu.model.Resource;
-import com.petnbu.petnbu.model.Status;
 import com.petnbu.petnbu.model.User;
 import com.petnbu.petnbu.repo.FeedRepository;
 import com.petnbu.petnbu.repo.UserRepository;
@@ -39,9 +37,8 @@ public class CreateFeedViewModel extends ViewModel {
         PetApplication.getAppComponent().inject(this);
     }
 
-    public LiveData<User> loadUserInfos() {
-        LiveData<Resource<User>> userResourceLive = mUserRepository.getUserById(SharedPrefUtil.getUserId(mApplication));
-        return Transformations.switchMap(userResourceLive, userResource -> {
+    public LiveData<User> loadUserInfo() {
+        return Transformations.switchMap(mUserRepository.getUserById(SharedPrefUtil.getUserId(mApplication)), userResource -> {
             MutableLiveData<User> userLiveData = new MutableLiveData<>();
             if (userResource != null && userResource.data != null) {
                 userLiveData.setValue(userResource.data);
