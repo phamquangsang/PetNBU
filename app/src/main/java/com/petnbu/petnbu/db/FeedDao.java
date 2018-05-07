@@ -45,6 +45,9 @@ public abstract class FeedDao {
     @Query("SELECT * FROM feeds WHERE feedId IN (:ids) ORDER BY timeCreated DESC")
     public abstract LiveData<List<Feed>> loadFeeds(List<String> ids);
 
+    @Query("SELECT * FROM feeds WHERE feedId IN (:ids) OR status == 1 ORDER BY timeCreated DESC")
+    public abstract LiveData<List<Feed>> loadFeedsIncludeUploadingPost(List<String> ids);
+
     @Query("SELECT * FROM feeds WHERE feedId = :feedId")
     public abstract LiveData<Feed> loadFeedById(String feedId);
 

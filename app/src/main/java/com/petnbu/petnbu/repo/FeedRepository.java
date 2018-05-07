@@ -104,7 +104,7 @@ public class FeedRepository {
                         return data;
                     } else {
                         Timber.i("loadFeedsFromDb paging: %s", input.toString());
-                        return mFeedDao.loadFeeds(input.getFeedIds());
+                        return mFeedDao.loadFeedsIncludeUploadingPost(input.getFeedIds());
                     }
                 });
             }
@@ -205,7 +205,7 @@ public class FeedRepository {
                         return data;
                     } else {
                         Timber.i("loadFeedsFromDb paging: %s", input.toString());
-                        return mFeedDao.loadFeeds(input.getFeedIds());
+                        return mFeedDao.loadFeedsIncludeUploadingPost(input.getFeedIds());
                     }
                 });
             }
