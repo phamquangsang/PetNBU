@@ -260,12 +260,8 @@ public class FeedRepository {
             feed.setTimeUpdated(new Date());
             feed.setFeedId(IdUtil.generateID("feed"));
 
-            FeedPaging currentFeedsPaging = mFeedDao.findFeedPaging(FeedPaging.GLOBAL_FEEDS_PAGING_ID);
-            currentFeedsPaging.getFeedIds().add(0, feed.getFeedId());
-
             mPetDb.beginTransaction();
             try {
-                mFeedDao.update(currentFeedsPaging);
                 mFeedDao.insert(feed);
                 mPetDb.setTransactionSuccessful();
             } finally {
