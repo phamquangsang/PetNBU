@@ -54,10 +54,12 @@ public class CommentsViewModel extends ViewModel {
     public LiveData<UserEntity> loadUserInfo() {
         return Transformations.switchMap(mUserRepository.getUserById(SharedPrefUtil.getUserId(mApplication)), userResource -> {
             MutableLiveData<UserEntity> userLiveData = new MutableLiveData<>();
-            if(userResource != null && userResource.data != null) {
+            if(userResource.data != null){
                 userLiveData.setValue(userResource.data);
             } else {
-                userLiveData.setValue(null);
+                if(userResource.status.equals(Status.ERROR)) {
+                    userLiveData.setValue(null);
+                }
             }
             return userLiveData;
         });
@@ -68,7 +70,7 @@ public class CommentsViewModel extends ViewModel {
         LiveData<Resource<Feed>> dbSource = mFeedRepository.getFeed(feedId);
         MediatorLiveData<Resource<List<Comment>>> mediatorLiveData = new MediatorLiveData<>();
         mediatorLiveData.addSource(dbSource, feedResource -> {
-            if(feedResource!= null && feedResource.status == Status.SUCCESS){
+            if(feedResource.status == Status.SUCCESS){
                 mediatorLiveData.removeSource(dbSource);
                 Comment feedComment = createCommentFromFeed(feedResource.data);
                 LiveData<ApiResponse<List<Comment>>> commentsLiveData = mWebService.getComments(feedId);

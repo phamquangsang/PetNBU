@@ -21,6 +21,7 @@ import com.bumptech.glide.request.target.BitmapImageViewTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.databinding.ActivityCommentsBinding;
+import com.petnbu.petnbu.model.UserEntity;
 import com.petnbu.petnbu.util.ColorUtils;
 
 public class CommentsActivity extends AppCompatActivity {
@@ -50,28 +51,7 @@ public class CommentsActivity extends AppCompatActivity {
         getSupportActionBar().setHomeButtonEnabled(true);
 
         mCommentsViewModel = ViewModelProviders.of(this).get(CommentsViewModel.class);
-        mCommentsViewModel.loadUserInfo().observe(this, user -> {
-            if (user != null) {
-                Glide.with(this).asBitmap()
-                        .load(user.getAvatar().getOriginUrl())
-                        .apply(RequestOptions.centerCropTransform())
-                        .into(new BitmapImageViewTarget(mBinding.imgProfile) {
-                            @Override
-                            public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                                Context context = mBinding.imgProfile.getContext();
-                                if (ColorUtils.isDark(resource)) {
-                                    mBinding.imgProfile.setBorderWidth(0);
-                                } else {
-                                    mBinding.imgProfile.setBorderColor(ContextCompat.getColor(context, android.R.color.darker_gray));
-                                    mBinding.imgProfile.setBorderWidth(1);
-                                }
-                                mBinding.imgProfile.setImageBitmap(resource);
-                            }
-                        });
-            } else {
-                finish();
-            }
-        });
+        mCommentsViewModel.loadUserInfo().observe(this, this::checkToDisplayUserInfo);
         mCommentsViewModel.openRepliesEvent.observe(this, this::openRepliesUI);
 
         String feedId = getIntent() != null ? getIntent().getStringExtra(EXTRA_FEED_ID) : "";
@@ -102,6 +82,29 @@ public class CommentsActivity extends AppCompatActivity {
             }
         });
         mBinding.tvPost.setOnClickListener(v -> doPost());
+    }
+
+    private void checkToDisplayUserInfo(UserEntity user) {
+        if (user != null) {
+            Glide.with(this).asBitmap()
+                    .load(user.getAvatar().getOriginUrl())
+                    .apply(RequestOptions.centerCropTransform())
+                    .into(new BitmapImageViewTarget(mBinding.imgProfile) {
+                        @Override
+                        public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                            Context context = mBinding.imgProfile.getContext();
+                            if (ColorUtils.isDark(resource)) {
+                                mBinding.imgProfile.setBorderWidth(0);
+                            } else {
+                                mBinding.imgProfile.setBorderColor(ContextCompat.getColor(context, android.R.color.darker_gray));
+                                mBinding.imgProfile.setBorderWidth(1);
+                            }
+                            mBinding.imgProfile.setImageBitmap(resource);
+                        }
+                    });
+        } else {
+            finish();
+        }
     }
 
     @Override

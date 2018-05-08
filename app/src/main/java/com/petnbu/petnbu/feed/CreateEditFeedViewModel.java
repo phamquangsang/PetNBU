@@ -13,8 +13,8 @@ import com.petnbu.petnbu.SingleLiveEvent;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedResponse;
 import com.petnbu.petnbu.model.Photo;
-import com.petnbu.petnbu.model.UserEntity;
 import com.petnbu.petnbu.model.Status;
+import com.petnbu.petnbu.model.UserEntity;
 import com.petnbu.petnbu.repo.FeedRepository;
 import com.petnbu.petnbu.repo.UserRepository;
 
@@ -85,10 +85,11 @@ public class CreateEditFeedViewModel extends ViewModel {
             feed.setPhotos(photos);
             mFeedRepository.createNewFeed(feed);
         } else {
-            Feed feed = new Feed();
+            FeedResponse feed = new FeedResponse();
             feed.setFeedId(mFeedId);
             feed.setContent(content);
             feed.setPhotos(photos);
+            mFeedRepository.updateFeed(feed);
         }
     }
 }

@@ -41,7 +41,7 @@
             android:windowSoftInputMode="adjustPan"/>
 
         <service
-            android:name=".jobs.CreateFeedJob"
+            android:name=".jobs.CreateEditFeedJob"
             android:exported="false"
             android:permission="android.permission.BIND_JOB_SERVICE">
             <intent-filter>

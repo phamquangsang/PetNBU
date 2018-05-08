@@ -19,7 +19,7 @@ import com.petnbu.petnbu.api.WebService;
 import com.petnbu.petnbu.db.FeedDao;
 import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.db.UserDao;
-import com.petnbu.petnbu.jobs.CreateFeedJob;
+import com.petnbu.petnbu.jobs.CreateEditFeedJob;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedResponse;
 import com.petnbu.petnbu.model.FeedEntity;
@@ -85,19 +85,13 @@ public class FeedRepository {
                             listId, false,
                             listId.get(listId.size() - 1));
                 }
-
-                mPetDb.beginTransaction();
-                try {
+                mPetDb.runInTransaction(() -> {
                     mFeedDao.insertFromFeedList(items);
                     for (FeedResponse item : items) {
                         mUserDao.insert(item.getFeedUser());
                     }
                     mFeedDao.insert(paging);
-                    mPetDb.setTransactionSuccessful();
-                } finally {
-                    mPetDb.endTransaction();
-                }
-
+                });
             }
 
             @Override
@@ -133,13 +127,7 @@ public class FeedRepository {
 
             @Override
             protected void deleteDataFromDb(List<FeedResponse> body) {
-                mPetDb.beginTransaction();
-                try {
-                    mFeedDao.deleteFeedPaging(pagingId);
-                    mPetDb.setTransactionSuccessful();
-                } finally {
-                    mPetDb.endTransaction();
-                }
+                mFeedDao.deleteFeedPaging(pagingId);
             }
         }.asLiveData();
     }
@@ -189,18 +177,14 @@ public class FeedRepository {
                 Paging paging = new Paging(userId,
                         listId, false,
                         listId.get(listId.size() - 1));
-                mPetDb.beginTransaction();
-                try {
+
+                mPetDb.runInTransaction(() -> {
                     mFeedDao.insertFromFeedList(items);
                     for (FeedResponse item : items) {
                         mUserDao.insert(item.getFeedUser());
                     }
                     mFeedDao.insert(paging);
-                    mPetDb.setTransactionSuccessful();
-                } finally {
-                    mPetDb.endTransaction();
-                }
-
+                });
             }
 
             @Override
@@ -240,13 +224,7 @@ public class FeedRepository {
             @Override
             protected void deleteDataFromDb(List<FeedResponse> body) {
                 Timber.i("deleting old query for userId: %s", userId);
-                mPetDb.beginTransaction();
-                try {
-                    mFeedDao.deleteFeedPaging(userId);
-                    mPetDb.setTransactionSuccessful();
-                } finally {
-                    mPetDb.endTransaction();
-                }
+                mFeedDao.deleteFeedPaging(userId);
             }
         }.asLiveData();
     }
@@ -265,25 +243,39 @@ public class FeedRepository {
 
     public void createNewFeed(FeedResponse feedResponse) {
         mAppExecutors.diskIO().execute(() -> {
-            UserEntity userEntity = mUserDao.findUserById(SharedPrefUtil.getUserId(mApplication));
-            FeedUser feedUser = new FeedUser(userEntity.getUserId(), userEntity.getAvatar().getOriginUrl(), userEntity.getName());
-            feedResponse.setStatus(FeedEntity.STATUS_UPLOADING);
-            feedResponse.setFeedUser(feedUser);
-            feedResponse.setTimeCreated(new Date());
-            feedResponse.setTimeUpdated(new Date());
-            feedResponse.setFeedId(IdUtil.generateID("feed"));
-
-            mFeedDao.insertFromFeed(feedResponse);
-
-            scheduleCreateFeedJob(feedResponse);
+            mPetDb.runInTransaction(() -> {
+                UserEntity userEntity = mUserDao.findUserById(SharedPrefUtil.getUserId(mApplication));
+                FeedUser feedUser = new FeedUser(userEntity.getUserId(), userEntity.getAvatar().getOriginUrl(), userEntity.getName());
+                feedResponse.setStatus(FeedEntity.STATUS_UPLOADING);
+                feedResponse.setFeedUser(feedUser);
+                feedResponse.setTimeCreated(new Date());
+                feedResponse.setTimeUpdated(new Date());
+                feedResponse.setFeedId(IdUtil.generateID("feed"));
+                mFeedDao.insertFromFeed(feedResponse);
+            });
+            scheduleSaveFeedJob(feedResponse, false);
         });
     }
 
-    private void scheduleCreateFeedJob(FeedResponse feedResponse) {
+    public void updateFeed(FeedResponse feedResponse) {
+        mAppExecutors.diskIO().execute(() -> {
+            mPetDb.runInTransaction(() -> {
+                FeedEntity feedEntity = mFeedDao.findFeedEntityById(feedResponse.getFeedId());
+                feedEntity.setStatus(FeedEntity.STATUS_UPLOADING);
+                feedEntity.setTimeUpdated(new Date());
+                feedEntity.setContent(feedResponse.getContent());
+                feedEntity.setPhotos(feedResponse.getPhotos());
+                mFeedDao.update(feedEntity);
+            });
+            scheduleSaveFeedJob(feedResponse, true);
+        });
+    }
+
+    private void scheduleSaveFeedJob(FeedResponse feedResponse, boolean isUpdating) {
         FirebaseJobDispatcher jobDispatcher = PetApplication.getAppComponent().getJobDispatcher();
         Job job = jobDispatcher.newJobBuilder()
-                .setService(CreateFeedJob.class)
-                .setExtras(CreateFeedJob.putExtras(feedResponse.getFeedId()))
+                .setService(CreateEditFeedJob.class)
+                .setExtras(CreateEditFeedJob.extras(feedResponse.getFeedId(), isUpdating))
                 .setTag(feedResponse.getFeedId())
                 .setConstraints(Constraint.ON_ANY_NETWORK)
                 .setTrigger(Trigger.executionWindow(0, 0))
@@ -302,18 +294,13 @@ public class FeedRepository {
                 Paging paging = new Paging(Paging.GLOBAL_FEEDS_PAGING_ID,
                         listId, false,
                         listId.get(listId.size() - 1));
-                mPetDb.beginTransaction();
-                try {
+                mPetDb.runInTransaction(() -> {
                     mFeedDao.insertFromFeedList(items);
                     for (FeedResponse feedResponseItem : items) {
                         mUserDao.insert(feedResponseItem.getFeedUser());
                     }
                     mFeedDao.insert(paging);
-                    mPetDb.setTransactionSuccessful();
-                } finally {
-                    mPetDb.endTransaction();
-                }
-
+                });
             }
 
             @Override
@@ -348,14 +335,7 @@ public class FeedRepository {
 
             @Override
             protected void deleteDataFromDb(List<FeedResponse> body) {
-                mPetDb.beginTransaction();
-                Paging paging = mFeedDao.findFeedPaging(Paging.GLOBAL_FEEDS_PAGING_ID);
-                try {
-                    mFeedDao.deleteFeedPaging(Paging.GLOBAL_FEEDS_PAGING_ID);
-                    mPetDb.setTransactionSuccessful();
-                } finally {
-                    mPetDb.endTransaction();
-                }
+                mFeedDao.deleteFeedPaging(Paging.GLOBAL_FEEDS_PAGING_ID);
             }
         }.asLiveData();
     }
