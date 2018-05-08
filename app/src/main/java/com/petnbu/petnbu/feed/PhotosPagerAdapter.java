@@ -12,14 +12,15 @@ import com.bumptech.glide.request.RequestOptions;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.databinding.ViewFeedPhotosBinding;
 import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.FeedUIModel;
 
 public class PhotosPagerAdapter extends PagerAdapter {
 
-    private Feed mFeed;
+    private FeedUIModel mFeed;
     private RequestManager mRequestManager;
     private OnItemClickListener mOnItemClickListener;
 
-    public PhotosPagerAdapter(Feed feed, RequestManager requestManager, OnItemClickListener onItemClickListener) {
+    public PhotosPagerAdapter(FeedUIModel feed, RequestManager requestManager, OnItemClickListener onItemClickListener) {
         mFeed = feed;
         mRequestManager = requestManager;
         mOnItemClickListener = onItemClickListener;

@@ -1,7 +1,5 @@
 package com.petnbu.petnbu.userprofile;
 
-import android.arch.lifecycle.Observer;
-import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.databinding.DataBindingUtil;
@@ -18,16 +16,8 @@ import android.view.ViewGroup;
 import com.bumptech.glide.Glide;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.databinding.FragmentFeedProfileListBinding;
-import com.petnbu.petnbu.feed.FeedsViewModel;
-import com.petnbu.petnbu.model.Feed;
-import com.petnbu.petnbu.model.Resource;
+import com.petnbu.petnbu.model.FeedUIModel;
 import com.petnbu.petnbu.model.User;
-import com.petnbu.petnbu.userprofile.dummy.DummyContent;
-import com.petnbu.petnbu.userprofile.dummy.DummyContent.DummyItem;
-
-import java.nio.MappedByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
 
 import timber.log.Timber;
 
@@ -166,6 +156,6 @@ public class UserProfileFragment extends Fragment {
      */
     public interface OnProfileFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onListFragmentInteractionListener(Feed item);
+        void onListFragmentInteractionListener(FeedUIModel item);
     }
 }

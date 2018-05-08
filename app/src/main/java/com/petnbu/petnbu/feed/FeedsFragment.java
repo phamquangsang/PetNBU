@@ -24,6 +24,8 @@ import com.petnbu.petnbu.databinding.FragmentFeedsBinding;
 import com.petnbu.petnbu.feed.comment.CommentsActivity;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedPaging;
+import com.petnbu.petnbu.model.FeedUIModel;
+import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.Resource;
 import com.petnbu.petnbu.model.Status;
@@ -141,14 +143,10 @@ public class FeedsFragment extends Fragment {
 
         mBinding.pullToRefresh.setOnRefreshListener(() ->
         {
-            LiveData<Resource<List<Feed>>> refreshing = mFeedsViewModel.refresh();
-            refreshing.observe(FeedsFragment.this, new Observer<Resource<List<Feed>>>() {
-                @Override
-                public void onChanged(@Nullable Resource<List<Feed>> listResource) {
-                    if (listResource != null && listResource.status != Status.LOADING) {
-                        mBinding.pullToRefresh.setRefreshing(false);
-                        refreshing.removeObserver(this);
-                    }
+            LiveData<Resource<List<FeedUIModel>>> refreshing = mFeedsViewModel.refresh();
+            refreshing.observe(FeedsFragment.this, listResource -> {
+                if (listResource != null && listResource.status != Status.LOADING) {
+                    mBinding.pullToRefresh.setRefreshing(false);
                 }
             });
         });

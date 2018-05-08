@@ -1,41 +1,23 @@
 package com.petnbu.petnbu.model;
 
-import android.arch.persistence.room.Embedded;
-import android.arch.persistence.room.Entity;
-import android.arch.persistence.room.Ignore;
-import android.arch.persistence.room.PrimaryKey;
 import android.arch.persistence.room.TypeConverters;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.annotation.IntDef;
-import android.support.annotation.NonNull;
 
 import com.google.firebase.firestore.Exclude;
 import com.google.firebase.firestore.ServerTimestamp;
+import com.petnbu.petnbu.PetApplication;
 import com.petnbu.petnbu.db.PetTypeConverters;
 
-import java.lang.annotation.Retention;
 import java.util.Date;
 import java.util.List;
 
-import static java.lang.annotation.RetentionPolicy.SOURCE;
+import static com.petnbu.petnbu.model.FeedEntity.STATUS_NEW;
 
-@Entity(tableName = "feeds")
-@TypeConverters(PetTypeConverters.class)
+@TypeConverters(value = PetTypeConverters.class)
 public class Feed implements Parcelable {
 
-    @Retention(SOURCE)
-    @IntDef(value = {STATUS_NEW, STATUS_UPLOADING, STATUS_ERROR, STATUS_DONE})
-    public @interface LOCAL_STATUS{}
-
-    public static final int STATUS_NEW = 0;
-    public static final int STATUS_UPLOADING = 1;
-    public static final int STATUS_ERROR = 2;
-    public static final int STATUS_DONE = 3;
-
-    @PrimaryKey @NonNull
     private String feedId;
-    @Embedded
     private FeedUser feedUser;
     private List<Photo> photos;
     private int commentCount;
@@ -44,7 +26,7 @@ public class Feed implements Parcelable {
     @ServerTimestamp private Date timeCreated;
     @ServerTimestamp private Date timeUpdated;
 
-    @LOCAL_STATUS
+    @FeedEntity.LOCAL_STATUS
     @Exclude
     private int status;
 
@@ -54,8 +36,7 @@ public class Feed implements Parcelable {
     public Feed() {
     }
 
-    @Ignore
-    public Feed(String feedId, FeedUser feedUser, List<Photo> photos, int commentCount, int likeCount, String content, Date timeCreated, Date timeUpdated) {
+    public Feed(String feedId, FeedUser feedUser, List<Photo> photos, int commentCount, int likeCount, String content, Date timeCreated, Date timeUpdated, int status) {
         this.feedId = feedId;
         this.feedUser = feedUser;
         this.photos = photos;
@@ -64,7 +45,7 @@ public class Feed implements Parcelable {
         this.content = content;
         this.timeCreated = timeCreated;
         this.timeUpdated = timeUpdated;
-        status = STATUS_NEW;
+        this.status = status;
         this.likeInProgress = false;
     }
 
@@ -141,13 +122,13 @@ public class Feed implements Parcelable {
         this.likeInProgress = likeInProgress;
     }
 
-    @LOCAL_STATUS
+    @FeedEntity.LOCAL_STATUS
     @Exclude
     public int getStatus() {
         return status;
     }
 
-    public void setStatus(@LOCAL_STATUS int status) {
+    public void setStatus(@FeedEntity.LOCAL_STATUS int status) {
         this.status = status;
     }
 
@@ -247,4 +228,10 @@ public class Feed implements Parcelable {
             return new Feed[size];
         }
     };
+
+    public FeedEntity toEntity(){
+        return new FeedEntity(getFeedId(), getFeedUser().getUserId(),
+                getPhotos(), getCommentCount(), getLikeCount(), getContent(),
+                getTimeCreated(), getTimeUpdated(), getStatus(), isLikeInProgress());
+    }
 }

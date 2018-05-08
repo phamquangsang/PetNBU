@@ -7,10 +7,11 @@ import android.arch.persistence.room.InvalidationTracker;
 import android.arch.persistence.room.RoomDatabase;
 
 import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.FeedEntity;
 import com.petnbu.petnbu.model.FeedPaging;
 import com.petnbu.petnbu.model.User;
 
-@Database(entities = {User.class, Feed.class, FeedPaging.class}, version = 5)
+@Database(entities = {User.class, FeedEntity.class, FeedPaging.class}, version = 6)
 public abstract class PetDb extends RoomDatabase{
 
     abstract public FeedDao feedDao();

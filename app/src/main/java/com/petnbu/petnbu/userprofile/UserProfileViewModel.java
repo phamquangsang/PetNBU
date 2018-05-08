@@ -13,6 +13,7 @@ import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.feed.FeedsViewModel;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedPaging;
+import com.petnbu.petnbu.model.FeedUIModel;
 import com.petnbu.petnbu.model.Resource;
 import com.petnbu.petnbu.model.User;
 import com.petnbu.petnbu.repo.FeedRepository;
@@ -31,7 +32,7 @@ public class UserProfileViewModel extends ViewModel {
     @Inject
     UserRepository mUserRepository;
 
-    private LiveData<Resource<List<Feed>>> mFeedsLiveData;
+    private LiveData<Resource<List<FeedUIModel>>> mFeedsLiveData;
 
     private LoadMoreHandler loadMoreHandler;
 
@@ -40,7 +41,7 @@ public class UserProfileViewModel extends ViewModel {
         loadMoreHandler = new LoadMoreHandler(mFeedRepository);
     }
 
-    public LiveData<Resource<List<Feed>>> getFeeds(String pagingId) {
+    public LiveData<Resource<List<FeedUIModel>>> getFeeds(String pagingId) {
         mFeedsLiveData = mFeedRepository.loadUserFeeds(pagingId);
         return mFeedsLiveData;
     }
@@ -65,7 +66,7 @@ public class UserProfileViewModel extends ViewModel {
         super.onCleared();
     }
 
-    public LiveData<Resource<List<Feed>>> refresh() {
+    public LiveData<Resource<List<FeedUIModel>>> refresh() {
         return mFeedRepository.refresh();
     }
 

@@ -9,6 +9,7 @@ import android.support.annotation.Nullable;
 import com.petnbu.petnbu.PetApplication;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedPaging;
+import com.petnbu.petnbu.model.FeedUIModel;
 import com.petnbu.petnbu.model.Resource;
 import com.petnbu.petnbu.repo.FeedRepository;
 
@@ -23,7 +24,7 @@ public class FeedsViewModel extends ViewModel {
     @Inject
     FeedRepository mFeedRepository;
 
-    private LiveData<Resource<List<Feed>>> mFeedsLiveData;
+    private LiveData<Resource<List<FeedUIModel>>> mFeedsLiveData;
 
     private LoadMoreHandler loadMoreHandler;
 
@@ -32,7 +33,7 @@ public class FeedsViewModel extends ViewModel {
         loadMoreHandler = new LoadMoreHandler(mFeedRepository);
     }
 
-    public LiveData<Resource<List<Feed>>> getFeeds(String pagingId) {
+    public LiveData<Resource<List<FeedUIModel>>> getFeeds(String pagingId) {
         mFeedsLiveData = mFeedRepository.loadFeeds(pagingId);
         return mFeedsLiveData;
     }
@@ -53,7 +54,7 @@ public class FeedsViewModel extends ViewModel {
         super.onCleared();
     }
 
-    public LiveData<Resource<List<Feed>>> refresh() {
+    public LiveData<Resource<List<FeedUIModel>>> refresh() {
         return mFeedRepository.refresh();
     }
 

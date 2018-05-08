@@ -3,13 +3,12 @@ package com.petnbu.petnbu.userprofile;
 import android.content.Context;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
-import android.databinding.ViewDataBinding;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.databinding.ActivityUserProfileBinding;
-import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.FeedUIModel;
 
 public class UserProfileActivity extends AppCompatActivity implements UserProfileFragment.OnProfileFragmentInteractionListener{
 
@@ -35,7 +34,7 @@ public class UserProfileActivity extends AppCompatActivity implements UserProfil
 
 
     @Override
-    public void onListFragmentInteractionListener(Feed item) {
+    public void onListFragmentInteractionListener(FeedUIModel item) {
 
     }
 }

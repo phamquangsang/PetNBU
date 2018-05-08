@@ -63,7 +63,10 @@ public class FetchNextPageUserFeed implements Runnable{
                             mAppExecutors.diskIO().execute(() -> {
                                 mPetDb.beginTransaction();
                                 try{
-                                    mPetDb.feedDao().insert(listApiResponse.body);
+                                    mPetDb.feedDao().insertFromFeedList(listApiResponse.body);
+                                    for (Feed item : listApiResponse.body) {
+                                        mPetDb.userDao().insert(item.getFeedUser());
+                                    }
                                     mPetDb.feedDao().insert(newPaging);
                                     mPetDb.setTransactionSuccessful();
                                 }finally {

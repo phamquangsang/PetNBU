@@ -9,6 +9,7 @@ import android.support.annotation.Nullable;
 
 import com.firebase.jobdispatcher.JobParameters;
 import com.firebase.jobdispatcher.JobService;
+import com.google.android.gms.common.AccountPicker;
 import com.google.gson.Gson;
 import com.petnbu.petnbu.AppExecutors;
 import com.petnbu.petnbu.PetApplication;
@@ -20,8 +21,11 @@ import com.petnbu.petnbu.db.FeedDao;
 import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.db.UserDao;
 import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.FeedEntity;
 import com.petnbu.petnbu.model.FeedPaging;
+import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Photo;
+import com.petnbu.petnbu.model.User;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -76,9 +80,16 @@ public class CreateFeedJob extends JobService {
 
         final String feedId = bundle.getString(FEED_ID_EXTRA);
         mAppExecutors.diskIO().execute(() -> {
-            mFeed = mFeedDao.findFeedById(feedId);
-            if (mFeed == null || mFeed.getStatus() != Feed.STATUS_UPLOADING) {
+            FeedEntity feedEntity = mFeedDao.findFeedEntityById(feedId);
+            User user = mUserDao.findUserById(feedEntity.getFromUserId());
+            FeedUser feedUser = new FeedUser(user.getUserId(), user.getAvatar().getOriginUrl(), user.getName());
+            mFeed = new Feed(feedEntity.getFeedId(), feedUser, feedEntity.getPhotos(), feedEntity.getCommentCount()
+                    , feedEntity.getLikeCount(), feedEntity.getContent(), feedEntity.getTimeCreated()
+                    , feedEntity.getTimeUpdated(), feedEntity.getStatus());
+
+            if (mFeed.getStatus() != FeedEntity.STATUS_UPLOADING) {
                 jobFinished(params, false);
+                Timber.i("status is not STATUS_UPLOADING");
                 return;
             }
 
@@ -137,19 +148,27 @@ public class CreateFeedJob extends JobService {
                             Timber.i("update feedId from %s to %s", temporaryFeedId, newFeed.getFeedId());
 
                             FeedPaging currentPaging = mFeedDao.findFeedPaging(FeedPaging.GLOBAL_FEEDS_PAGING_ID);
-                            currentPaging.getFeedIds().add(0, newFeed.getFeedId());
+                            if(currentPaging != null){
+                                currentPaging.getFeedIds().add(0, newFeed.getFeedId());
+                            }
 
                             FeedPaging userFeedPaging = mFeedDao.findFeedPaging(newFeed.getFeedUser().getUserId());
-                            userFeedPaging.getFeedIds().add(0, newFeed.getFeedId());
+                            if(userFeedPaging != null){
+                                userFeedPaging.getFeedIds().add(0, newFeed.getFeedId());
+                            }
 
                             mPetDb.beginTransaction();
                             try{
                                 mFeedDao.updateFeedId(temporaryFeedId, newFeed.getFeedId());
-                                newFeed.setStatus(Feed.STATUS_DONE);
+                                newFeed.setStatus(FeedEntity.STATUS_DONE);
 
-                                mFeedDao.update(currentPaging);
-                                mFeedDao.update(userFeedPaging);
-                                mFeedDao.update(newFeed);
+                                if(currentPaging != null){
+                                    mFeedDao.update(currentPaging);
+                                }
+                                if(userFeedPaging != null){
+                                    mFeedDao.update(userFeedPaging);
+                                }
+                                mFeedDao.update(newFeed.toEntity());
                                 mPetDb.setTransactionSuccessful();
                             } finally {
                                 mPetDb.endTransaction();
@@ -169,9 +188,9 @@ public class CreateFeedJob extends JobService {
     }
 
     private void updateLocalFeedError(Feed feed) {
-        feed.setStatus(Feed.STATUS_ERROR);
+        feed.setStatus(FeedEntity.STATUS_ERROR);
         mAppExecutors.diskIO().execute(() -> {
-            mFeedDao.update(feed);
+            mFeedDao.update(feed.toEntity());
             jobFinished(mParams, true);
         });
     }

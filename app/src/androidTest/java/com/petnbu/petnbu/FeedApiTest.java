@@ -18,7 +18,9 @@ import com.petnbu.petnbu.api.WebService;
 import com.petnbu.petnbu.db.FeedDao;
 import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.FeedEntity;
 import com.petnbu.petnbu.model.FeedPaging;
+import com.petnbu.petnbu.model.FeedUIModel;
 import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.Resource;
@@ -47,12 +49,12 @@ public class FeedApiTest {
         FeedUser userNhat = new FeedUser("2", "https://developer.android.com/static/images/android_logo_2x.png", "Nhat Nhat");
         List<Photo> photo2 = new ArrayList<>();
         photo2.add(new Photo("https://picsum.photos/1000/600/?image=383", "https://picsum.photos/500/300/?image=383", "https://picsum.photos/250/150/?image=383", "https://picsum.photos/100/60/?image=383", 1000, 600));
-        Feed feed1 = new Feed("2", userNhat, photo2, 12, 14, "", new Date(), new Date());
+        Feed feed1 = new Feed("2", userNhat, photo2, 12, 14, "", new Date(), new Date(), FeedEntity.STATUS_NEW);
 
         AppExecutors appExecutors = PetApplication.getAppComponent().getAppExecutor();
         PetDb petDb = PetApplication.getAppComponent().getPetDb();
         appExecutors.diskIO().execute(() -> {
-            petDb.feedDao().insert(feed1);
+            petDb.feedDao().insertFromFeed(feed1);
 
         });
 
@@ -69,12 +71,12 @@ public class FeedApiTest {
         List<Photo> photo1 = new ArrayList<>();
         photo1.add(new Photo("https://picsum.photos/1200/1300/?image=381", "https://picsum.photos/600/650/?image=381", "https://picsum.photos/300/325/?image=381", "https://picsum.photos/120/130/?image=381", 1200, 1300));
         photo1.add(new Photo("https://picsum.photos/1200/1300/?image=382", "https://picsum.photos/600/650/?image=382", "https://picsum.photos/300/325/?image=382", "https://picsum.photos/120/130/?image=382", 1200, 1300));
-        Feed feed = new Feed("1", userSang, photo1, 10, 12, "", new Date(), new Date());
+        Feed feed = new Feed("1", userSang, photo1, 10, 12, "", new Date(), new Date(), FeedEntity.STATUS_NEW);
 
         FeedUser userNhat = new FeedUser("2", "https://developer.android.com/static/images/android_logo_2x.png", "Nhat Nhat");
         List<Photo> photo2 = new ArrayList<>();
         photo2.add(new Photo("https://picsum.photos/1000/600/?image=383", "https://picsum.photos/500/300/?image=383", "https://picsum.photos/250/150/?image=383", "https://picsum.photos/100/60/?image=383", 1000, 600));
-        Feed feed1 = new Feed("2", userNhat, photo2, 12, 14, "", new Date(), new Date());
+        Feed feed1 = new Feed("2", userNhat, photo2, 12, 14, "", new Date(), new Date(),FeedEntity.STATUS_NEW);
 
         for (int i = 0; i < 30; i++) {
             webService.createFeed(i % 2 == 0 ? feed : feed1);
@@ -88,21 +90,6 @@ public class FeedApiTest {
 
     }
 
-    @Test
-    public void deleteRoom() throws InterruptedException {
-        PetDb petDb = PetApplication.getAppComponent().getPetDb();
-        petDb.feedDao().deleteAll();
-        LiveData<List<Feed>> result = petDb.feedDao().loadFeeds();
-        final CountDownLatch signal = new CountDownLatch(2);
-        result.observeForever(new Observer<List<Feed>>() {
-            @Override
-            public void onChanged(@Nullable List<Feed> feeds) {
-                signal.countDown();
-                assertThat(feeds == null || feeds.isEmpty(), is(true));
-            }
-        });
-
-    }
 
     @Test
     public void testFeedsPagingApi() throws InterruptedException {
@@ -133,10 +120,10 @@ public class FeedApiTest {
         appExecutors.mainThread().execute(new Runnable() {
             @Override
             public void run() {
-                LiveData<Resource<List<Feed>>> resultLive = repository.loadFeeds(FeedPaging.GLOBAL_FEEDS_PAGING_ID);
-                resultLive.observeForever(new Observer<Resource<List<Feed>>>() {
+                LiveData<Resource<List<FeedUIModel>>> resultLive = repository.loadFeeds(FeedPaging.GLOBAL_FEEDS_PAGING_ID);
+                resultLive.observeForever(new Observer<Resource<List<FeedUIModel>>>() {
                     @Override
-                    public void onChanged(@Nullable Resource<List<Feed>> listResource) {
+                    public void onChanged(@Nullable Resource<List<FeedUIModel>> listResource) {
                         if (listResource != null) {
                             Timber.i(listResource.toString());
                             if (listResource.data != null) {
