@@ -5,10 +5,11 @@ import android.os.Parcelable;
 
 public class Photo implements Parcelable {
 
-    private String originUrl;
-    private String largeUrl;
-    private String smallUrl;
-    private String thumbnailUrl;
+    private String originUrl;   //for larger than FHD
+    private String largeUrl;    //for FHD
+    private String mediumUrl;   //for HD
+    private String smallUrl;    //for qHD
+    private String thumbnailUrl;//for thumbnail
     private int width;
     private int height;
 
@@ -79,28 +80,43 @@ public class Photo implements Parcelable {
 
         Photo photo = (Photo) o;
 
-        if (getWidth() != photo.getWidth()) return false;
-        if (getHeight() != photo.getHeight()) return false;
-        if (getOriginUrl() != null ? !getOriginUrl().equals(photo.getOriginUrl()) : photo.getOriginUrl() != null)
+        if (width != photo.width) return false;
+        if (height != photo.height) return false;
+        if (originUrl != null ? !originUrl.equals(photo.originUrl) : photo.originUrl != null)
             return false;
-        if (getLargeUrl() != null ? !getLargeUrl().equals(photo.getLargeUrl()) : photo.getLargeUrl() != null)
+        if (largeUrl != null ? !largeUrl.equals(photo.largeUrl) : photo.largeUrl != null)
             return false;
-        if (getSmallUrl() != null ? !getSmallUrl().equals(photo.getSmallUrl()) : photo.getSmallUrl() != null)
+        if (mediumUrl != null ? !mediumUrl.equals(photo.mediumUrl) : photo.mediumUrl != null)
             return false;
-        return getThumbnailUrl() != null ? getThumbnailUrl().equals(photo.getThumbnailUrl()) : photo.getThumbnailUrl() == null;
+        if (smallUrl != null ? !smallUrl.equals(photo.smallUrl) : photo.smallUrl != null)
+            return false;
+        return thumbnailUrl != null ? thumbnailUrl.equals(photo.thumbnailUrl) : photo.thumbnailUrl == null;
     }
 
     @Override
     public int hashCode() {
-        int result = getOriginUrl() != null ? getOriginUrl().hashCode() : 0;
-        result = 31 * result + (getLargeUrl() != null ? getLargeUrl().hashCode() : 0);
-        result = 31 * result + (getSmallUrl() != null ? getSmallUrl().hashCode() : 0);
-        result = 31 * result + (getThumbnailUrl() != null ? getThumbnailUrl().hashCode() : 0);
-        result = 31 * result + getWidth();
-        result = 31 * result + getHeight();
+        int result = originUrl != null ? originUrl.hashCode() : 0;
+        result = 31 * result + (largeUrl != null ? largeUrl.hashCode() : 0);
+        result = 31 * result + (mediumUrl != null ? mediumUrl.hashCode() : 0);
+        result = 31 * result + (smallUrl != null ? smallUrl.hashCode() : 0);
+        result = 31 * result + (thumbnailUrl != null ? thumbnailUrl.hashCode() : 0);
+        result = 31 * result + width;
+        result = 31 * result + height;
         return result;
     }
 
+    @Override
+    public String toString() {
+        return "Photo{" +
+                "originUrl='" + originUrl + '\'' +
+                ", largeUrl='" + largeUrl + '\'' +
+                ", mediumUrl='" + mediumUrl + '\'' +
+                ", smallUrl='" + smallUrl + '\'' +
+                ", thumbnailUrl='" + thumbnailUrl + '\'' +
+                ", width=" + width +
+                ", height=" + height +
+                '}';
+    }
 
     @Override
     public int describeContents() {
@@ -111,6 +127,7 @@ public class Photo implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(this.originUrl);
         dest.writeString(this.largeUrl);
+        dest.writeString(this.mediumUrl);
         dest.writeString(this.smallUrl);
         dest.writeString(this.thumbnailUrl);
         dest.writeInt(this.width);
@@ -120,6 +137,7 @@ public class Photo implements Parcelable {
     protected Photo(Parcel in) {
         this.originUrl = in.readString();
         this.largeUrl = in.readString();
+        this.mediumUrl = in.readString();
         this.smallUrl = in.readString();
         this.thumbnailUrl = in.readString();
         this.width = in.readInt();
@@ -137,16 +155,4 @@ public class Photo implements Parcelable {
             return new Photo[size];
         }
     };
-
-    @Override
-    public String toString() {
-        return "Photo{" +
-                "originUrl='" + originUrl + '\'' +
-                ", largeUrl='" + largeUrl + '\'' +
-                ", smallUrl='" + smallUrl + '\'' +
-                ", thumbnailUrl='" + thumbnailUrl + '\'' +
-                ", width=" + width +
-                ", height=" + height +
-                '}';
-    }
 }
