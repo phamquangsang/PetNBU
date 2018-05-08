@@ -76,6 +76,7 @@ public class CreateFeedJob extends JobService {
             return false;
         }
 
+        mParams = params;
         final String feedId = bundle.getString(FEED_ID_EXTRA);
         mAppExecutors.diskIO().execute(() -> {
             FeedEntity feedEntity = mFeedDao.findFeedEntityById(feedId);

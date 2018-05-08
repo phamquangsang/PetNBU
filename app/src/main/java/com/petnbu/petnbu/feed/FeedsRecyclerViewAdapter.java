@@ -211,6 +211,9 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
         }
 
         private void displayTime() {
+            if(mFeed.getTimeCreated() == null){
+                return;
+            }
             mBinding.tvDate.setText(DateUtils.getRelativeTimeSpanString(mFeed.getTimeCreated().getTime(),
                     Calendar.getInstance().getTimeInMillis(), 0L, DateUtils.FORMAT_ABBREV_ALL));
         }

@@ -60,9 +60,10 @@ public class FeedsFragment extends Fragment {
     public void initialize() {
         Activity activity = getActivity();
         if (activity != null) {
+            mUserId = SharedPrefUtil.getUserId(getActivity());
             mFeedsViewModel = ViewModelProviders.of(getActivity()).get(FeedsViewModel.class);
             mFeedsViewModel.getFeeds(Paging.GLOBAL_FEEDS_PAGING_ID).observe(this, feeds -> {
-            mUserId = SharedPrefUtil.getUserId(getActivity());
+
                 if (feeds != null && feeds.data != null) {
                     if (feeds.status == Status.LOADING) {
                         mBinding.pullToRefresh.setRefreshing(true);

@@ -9,6 +9,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.petnbu.petnbu.BuildConfig;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +37,7 @@ public class StorageApi {
     }
 
     public static StorageReference getStorageRef() {
-        StorageReference storage = FirebaseStorage.getInstance().getReferenceFromUrl("gs://pet-lovers-4edb2.appspot.com");
+        StorageReference storage = FirebaseStorage.getInstance().getReferenceFromUrl(BuildConfig.FIREBASE_STORAGE_URL);
         return storage.child("pets").child("photos");
     }
 
