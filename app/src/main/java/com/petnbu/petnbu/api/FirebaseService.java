@@ -28,7 +28,6 @@ import timber.log.Timber;
 public class FirebaseService implements WebService {
 
     public static final String GLOBAL_FEEDS = "global_feeds";
-    public static final String USER_FEEDS = "user_feeds";
     public static final String FEEDS = "feeds";
 
     public static final String USERS = "users";
@@ -53,7 +52,7 @@ public class FirebaseService implements WebService {
         feedResponse.setTimeCreated(new Date());
         feedResponse.setTimeUpdated(new Date());
         batch.set(doc, feedResponse);
-        DocumentReference userFeed = mDb.collection(USER_FEEDS)
+        DocumentReference userFeed = mDb.collection(USERS)
                 .document(feedResponse.getFeedUser().getUserId())
                 .collection(FEEDS).document(feedResponse.getFeedId());
         batch.set(userFeed, feedResponse);
@@ -115,7 +114,7 @@ public class FirebaseService implements WebService {
     @Override
     public LiveData<ApiResponse<List<FeedResponse>>> getUserFeed(String userId, long after, int limit) {
         MutableLiveData<ApiResponse<List<FeedResponse>>> result = new MutableLiveData<>();
-        mDb.collection(USER_FEEDS).document(userId).collection(FEEDS)
+        mDb.collection(USERS).document(userId).collection(FEEDS)
                 .orderBy("timeCreated", Query.Direction.DESCENDING)
                 .startAfter(new Date(after))
                 .limit(limit)
@@ -136,7 +135,7 @@ public class FirebaseService implements WebService {
     public LiveData<ApiResponse<List<FeedResponse>>> getUserFeed(String userId, String afterFeedId, int limit) {
         MutableLiveData<ApiResponse<List<FeedResponse>>> result = new MutableLiveData<>();
         mDb.collection(GLOBAL_FEEDS).document(afterFeedId).get()
-                .addOnSuccessListener(documentSnapshot -> mDb.collection(USER_FEEDS).document(userId).collection(FEEDS)
+                .addOnSuccessListener(documentSnapshot -> mDb.collection(USERS).document(userId).collection(FEEDS)
                         .orderBy("timeCreated", Query.Direction.DESCENDING)
                         .startAfter(documentSnapshot)
                         .limit(limit)
