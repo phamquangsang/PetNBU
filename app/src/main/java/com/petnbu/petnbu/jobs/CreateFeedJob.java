@@ -135,22 +135,20 @@ public class CreateFeedJob extends JobService {
                         Timber.i("upload mFeed succeed %s", newFeed.toString());
                         mAppExecutors.diskIO().execute(() -> {
                             Timber.i("update feedId from %s to %s", temporaryFeedId, newFeed.getFeedId());
-                            mFeedDao.updateFeedId(temporaryFeedId, newFeed.getFeedId());
-                            newFeed.setStatus(Feed.STATUS_DONE);
 
                             FeedPaging currentPaging = mFeedDao.findFeedPaging(FeedPaging.GLOBAL_FEEDS_PAGING_ID);
-                            List<String> feedIds = currentPaging.getFeedIds();
-                            for (int i = 0, feedIdsSize = feedIds.size(); i < feedIdsSize; i++) {
-                                String id = feedIds.get(i);
-                                if (id.equals(temporaryFeedId)) {
-                                    currentPaging.getFeedIds().set(i, newFeed.getFeedId());
-                                    break;
-                                }
-                            }
+                            currentPaging.getFeedIds().add(0, newFeed.getFeedId());
+
+                            FeedPaging userFeedPaging = mFeedDao.findFeedPaging(newFeed.getFeedUser().getUserId());
+                            userFeedPaging.getFeedIds().add(0, newFeed.getFeedId());
 
                             mPetDb.beginTransaction();
                             try{
+                                mFeedDao.updateFeedId(temporaryFeedId, newFeed.getFeedId());
+                                newFeed.setStatus(Feed.STATUS_DONE);
+
                                 mFeedDao.update(currentPaging);
+                                mFeedDao.update(userFeedPaging);
                                 mFeedDao.update(newFeed);
                                 mPetDb.setTransactionSuccessful();
                             } finally {
