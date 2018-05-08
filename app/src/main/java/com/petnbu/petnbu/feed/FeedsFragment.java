@@ -22,7 +22,7 @@ import com.petnbu.petnbu.Utils;
 import com.petnbu.petnbu.databinding.FragmentFeedsBinding;
 import com.petnbu.petnbu.feed.comment.CommentsActivity;
 import com.petnbu.petnbu.model.Feed;
-import com.petnbu.petnbu.model.FeedPaging;
+import com.petnbu.petnbu.model.Paging;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.Resource;
 import com.petnbu.petnbu.model.Status;
@@ -58,7 +58,7 @@ public class FeedsFragment extends Fragment {
         Activity activity = getActivity();
         if (activity != null) {
             mFeedsViewModel = ViewModelProviders.of(getActivity()).get(FeedsViewModel.class);
-            mFeedsViewModel.getFeeds(FeedPaging.GLOBAL_FEEDS_PAGING_ID).observe(this, feeds -> {
+            mFeedsViewModel.getFeeds(Paging.GLOBAL_FEEDS_PAGING_ID).observe(this, feeds -> {
                 if (feeds != null && feeds.data != null) {
                     if (feeds.status == Status.LOADING) {
                         mBinding.pullToRefresh.setRefreshing(true);

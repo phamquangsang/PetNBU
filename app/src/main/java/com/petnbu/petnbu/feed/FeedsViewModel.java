@@ -7,7 +7,7 @@ import android.arch.lifecycle.ViewModel;
 import android.support.annotation.Nullable;
 
 import com.petnbu.petnbu.PetApplication;
-import com.petnbu.petnbu.model.FeedPaging;
+import com.petnbu.petnbu.model.Paging;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.Resource;
 import com.petnbu.petnbu.repo.FeedRepository;
@@ -43,7 +43,7 @@ public class FeedsViewModel extends ViewModel {
 
     public void loadNextPage() {
         if (mFeedsLiveData.getValue() != null) {
-            loadMoreHandler.loadNextPage(FeedPaging.GLOBAL_FEEDS_PAGING_ID);
+            loadMoreHandler.loadNextPage(Paging.GLOBAL_FEEDS_PAGING_ID);
 
         }
     }

@@ -11,7 +11,7 @@ import android.arch.persistence.room.Update;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedResponse;
 import com.petnbu.petnbu.model.FeedEntity;
-import com.petnbu.petnbu.model.FeedPaging;
+import com.petnbu.petnbu.model.Paging;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -86,21 +86,21 @@ public abstract class FeedDao {
     @Query("DELETE FROM feeds WHERE feedId in (:ids) AND status != 1")
     public abstract void deleteFeeds(List<String> ids);
 
-    @Query("Select * from feed_paging where pagingId = :id")
-    abstract public LiveData<FeedPaging> loadFeedPaging(String id);
+    @Query("Select * from paging where pagingId = :id")
+    abstract public LiveData<Paging> loadFeedPaging(String id);
 
-    @Query("Select * from feed_paging where pagingId = :id")
-    abstract public FeedPaging findFeedPaging(String id);
+    @Query("Select * from paging where pagingId = :id")
+    abstract public Paging findFeedPaging(String id);
 
 
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    abstract public void insert(FeedPaging paging);
+    abstract public void insert(Paging paging);
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
-    abstract public void update(FeedPaging paging);
+    abstract public void update(Paging paging);
 
-    @Query("DELETE FROM feed_paging where pagingId = :pagingId")
+    @Query("DELETE FROM paging where pagingId = :pagingId")
     abstract public void deleteFeedPaging(String pagingId);
 
 }

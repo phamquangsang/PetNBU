@@ -23,7 +23,7 @@ import com.petnbu.petnbu.jobs.CreateFeedJob;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedResponse;
 import com.petnbu.petnbu.model.FeedEntity;
-import com.petnbu.petnbu.model.FeedPaging;
+import com.petnbu.petnbu.model.Paging;
 import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Resource;
 import com.petnbu.petnbu.model.UserEntity;
@@ -77,7 +77,7 @@ public class FeedRepository {
                 for (FeedResponse item : items) {
                     listId.add(item.getFeedId());
                 }
-                FeedPaging paging = new FeedPaging(pagingId,
+                Paging paging = new Paging(pagingId,
                         listId, false,
                         listId.get(listId.size() - 1));
                 mPetDb.beginTransaction();
@@ -102,14 +102,14 @@ public class FeedRepository {
             @NonNull
             @Override
             protected LiveData<List<Feed>> loadFromDb() {
-                return Transformations.switchMap(mFeedDao.loadFeedPaging(FeedPaging.GLOBAL_FEEDS_PAGING_ID), input -> {
+                return Transformations.switchMap(mFeedDao.loadFeedPaging(Paging.GLOBAL_FEEDS_PAGING_ID), input -> {
                     if (input == null) {
                         MutableLiveData<List<Feed>> data = new MutableLiveData<>();
                         data.postValue(null);
                         return data;
                     } else {
                         Timber.i("loadFeedsFromDb paging: %s", input.toString());
-                        return mFeedDao.loadFeedsIncludeUploadingPost(input.getFeedIds());
+                        return mFeedDao.loadFeedsIncludeUploadingPost(input.getIds());
                     }
                 });
             }
@@ -180,7 +180,7 @@ public class FeedRepository {
                 for (FeedResponse item : items) {
                     listId.add(item.getFeedId());
                 }
-                FeedPaging paging = new FeedPaging(userId,
+                Paging paging = new Paging(userId,
                         listId, false,
                         listId.get(listId.size() - 1));
                 mPetDb.beginTransaction();
@@ -212,7 +212,7 @@ public class FeedRepository {
                         return data;
                     } else {
                         Timber.i("loadFeedsFromDb paging: %s", input.toString());
-                        return mFeedDao.loadFeedsIncludeUploadingPost(input.getFeedIds());
+                        return mFeedDao.loadFeedsIncludeUploadingPost(input.getIds());
                     }
                 });
             }
@@ -293,7 +293,7 @@ public class FeedRepository {
                 for (FeedResponse item : items) {
                     listId.add(item.getFeedId());
                 }
-                FeedPaging paging = new FeedPaging(FeedPaging.GLOBAL_FEEDS_PAGING_ID,
+                Paging paging = new Paging(Paging.GLOBAL_FEEDS_PAGING_ID,
                         listId, false,
                         listId.get(listId.size() - 1));
                 mPetDb.beginTransaction();
@@ -318,13 +318,13 @@ public class FeedRepository {
             @NonNull
             @Override
             protected LiveData<List<Feed>> loadFromDb() {
-                return Transformations.switchMap(mFeedDao.loadFeedPaging(FeedPaging.GLOBAL_FEEDS_PAGING_ID), input -> {
+                return Transformations.switchMap(mFeedDao.loadFeedPaging(Paging.GLOBAL_FEEDS_PAGING_ID), input -> {
                     if (input == null) {
                         MutableLiveData<List<Feed>> data = new MutableLiveData<>();
                         data.postValue(null);
                         return data;
                     } else {
-                        return mFeedDao.loadFeeds(input.getFeedIds());
+                        return mFeedDao.loadFeeds(input.getIds());
                     }
                 });
             }
@@ -343,9 +343,9 @@ public class FeedRepository {
             @Override
             protected void deleteDataFromDb(List<FeedResponse> body) {
                 mPetDb.beginTransaction();
-                FeedPaging paging = mFeedDao.findFeedPaging(FeedPaging.GLOBAL_FEEDS_PAGING_ID);
+                Paging paging = mFeedDao.findFeedPaging(Paging.GLOBAL_FEEDS_PAGING_ID);
                 try {
-                    mFeedDao.deleteFeedPaging(FeedPaging.GLOBAL_FEEDS_PAGING_ID);
+                    mFeedDao.deleteFeedPaging(Paging.GLOBAL_FEEDS_PAGING_ID);
                     mPetDb.setTransactionSuccessful();
                 } finally {
                     mPetDb.endTransaction();

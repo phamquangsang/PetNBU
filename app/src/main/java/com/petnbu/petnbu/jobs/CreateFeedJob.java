@@ -20,7 +20,7 @@ import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.db.UserDao;
 import com.petnbu.petnbu.model.FeedResponse;
 import com.petnbu.petnbu.model.FeedEntity;
-import com.petnbu.petnbu.model.FeedPaging;
+import com.petnbu.petnbu.model.Paging;
 import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.UserEntity;
@@ -145,14 +145,14 @@ public class CreateFeedJob extends JobService {
                         mAppExecutors.diskIO().execute(() -> {
                             Timber.i("update feedId from %s to %s", temporaryFeedId, newFeedResponse.getFeedId());
 
-                            FeedPaging currentPaging = mFeedDao.findFeedPaging(FeedPaging.GLOBAL_FEEDS_PAGING_ID);
+                            Paging currentPaging = mFeedDao.findFeedPaging(Paging.GLOBAL_FEEDS_PAGING_ID);
                             if(currentPaging != null){
-                                currentPaging.getFeedIds().add(0, newFeedResponse.getFeedId());
+                                currentPaging.getIds().add(0, newFeedResponse.getFeedId());
                             }
 
-                            FeedPaging userFeedPaging = mFeedDao.findFeedPaging(newFeedResponse.getFeedUser().getUserId());
-                            if(userFeedPaging != null){
-                                userFeedPaging.getFeedIds().add(0, newFeedResponse.getFeedId());
+                            Paging userPaging = mFeedDao.findFeedPaging(newFeedResponse.getFeedUser().getUserId());
+                            if(userPaging != null){
+                                userPaging.getIds().add(0, newFeedResponse.getFeedId());
                             }
 
                             mPetDb.beginTransaction();
@@ -163,8 +163,8 @@ public class CreateFeedJob extends JobService {
                                 if(currentPaging != null){
                                     mFeedDao.update(currentPaging);
                                 }
-                                if(userFeedPaging != null){
-                                    mFeedDao.update(userFeedPaging);
+                                if(userPaging != null){
+                                    mFeedDao.update(userPaging);
                                 }
                                 mFeedDao.update(newFeedResponse.toEntity());
                                 mPetDb.setTransactionSuccessful();

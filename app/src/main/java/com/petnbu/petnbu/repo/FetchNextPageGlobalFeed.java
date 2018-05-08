@@ -10,7 +10,7 @@ import com.petnbu.petnbu.api.ApiResponse;
 import com.petnbu.petnbu.api.WebService;
 import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.model.FeedResponse;
-import com.petnbu.petnbu.model.FeedPaging;
+import com.petnbu.petnbu.model.Paging;
 import com.petnbu.petnbu.model.Resource;
 import com.petnbu.petnbu.model.Status;
 
@@ -35,7 +35,7 @@ public class FetchNextPageGlobalFeed implements Runnable {
 
     @Override
     public void run() {
-        FeedPaging currentPaging = mPetDb.feedDao().findFeedPaging(mPagingId);
+        Paging currentPaging = mPetDb.feedDao().findFeedPaging(mPagingId);
         if (currentPaging == null) {
             mLiveData.postValue(null);
             return;
@@ -47,7 +47,7 @@ public class FetchNextPageGlobalFeed implements Runnable {
         }
 
         mLiveData.postValue(new Resource<>(Status.LOADING, null, null));
-        LiveData<ApiResponse<List<FeedResponse>>> result = mWebService.getGlobalFeeds(currentPaging.getOldestFeedId(), FeedRepository.FEEDS_PER_PAGE);
+        LiveData<ApiResponse<List<FeedResponse>>> result = mWebService.getGlobalFeeds(currentPaging.getOldestId(), FeedRepository.FEEDS_PER_PAGE);
         result.observeForever(new Observer<ApiResponse<List<FeedResponse>>>() {
             @Override
             public void onChanged(@Nullable ApiResponse<List<FeedResponse>> listApiResponse) {
@@ -55,11 +55,11 @@ public class FetchNextPageGlobalFeed implements Runnable {
                     result.removeObserver(this);
                     if (listApiResponse.isSucceed) {
                         if (listApiResponse.body != null && listApiResponse.body.size() > 0) {
-                            List<String> ids = new ArrayList<>(currentPaging.getFeedIds());
+                            List<String> ids = new ArrayList<>(currentPaging.getIds());
                             for (FeedResponse item : listApiResponse.body) {
                                 ids.add(item.getFeedId());
                             }
-                            FeedPaging newPaging = new FeedPaging(FeedPaging.GLOBAL_FEEDS_PAGING_ID, ids, false, ids.get(ids.size() - 1));
+                            Paging newPaging = new Paging(Paging.GLOBAL_FEEDS_PAGING_ID, ids, false, ids.get(ids.size() - 1));
                             mAppExecutors.diskIO().execute(() -> {
                                 mPetDb.beginTransaction();
                                 try{

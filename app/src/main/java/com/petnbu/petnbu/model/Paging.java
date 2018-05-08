@@ -10,9 +10,9 @@ import com.petnbu.petnbu.db.PetTypeConverters;
 
 import java.util.List;
 
-@Entity(tableName = "feed_paging")
+@Entity(tableName = "paging")
 @TypeConverters(PetTypeConverters.class)
-public class FeedPaging {
+public class Paging {
 
     public static final String GLOBAL_FEEDS_PAGING_ID = "global-feeds-paging-id";
 
@@ -20,21 +20,21 @@ public class FeedPaging {
     @NonNull
     private String pagingId;
 
-    private List<String> feedIds;
+    private List<String> ids;
 
     private boolean ended;
 
-    private String oldestFeedId;
+    private String oldestId;
 
-    public FeedPaging() {
+    public Paging() {
     }
 
     @Ignore
-    public FeedPaging(String pagingId, List<String> feedIds, boolean ended, String oldestFeedId) {
+    public Paging(@NonNull String pagingId, List<String> ids, boolean ended, String oldestId) {
         this.pagingId = pagingId;
-        this.feedIds = feedIds;
+        this.ids = ids;
         this.ended = ended;
-        this.oldestFeedId = oldestFeedId;
+        this.oldestId = oldestId;
     }
 
     public String getPagingId() {
@@ -45,20 +45,20 @@ public class FeedPaging {
         this.pagingId = pagingId;
     }
 
-    public List<String> getFeedIds() {
-        return feedIds;
+    public List<String> getIds() {
+        return ids;
     }
 
-    public void setFeedIds(List<String> feedIds) {
-        this.feedIds = feedIds;
+    public void setIds(List<String> ids) {
+        this.ids = ids;
     }
 
-    public String getOldestFeedId() {
-        return oldestFeedId;
+    public String getOldestId() {
+        return oldestId;
     }
 
-    public void setOldestFeedId(String oldestFeedId) {
-        this.oldestFeedId = oldestFeedId;
+    public void setOldestId(String oldestId) {
+        this.oldestId = oldestId;
     }
 
     public boolean isEnded() {

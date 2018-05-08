@@ -19,7 +19,7 @@ import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedResponse;
 import com.petnbu.petnbu.model.FeedEntity;
-import com.petnbu.petnbu.model.FeedPaging;
+import com.petnbu.petnbu.model.Paging;
 import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.Resource;
@@ -119,7 +119,7 @@ public class FeedResponseApiTest {
         appExecutors.mainThread().execute(new Runnable() {
             @Override
             public void run() {
-                LiveData<Resource<List<Feed>>> resultLive = repository.loadFeeds(FeedPaging.GLOBAL_FEEDS_PAGING_ID);
+                LiveData<Resource<List<Feed>>> resultLive = repository.loadFeeds(Paging.GLOBAL_FEEDS_PAGING_ID);
                 resultLive.observeForever(new Observer<Resource<List<Feed>>>() {
                     @Override
                     public void onChanged(@Nullable Resource<List<Feed>> listResource) {
