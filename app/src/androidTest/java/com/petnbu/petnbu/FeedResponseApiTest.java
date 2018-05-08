@@ -16,10 +16,10 @@ import com.petnbu.petnbu.api.ApiResponse;
 import com.petnbu.petnbu.api.FirebaseService;
 import com.petnbu.petnbu.api.WebService;
 import com.petnbu.petnbu.db.PetDb;
+import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedResponse;
 import com.petnbu.petnbu.model.FeedEntity;
 import com.petnbu.petnbu.model.FeedPaging;
-import com.petnbu.petnbu.model.FeedUIModel;
 import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.Resource;
@@ -119,10 +119,10 @@ public class FeedResponseApiTest {
         appExecutors.mainThread().execute(new Runnable() {
             @Override
             public void run() {
-                LiveData<Resource<List<FeedUIModel>>> resultLive = repository.loadFeeds(FeedPaging.GLOBAL_FEEDS_PAGING_ID);
-                resultLive.observeForever(new Observer<Resource<List<FeedUIModel>>>() {
+                LiveData<Resource<List<Feed>>> resultLive = repository.loadFeeds(FeedPaging.GLOBAL_FEEDS_PAGING_ID);
+                resultLive.observeForever(new Observer<Resource<List<Feed>>>() {
                     @Override
-                    public void onChanged(@Nullable Resource<List<FeedUIModel>> listResource) {
+                    public void onChanged(@Nullable Resource<List<Feed>> listResource) {
                         if (listResource != null) {
                             Timber.i(listResource.toString());
                             if (listResource.data != null) {

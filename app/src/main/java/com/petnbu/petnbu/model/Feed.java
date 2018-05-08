@@ -1,7 +1,6 @@
 package com.petnbu.petnbu.model;
 
 import android.arch.persistence.room.Ignore;
-import android.arch.persistence.room.TypeConverter;
 import android.arch.persistence.room.TypeConverters;
 import android.support.annotation.NonNull;
 
@@ -13,7 +12,7 @@ import java.util.List;
 
 
 @TypeConverters(value = PetTypeConverters.class)
-public class FeedUIModel {
+public class Feed {
     @NonNull
     private String feedId;
 
@@ -35,11 +34,11 @@ public class FeedUIModel {
     @Exclude
     private boolean likeInProgress;
 
-    public FeedUIModel() {
+    public Feed() {
     }
 
     @Ignore
-    public FeedUIModel(@NonNull String feedId, String name, String userId, Photo avatar, List<Photo> photos, int commentCount, int likeCount, String content, Date timeCreated, Date timeUpdated, int status, boolean likeInProgress) {
+    public Feed(@NonNull String feedId, String name, String userId, Photo avatar, List<Photo> photos, int commentCount, int likeCount, String content, Date timeCreated, Date timeUpdated, int status, boolean likeInProgress) {
         this.feedId = feedId;
         this.name = name;
         this.userId = userId;
@@ -158,7 +157,7 @@ public class FeedUIModel {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        FeedUIModel that = (FeedUIModel) o;
+        Feed that = (Feed) o;
 
         if (commentCount != that.commentCount) return false;
         if (likeCount != that.likeCount) return false;

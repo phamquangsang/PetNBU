@@ -34,8 +34,8 @@ import com.google.android.gms.common.internal.Preconditions;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.Utils;
 import com.petnbu.petnbu.databinding.ViewFeedBinding;
+import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedEntity;
-import com.petnbu.petnbu.model.FeedUIModel;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.util.ColorUtils;
 
@@ -46,7 +46,7 @@ import java.util.Locale;
 public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecyclerViewAdapter.ViewHolder> {
 
     private RequestManager mRequestManager;
-    private List<FeedUIModel> mFeeds;
+    private List<Feed> mFeeds;
     private ArrayMap<String, Integer> lastSelectedPhotoPositions = new ArrayMap<>();
 
     private int maxPhotoHeight;
@@ -54,7 +54,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
     private final OnItemClickListener mOnItemClickListener;
     private int mDataVersion;
 
-    public FeedsRecyclerViewAdapter(Context context, List<FeedUIModel> feeds, OnItemClickListener onItemClickListener) {
+    public FeedsRecyclerViewAdapter(Context context, List<Feed> feeds, OnItemClickListener onItemClickListener) {
         Preconditions.checkNotNull(context);
         mFeeds = feeds;
         minPhotoHeight = Utils.goldenRatio(Utils.getDeviceWidth(context), true);
@@ -84,7 +84,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
     }
 
     @SuppressLint("StaticFieldLeak")
-    public void setFeeds(List<FeedUIModel> feeds) {
+    public void setFeeds(List<Feed> feeds) {
         mDataVersion++;
         final int startVersion = mDataVersion;
         new AsyncTask<Void, Void, DiffUtil.DiffResult>() {
@@ -107,7 +107,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
     protected class ViewHolder extends RecyclerView.ViewHolder {
 
         private ViewFeedBinding mBinding;
-        private FeedUIModel mFeed;
+        private Feed mFeed;
         private final View.OnClickListener profileClickListener = v -> {
             if (mOnItemClickListener != null && getAdapterPosition() != RecyclerView.NO_POSITION) {
                 mOnItemClickListener.onProfileClicked(mFeeds.get(getAdapterPosition()).getUserId());
@@ -137,7 +137,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
             });
         }
 
-        public void bindData(FeedUIModel feed) {
+        public void bindData(Feed feed) {
             mFeed = feed;
             displayUserInfo();
             displayTime();
@@ -272,10 +272,10 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
 
     private static class FeedsDiffCallback extends DiffUtil.Callback {
 
-        private final List<FeedUIModel> oldData;
-        private final List<FeedUIModel> newData;
+        private final List<Feed> oldData;
+        private final List<Feed> newData;
 
-        private FeedsDiffCallback(List<FeedUIModel> oldData, List<FeedUIModel> newData) {
+        private FeedsDiffCallback(List<Feed> oldData, List<Feed> newData) {
             this.oldData = oldData;
             this.newData = newData;
         }

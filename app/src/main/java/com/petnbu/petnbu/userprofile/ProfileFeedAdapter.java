@@ -7,7 +7,7 @@ import android.view.ViewGroup;
 
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.databinding.FragmentFeedProfileItemBinding;
-import com.petnbu.petnbu.model.FeedUIModel;
+import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.ui.common.DataBoundListAdapter;
 import com.petnbu.petnbu.userprofile.dummy.DummyContent.DummyItem;
 import com.petnbu.petnbu.util.Objects;
@@ -17,7 +17,7 @@ import com.petnbu.petnbu.util.Objects;
  * specified {@link UserProfileFragment.OnProfileFragmentInteractionListener}.
  * TODO: Replace the implementation with code for your data type.
  */
-public class ProfileFeedAdapter extends DataBoundListAdapter<FeedUIModel, FragmentFeedProfileItemBinding> {
+public class ProfileFeedAdapter extends DataBoundListAdapter<Feed, FragmentFeedProfileItemBinding> {
 
     private final UserProfileFragment.OnProfileFragmentInteractionListener mListener;
 
@@ -41,7 +41,7 @@ public class ProfileFeedAdapter extends DataBoundListAdapter<FeedUIModel, Fragme
     }
 
     @Override
-    protected void bind(FragmentFeedProfileItemBinding binding, FeedUIModel item) {
+    protected void bind(FragmentFeedProfileItemBinding binding, Feed item) {
         binding.setFeed(item);
     }
 
@@ -51,12 +51,12 @@ public class ProfileFeedAdapter extends DataBoundListAdapter<FeedUIModel, Fragme
     }
 
     @Override
-    protected boolean areItemsTheSame(FeedUIModel oldItem, FeedUIModel newItem) {
+    protected boolean areItemsTheSame(Feed oldItem, Feed newItem) {
         return Objects.equals(oldItem, newItem);
     }
 
     @Override
-    protected boolean areContentsTheSame(FeedUIModel oldItem, FeedUIModel newItem) {
+    protected boolean areContentsTheSame(Feed oldItem, Feed newItem) {
         return oldItem.getFeedId().equals(newItem.getFeedId());
     }
 

@@ -15,7 +15,7 @@ import com.petnbu.petnbu.api.ApiResponse;
 import com.petnbu.petnbu.api.FakeWebService;
 import com.petnbu.petnbu.api.WebService;
 import com.petnbu.petnbu.model.Comment;
-import com.petnbu.petnbu.model.FeedUIModel;
+import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.Resource;
@@ -65,7 +65,7 @@ public class CommentsViewModel extends ViewModel {
 
     public LiveData<Resource<List<Comment>>> loadComments(String feedId) {
         showLoading.set(true);
-        LiveData<Resource<FeedUIModel>> dbSource = mFeedRepository.getFeed(feedId);
+        LiveData<Resource<Feed>> dbSource = mFeedRepository.getFeed(feedId);
         MediatorLiveData<Resource<List<Comment>>> mediatorLiveData = new MediatorLiveData<>();
         mediatorLiveData.addSource(dbSource, feedResource -> {
             if(feedResource!= null && feedResource.status == Status.SUCCESS){
@@ -84,7 +84,7 @@ public class CommentsViewModel extends ViewModel {
         return mediatorLiveData;
     }
 
-    private Comment createCommentFromFeed(FeedUIModel feed) {
+    private Comment createCommentFromFeed(Feed feed) {
         Comment comment = new Comment();
         comment.setId(feed.getFeedId());
         FeedUser feedUser = new FeedUser(feed.getUserId(), feed.getAvatar().getOriginUrl(), feed.getName());

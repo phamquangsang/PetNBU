@@ -8,10 +8,10 @@ import android.arch.persistence.room.OnConflictStrategy;
 import android.arch.persistence.room.Query;
 import android.arch.persistence.room.Update;
 
+import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedResponse;
 import com.petnbu.petnbu.model.FeedEntity;
 import com.petnbu.petnbu.model.FeedPaging;
-import com.petnbu.petnbu.model.FeedUIModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,15 +64,15 @@ public abstract class FeedDao {
 
     @Query("SELECT feedId, name, userId, avatar, photos, commentCount, likeCount, content, feeds.timeCreated, feeds.timeUpdated, status, likeInProgress " +
             "FROM feeds, users WHERE feedId IN (:ids) ORDER BY feeds.timeCreated DESC")
-    public abstract LiveData<List<FeedUIModel>> loadFeeds(List<String> ids);
+    public abstract LiveData<List<Feed>> loadFeeds(List<String> ids);
 
     @Query("SELECT feedId, name, userId, avatar, photos, commentCount, likeCount, content, feeds.timeCreated, feeds.timeUpdated, status, likeInProgress " +
             "FROM feeds, users WHERE feeds.fromUserId = users.userId AND (feedId IN (:ids) OR status == 1) ORDER BY feeds.timeCreated DESC")
-    public abstract LiveData<List<FeedUIModel>> loadFeedsIncludeUploadingPost(List<String> ids);
+    public abstract LiveData<List<Feed>> loadFeedsIncludeUploadingPost(List<String> ids);
 
     @Query("SELECT feedId, name, userId, avatar, photos, commentCount, likeCount, content, feeds.timeCreated, feeds.timeUpdated, status, likeInProgress  " +
             "FROM feeds, users WHERE feeds.fromUserId = users.userId AND feedId = :feedId")
-    public abstract LiveData<FeedUIModel> loadFeedById(String feedId);
+    public abstract LiveData<Feed> loadFeedById(String feedId);
 
     @Query("SELECT * FROM feeds WHERE feedId = :feedId")
     public abstract FeedEntity findFeedEntityById(String feedId);

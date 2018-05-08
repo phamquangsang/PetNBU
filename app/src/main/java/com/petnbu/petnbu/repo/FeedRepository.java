@@ -20,10 +20,10 @@ import com.petnbu.petnbu.db.FeedDao;
 import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.db.UserDao;
 import com.petnbu.petnbu.jobs.CreateFeedJob;
+import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedResponse;
 import com.petnbu.petnbu.model.FeedEntity;
 import com.petnbu.petnbu.model.FeedPaging;
-import com.petnbu.petnbu.model.FeedUIModel;
 import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Resource;
 import com.petnbu.petnbu.model.UserEntity;
@@ -69,8 +69,8 @@ public class FeedRepository {
         mApplication = application;
     }
 
-    public LiveData<Resource<List<FeedUIModel>>> loadFeeds(String pagingId) {
-        return new NetworkBoundResource<List<FeedUIModel>, List<FeedResponse>>(mAppExecutors) {
+    public LiveData<Resource<List<Feed>>> loadFeeds(String pagingId) {
+        return new NetworkBoundResource<List<Feed>, List<FeedResponse>>(mAppExecutors) {
             @Override
             protected void saveCallResult(@NonNull List<FeedResponse> items) {
                 List<String> listId = new ArrayList<>(items.size());
@@ -95,16 +95,16 @@ public class FeedRepository {
             }
 
             @Override
-            protected boolean shouldFetch(@Nullable List<FeedUIModel> data) {
+            protected boolean shouldFetch(@Nullable List<Feed> data) {
                 return true;
             }
 
             @NonNull
             @Override
-            protected LiveData<List<FeedUIModel>> loadFromDb() {
+            protected LiveData<List<Feed>> loadFromDb() {
                 return Transformations.switchMap(mFeedDao.loadFeedPaging(FeedPaging.GLOBAL_FEEDS_PAGING_ID), input -> {
                     if (input == null) {
-                        MutableLiveData<List<FeedUIModel>> data = new MutableLiveData<>();
+                        MutableLiveData<List<Feed>> data = new MutableLiveData<>();
                         data.postValue(null);
                         return data;
                     } else {
@@ -138,15 +138,15 @@ public class FeedRepository {
         }.asLiveData();
     }
 
-    public LiveData<Resource<FeedUIModel>> getFeed(String feedId){
-        return new NetworkBoundResource<FeedUIModel, FeedResponse>(mAppExecutors){
+    public LiveData<Resource<Feed>> getFeed(String feedId){
+        return new NetworkBoundResource<Feed, FeedResponse>(mAppExecutors){
             @Override
             protected void saveCallResult(@NonNull FeedResponse item) {
                 mFeedDao.insertFromFeed(item);
             }
 
             @Override
-            protected boolean shouldFetch(@Nullable FeedUIModel data) {
+            protected boolean shouldFetch(@Nullable Feed data) {
                 return data == null;
             }
 
@@ -157,7 +157,7 @@ public class FeedRepository {
 
             @NonNull
             @Override
-            protected LiveData<FeedUIModel> loadFromDb() {
+            protected LiveData<Feed> loadFromDb() {
                 return mFeedDao.loadFeedById(feedId);
             }
 
@@ -169,8 +169,8 @@ public class FeedRepository {
         }.asLiveData();
     }
 
-    public LiveData<Resource<List<FeedUIModel>>> loadUserFeeds(String userId) {
-        return new NetworkBoundResource<List<FeedUIModel>, List<FeedResponse>>(mAppExecutors) {
+    public LiveData<Resource<List<Feed>>> loadUserFeeds(String userId) {
+        return new NetworkBoundResource<List<Feed>, List<FeedResponse>>(mAppExecutors) {
             @Override
             protected void saveCallResult(@NonNull List<FeedResponse> items) {
                 if(items.isEmpty()){
@@ -198,16 +198,16 @@ public class FeedRepository {
             }
 
             @Override
-            protected boolean shouldFetch(@Nullable List<FeedUIModel> data) {
+            protected boolean shouldFetch(@Nullable List<Feed> data) {
                 return data == null || data.isEmpty() || mRateLimiter.shouldFetch(userId);
             }
 
             @NonNull
             @Override
-            protected LiveData<List<FeedUIModel>> loadFromDb() {
+            protected LiveData<List<Feed>> loadFromDb() {
                 return Transformations.switchMap(mFeedDao.loadFeedPaging(userId), input -> {
                     if (input == null) {
-                        MutableLiveData<List<FeedUIModel>> data = new MutableLiveData<>();
+                        MutableLiveData<List<Feed>> data = new MutableLiveData<>();
                         data.postValue(null);
                         return data;
                     } else {
@@ -285,8 +285,8 @@ public class FeedRepository {
         jobDispatcher.mustSchedule(job);
     }
 
-    public LiveData<Resource<List<FeedUIModel>>> refresh() {
-        return new NetworkBoundResource<List<FeedUIModel>, List<FeedResponse>>(mAppExecutors) {
+    public LiveData<Resource<List<Feed>>> refresh() {
+        return new NetworkBoundResource<List<Feed>, List<FeedResponse>>(mAppExecutors) {
             @Override
             protected void saveCallResult(@NonNull List<FeedResponse> items) {
                 List<String> listId = new ArrayList<>(items.size());
@@ -311,16 +311,16 @@ public class FeedRepository {
             }
 
             @Override
-            protected boolean shouldFetch(@Nullable List<FeedUIModel> data) {
+            protected boolean shouldFetch(@Nullable List<Feed> data) {
                 return true;
             }
 
             @NonNull
             @Override
-            protected LiveData<List<FeedUIModel>> loadFromDb() {
+            protected LiveData<List<Feed>> loadFromDb() {
                 return Transformations.switchMap(mFeedDao.loadFeedPaging(FeedPaging.GLOBAL_FEEDS_PAGING_ID), input -> {
                     if (input == null) {
-                        MutableLiveData<List<FeedUIModel>> data = new MutableLiveData<>();
+                        MutableLiveData<List<Feed>> data = new MutableLiveData<>();
                         data.postValue(null);
                         return data;
                     } else {
