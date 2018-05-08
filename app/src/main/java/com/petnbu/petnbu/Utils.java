@@ -13,6 +13,7 @@ import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.support.v4.content.ContextCompat;
 import android.text.SpannableString;
+import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
 import android.util.DisplayMetrics;
 import android.view.MenuItem;
@@ -219,15 +220,17 @@ public final class Utils {
             int iconColor = ContextCompat.getColor(context, android.R.color.black);
 
             CharSequence menuTitle = menuItem.getTitle();
-            SpannableString styledMenuTitle = new SpannableString(menuTitle);
-            if (enable) {
-                menuItem.setEnabled(true);
-                styledMenuTitle.setSpan(new ForegroundColorSpan(iconColor), 0, menuTitle.length(), 0);
-                menuItem.setTitle(styledMenuTitle);
-            } else {
-                menuItem.setEnabled(false);
-                styledMenuTitle.setSpan(new ForegroundColorSpan(ColorUtils.modifyAlpha(iconColor, 0.4f)), 0, menuTitle.length(), 0);
-                menuItem.setTitle(styledMenuTitle);
+            if(!TextUtils.isEmpty(menuTitle)) {
+                SpannableString styledMenuTitle = new SpannableString(menuTitle);
+                if (enable) {
+                    menuItem.setEnabled(true);
+                    styledMenuTitle.setSpan(new ForegroundColorSpan(iconColor), 0, menuTitle.length(), 0);
+                    menuItem.setTitle(styledMenuTitle);
+                } else {
+                    menuItem.setEnabled(false);
+                    styledMenuTitle.setSpan(new ForegroundColorSpan(ColorUtils.modifyAlpha(iconColor, 0.4f)), 0, menuTitle.length(), 0);
+                    menuItem.setTitle(styledMenuTitle);
+                }
             }
         }
     }

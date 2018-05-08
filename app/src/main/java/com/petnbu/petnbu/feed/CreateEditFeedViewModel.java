@@ -14,6 +14,7 @@ import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedResponse;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.UserEntity;
+import com.petnbu.petnbu.model.Status;
 import com.petnbu.petnbu.repo.FeedRepository;
 import com.petnbu.petnbu.repo.UserRepository;
 
@@ -23,7 +24,9 @@ import javax.inject.Inject;
 
 public class CreateEditFeedViewModel extends ViewModel {
 
-    public final SingleLiveEvent<Boolean> showLoadingLiveData = new SingleLiveEvent<>();
+    public final SingleLiveEvent<Boolean> showLoadingEvent = new SingleLiveEvent<>();
+
+    public final SingleLiveEvent<String> showMessageDialogEvent = new SingleLiveEvent<>();
 
     @Inject
     UserRepository mUserRepository;
@@ -65,6 +68,7 @@ public class CreateEditFeedViewModel extends ViewModel {
                 } else {
                     // load failed
                 }
+                showLoadingEvent.setValue(Status.LOADING.equals(input.status));
                 return feedLiveData;
             });
         } else {
@@ -81,7 +85,10 @@ public class CreateEditFeedViewModel extends ViewModel {
             feed.setPhotos(photos);
             mFeedRepository.createNewFeed(feed);
         } else {
-            // Update feed
+            Feed feed = new Feed();
+            feed.setFeedId(mFeedId);
+            feed.setContent(content);
+            feed.setPhotos(photos);
         }
     }
 }

@@ -23,6 +23,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -37,7 +38,6 @@ import com.github.ybq.android.spinkit.style.FadingCircle;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.Utils;
 import com.petnbu.petnbu.databinding.ActivityCreateFeedBinding;
-import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.util.ColorUtils;
 import com.petnbu.petnbu.views.HorizontalSpaceItemDecoration;
@@ -63,8 +63,8 @@ public class CreateFeedActivity extends AppCompatActivity {
 
     private PhotosAdapter mPhotosAdapter;
     private ArrayList<Photo> mSelectedPhotos = new ArrayList<>();
-    private boolean cameraClicked = false;
-    private Feed mFeed;
+    private boolean mCameraClicked = false;
+    private String mPostMenuTitle;
 
     public static Intent newIntent(Context context, String feedId) {
         Intent intent = new Intent(context, CreateFeedActivity.class);
@@ -92,13 +92,15 @@ public class CreateFeedActivity extends AppCompatActivity {
         mCreateEditFeedViewModel = ViewModelProviders.of(this).get(CreateEditFeedViewModel.class);
         mCreateEditFeedViewModel.loadFeed(feedId).observe(this, feed -> {
             if(feed != null) {
-                mFeed = feed;
-                mSelectedPhotos.addAll(mFeed.getPhotos());
+                mSelectedPhotos.addAll(feed.getPhotos());
                 mPhotosAdapter.notifyDataSetChanged();
-                mBinding.edText.setText(mFeed.getContent());
+                mBinding.edText.setText(feed.getContent());
             }
+            mPostMenuTitle = feed != null ? getString(R.string.menu_action_save_title) :
+                    getString(R.string.menu_action_create_title);
         });
-        mCreateEditFeedViewModel.showLoadingLiveData.observe(this, this::setLoadingVisibility);
+        mCreateEditFeedViewModel.showLoadingEvent.observe(this, this::setLoadingVisibility);
+        mCreateEditFeedViewModel.showMessageDialogEvent.observe(this, message -> Log.d("WTF", message));
 
         setPlaceHolderLayoutVisibility(true);
         mCreateEditFeedViewModel.loadUserInfo().observe(this, user -> {
@@ -121,7 +123,7 @@ public class CreateFeedActivity extends AppCompatActivity {
                             }
                         });
                 mBinding.tvUserName.setText(user.getName());
-                CreateFeedActivity.this.setPlaceHolderLayoutVisibility(false);
+                setPlaceHolderLayoutVisibility(false);
             } else {
                 Timber.i("user is null");
             }
@@ -149,7 +151,7 @@ public class CreateFeedActivity extends AppCompatActivity {
         mPhotosAdapter = new PhotosAdapter(this, mRequestManager, mSelectedPhotos, new PhotosAdapter.ItemClickListener() {
             @Override
             public void onCameraIconClicked() {
-                cameraClicked = true;
+                mCameraClicked = true;
                 requestReadExternalPermission();
             }
 
@@ -188,7 +190,7 @@ public class CreateFeedActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, permissions, REQUEST_READ_EXTERNAL_PERMISSIONS);
             return true;
         } else {
-            if (cameraClicked) {
+            if (mCameraClicked) {
                 if (Build.VERSION.SDK_INT < 19) {
                     Intent intent = new Intent();
                     intent.setType("image/*");
@@ -201,7 +203,7 @@ public class CreateFeedActivity extends AppCompatActivity {
                     intent.setType("image/*");
                     startActivityForResult(intent, GALLERY_KITKAT_INTENT_CALLED);
                 }
-                cameraClicked = false;
+                mCameraClicked = false;
             }
         }
         return false;
@@ -211,11 +213,7 @@ public class CreateFeedActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.create_post, menu);
         mPostMenuItem = menu.findItem(R.id.action_post);
-        if(mFeed != null) {
-            mPostMenuItem.setTitle(R.string.menu_action_save_title);
-        } else {
-            mPostMenuItem.setTitle(R.string.menu_action_create_title);
-        }
+        mPostMenuItem.setTitle(mPostMenuTitle);
         return true;
     }
 
@@ -244,7 +242,7 @@ public class CreateFeedActivity extends AppCompatActivity {
         switch (requestCode) {
             case REQUEST_READ_EXTERNAL_PERMISSIONS:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    if (cameraClicked) {
+                    if (mCameraClicked) {
                         if (Build.VERSION.SDK_INT < 19) {
                             Intent intent = new Intent();
                             intent.setType("*/*");
@@ -257,7 +255,7 @@ public class CreateFeedActivity extends AppCompatActivity {
                             intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
                             startActivityForResult(intent, GALLERY_KITKAT_INTENT_CALLED);
                         }
-                        cameraClicked = false;
+                        mCameraClicked = false;
                     }
                 }
                 break;
@@ -316,7 +314,7 @@ public class CreateFeedActivity extends AppCompatActivity {
 
             try {
                 if (uri != null) {
-                    CreateFeedActivity.this.getContentResolver().takePersistableUriPermission(uri, takeFlags);
+                    getContentResolver().takePersistableUriPermission(uri, takeFlags);
                 } else {
                     //todo notify user something wrong with selected photo
                 }
