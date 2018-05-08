@@ -57,7 +57,11 @@ public class FirebaseService implements WebService {
                 .collection(FEEDS).document(feedResponse.getFeedId());
         batch.set(userFeed, feedResponse);
         batch.commit()
-                .addOnSuccessListener(aVoid -> result.setValue(new ApiResponse<>(feedResponse, true, null)))
+                .addOnSuccessListener(aVoid -> {
+                    feedResponse.setTimeCreated(new Date());
+                    feedResponse.setTimeUpdated(new Date());
+                    result.setValue(new ApiResponse<>(feedResponse, true, null));
+                })
                 .addOnFailureListener(e -> {
                     feedResponse.setFeedId(oldId);
                     result.setValue(new ApiResponse<>(null, false, e.getMessage()));
@@ -82,7 +86,10 @@ public class FirebaseService implements WebService {
                 mDb.document(String.format("users/%s/feeds/%s", feedResponse.getFeedUser().getUserId(), feedResponse.getFeedId()));
         batch.set(userFeed, feedResponse);
         batch.commit()
-                .addOnSuccessListener(aVoid -> result.setValue(new ApiResponse<>(feedResponse, true, null)))
+                .addOnSuccessListener(aVoid -> {
+                    feedResponse.setTimeUpdated(new Date());
+                    result.setValue(new ApiResponse<>(feedResponse, true, null));
+                })
                 .addOnFailureListener(e -> {
                     result.setValue(new ApiResponse<>(null, false, e.getMessage()));
                 });
