@@ -120,6 +120,19 @@
                 app:srcCompat="@drawable/ic_chat_bubble_outline_black_24dp"
                 tools:ignore="ContentDescription"/>
 
+            <ImageView
+                android:id="@+id/imgOptions"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_marginTop="8dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/layoutMedia"
+                app:srcCompat="@drawable/ic_more_horiz_black_24dp"
+                tools:ignore="ContentDescription"/>
+
             <TextView
                 android:id="@+id/tvLikesCount"
                 android:layout_width="0dp"
@@ -192,8 +205,8 @@
                 android:layout_marginTop="8dp"
                 android:fontFamily="sans-serif"
                 android:text="View all 141 comments"
-                android:textSize="14sp"
                 android:textColor="@android:color/secondary_text_light_nodisable"
+                android:textSize="14sp"
                 app:layout_constraintLeft_toLeftOf="@+id/tvLikesCount"
                 app:layout_constraintStart_toStartOf="@+id/tvLikesCount"
                 app:layout_constraintTop_toBottomOf="@+id/tvContent"/>

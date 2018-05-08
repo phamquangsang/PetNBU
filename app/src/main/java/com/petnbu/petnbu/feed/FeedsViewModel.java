@@ -1,5 +1,6 @@
 package com.petnbu.petnbu.feed;
 
+import android.app.Application;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.Observer;
@@ -11,6 +12,7 @@ import com.petnbu.petnbu.model.Paging;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.Resource;
 import com.petnbu.petnbu.repo.FeedRepository;
+import com.petnbu.petnbu.repo.UserRepository;
 
 import java.util.List;
 
@@ -22,6 +24,12 @@ public class FeedsViewModel extends ViewModel {
 
     @Inject
     FeedRepository mFeedRepository;
+
+    @Inject
+    UserRepository mUserRepository;
+
+    @Inject
+    Application mApplication;
 
     private LiveData<Resource<List<Feed>>> mFeedsLiveData;
 
@@ -44,7 +52,6 @@ public class FeedsViewModel extends ViewModel {
     public void loadNextPage() {
         if (mFeedsLiveData.getValue() != null) {
             loadMoreHandler.loadNextPage(Paging.GLOBAL_FEEDS_PAGING_ID);
-
         }
     }
 

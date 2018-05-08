@@ -5,10 +5,12 @@ import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.Transformations;
 import android.arch.lifecycle.ViewModel;
+import android.text.TextUtils;
 
 import com.petnbu.petnbu.PetApplication;
 import com.petnbu.petnbu.SharedPrefUtil;
 import com.petnbu.petnbu.SingleLiveEvent;
+import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedResponse;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.UserEntity;
@@ -19,10 +21,9 @@ import java.util.ArrayList;
 
 import javax.inject.Inject;
 
-public class CreateFeedViewModel extends ViewModel {
+public class CreateEditFeedViewModel extends ViewModel {
 
     public final SingleLiveEvent<Boolean> showLoadingLiveData = new SingleLiveEvent<>();
-    public final SingleLiveEvent<Boolean> createdFeedLiveData = new SingleLiveEvent<>();
 
     @Inject
     UserRepository mUserRepository;
@@ -33,7 +34,13 @@ public class CreateFeedViewModel extends ViewModel {
     @Inject
     Application mApplication;
 
-    public CreateFeedViewModel() {
+    private final MutableLiveData<Feed> feedLiveData = new MutableLiveData<>();
+
+    private boolean mIsNewFeed;
+
+    private String mFeedId;
+
+    public CreateEditFeedViewModel() {
         PetApplication.getAppComponent().inject(this);
     }
 
@@ -49,10 +56,32 @@ public class CreateFeedViewModel extends ViewModel {
         });
     }
 
-    public void createFeed(String content, ArrayList<Photo> photos) {
-        FeedResponse feedResponse = new FeedResponse();
-        feedResponse.setContent(content);
-        feedResponse.setPhotos(photos);
-        mFeedRepository.createNewFeed(feedResponse);
+    public LiveData<Feed> loadFeed(String feedId) {
+        if(!TextUtils.isEmpty(feedId)) {
+            return Transformations.switchMap(mFeedRepository.getFeed(feedId), input -> {
+                feedLiveData.setValue(input.data);
+                if(input.data != null) {
+                    mFeedId = feedId;
+                } else {
+                    // load failed
+                }
+                return feedLiveData;
+            });
+        } else {
+            mIsNewFeed = true;
+            feedLiveData.setValue(null);
+            return feedLiveData;
+        }
+    }
+
+    public void saveFeed(String content, ArrayList<Photo> photos) {
+        if(mIsNewFeed && TextUtils.isEmpty(mFeedId)) {
+            FeedResponse feed = new FeedResponse();
+            feed.setContent(content);
+            feed.setPhotos(photos);
+            mFeedRepository.createNewFeed(feed);
+        } else {
+            // Update feed
+        }
     }
 }

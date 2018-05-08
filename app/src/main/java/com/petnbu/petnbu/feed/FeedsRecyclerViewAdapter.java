@@ -135,6 +135,11 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
                     mOnItemClickListener.onCommentClicked(mFeeds.get(getAdapterPosition()).getFeedId());
                 }
             });
+            mBinding.imgOptions.setOnClickListener(v -> {
+                if(mOnItemClickListener != null && getAdapterPosition() != RecyclerView.NO_POSITION) {
+                    mOnItemClickListener.onOptionClicked(v, mFeeds.get(getAdapterPosition()));
+                }
+            });
         }
 
         public void bindData(Feed feed) {
@@ -214,11 +219,17 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
             if (mFeed.getPhotos() != null && !mFeed.getPhotos().isEmpty()) {
                 constraintHeightForPhoto(mFeed.getPhotos().get(0).getWidth(), mFeed.getPhotos().get(0).getHeight());
 
-                mBinding.vpPhotos.setAdapter(new PhotosPagerAdapter(mFeed, mRequestManager, () -> {
-                    if (mOnItemClickListener != null && mFeed.getStatus() == FeedEntity.STATUS_DONE) {
-                        mOnItemClickListener.onPhotoClicked(mFeed.getPhotos().get(mBinding.vpPhotos.getCurrentItem()));
-                    }
-                }));
+                if(mBinding.vpPhotos.getAdapter() != null) {
+                    PhotosPagerAdapter pagerAdapter = (PhotosPagerAdapter) mBinding.vpPhotos.getAdapter();
+                    pagerAdapter.setData(mFeed);
+
+                } else {
+                    mBinding.vpPhotos.setAdapter(new PhotosPagerAdapter(mFeed, mRequestManager, () -> {
+                        if (mOnItemClickListener != null && mFeed.getStatus() == FeedEntity.STATUS_DONE) {
+                            mOnItemClickListener.onPhotoClicked(mFeed.getPhotos().get(mBinding.vpPhotos.getCurrentItem()));
+                        }
+                    }));
+                }
                 int currentPos = 0;
                 Integer value = lastSelectedPhotoPositions.get(mFeed.getFeedId());
                 if (value != null) {
@@ -310,5 +321,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
         void onLikeClicked(String feedId);
 
         void onCommentClicked(String feedId);
+
+        void onOptionClicked(View view, Feed feed);
     }
 }

@@ -61,6 +61,11 @@ public class PhotosPagerAdapter extends PagerAdapter {
         mRequestManager.clear((View) object);
     }
 
+    public void setData(Feed feed) {
+        mFeed = feed;
+        notifyDataSetChanged();
+    }
+
     private View.OnClickListener onPhotoClickedListener = v -> {
         if(mOnItemClickListener != null) {
             mOnItemClickListener.onPhotoClicked();
