@@ -17,7 +17,7 @@ import com.bumptech.glide.Glide;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.databinding.FragmentFeedProfileListBinding;
 import com.petnbu.petnbu.model.FeedUIModel;
-import com.petnbu.petnbu.model.User;
+import com.petnbu.petnbu.model.UserEntity;
 
 import timber.log.Timber;
 
@@ -118,11 +118,11 @@ public class UserProfileFragment extends Fragment {
         });
         mViewModel.getUser(mUserId).observe(this, userResource -> {
             if(userResource != null && userResource.data!=null){
-                User user = userResource.data;
+                UserEntity userEntity = userResource.data;
                 mBinding.tvUserNamePlaceHolder.setVisibility(View.GONE);
                 mBinding.tvUserName.setVisibility(View.VISIBLE);
-                mBinding.tvUserName.setText(user.getName());
-                Glide.with(mBinding.imgProfile).load(user.getAvatar().getOriginUrl()).into(mBinding.imgProfile);
+                mBinding.tvUserName.setText(userEntity.getName());
+                Glide.with(mBinding.imgProfile).load(userEntity.getAvatar().getOriginUrl()).into(mBinding.imgProfile);
             }
         });
     }

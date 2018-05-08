@@ -1,18 +1,14 @@
 package com.petnbu.petnbu.model;
 
-import android.arch.persistence.room.Embedded;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.ForeignKey;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
 import android.arch.persistence.room.TypeConverters;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 
 import com.google.firebase.firestore.Exclude;
-import com.google.firebase.firestore.ServerTimestamp;
 import com.petnbu.petnbu.db.PetTypeConverters;
 
 import java.lang.annotation.Retention;
@@ -37,7 +33,7 @@ public class FeedEntity {
     @PrimaryKey
     @NonNull
     private String feedId;
-    @ForeignKey(entity = User.class, parentColumns = "userId", childColumns = "fromUserId")
+    @ForeignKey(entity = UserEntity.class, parentColumns = "userId", childColumns = "fromUserId")
     private String fromUserId;
     private List<Photo> photos;
     private int commentCount;

@@ -9,7 +9,7 @@ import com.petnbu.petnbu.AppExecutors;
 import com.petnbu.petnbu.api.ApiResponse;
 import com.petnbu.petnbu.api.WebService;
 import com.petnbu.petnbu.db.PetDb;
-import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.FeedResponse;
 import com.petnbu.petnbu.model.FeedPaging;
 import com.petnbu.petnbu.model.Resource;
 import com.petnbu.petnbu.model.Status;
@@ -47,16 +47,16 @@ public class FetchNextPageUserFeed implements Runnable{
         }
 
         mLiveData.postValue(new Resource<>(Status.LOADING, null, null));
-        LiveData<ApiResponse<List<Feed>>> result = mWebService.getUserFeed(mPagingId, currentPaging.getOldestFeedId(), FeedRepository.FEEDS_PER_PAGE);
-        result.observeForever(new Observer<ApiResponse<List<Feed>>>() {
+        LiveData<ApiResponse<List<FeedResponse>>> result = mWebService.getUserFeed(mPagingId, currentPaging.getOldestFeedId(), FeedRepository.FEEDS_PER_PAGE);
+        result.observeForever(new Observer<ApiResponse<List<FeedResponse>>>() {
             @Override
-            public void onChanged(@Nullable ApiResponse<List<Feed>> listApiResponse) {
+            public void onChanged(@Nullable ApiResponse<List<FeedResponse>> listApiResponse) {
                 if (listApiResponse != null) {
                     result.removeObserver(this);
                     if (listApiResponse.isSucceed) {
                         if (listApiResponse.body != null && listApiResponse.body.size() > 0) {
                             List<String> ids = new ArrayList<>(currentPaging.getFeedIds());
-                            for (Feed item : listApiResponse.body) {
+                            for (FeedResponse item : listApiResponse.body) {
                                 ids.add(item.getFeedId());
                             }
                             FeedPaging newPaging = new FeedPaging(mPagingId, ids, false, ids.get(ids.size() - 1));
@@ -64,7 +64,7 @@ public class FetchNextPageUserFeed implements Runnable{
                                 mPetDb.beginTransaction();
                                 try{
                                     mPetDb.feedDao().insertFromFeedList(listApiResponse.body);
-                                    for (Feed item : listApiResponse.body) {
+                                    for (FeedResponse item : listApiResponse.body) {
                                         mPetDb.userDao().insert(item.getFeedUser());
                                     }
                                     mPetDb.feedDao().insert(newPaging);

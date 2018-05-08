@@ -1,22 +1,13 @@
 package com.petnbu.petnbu.db;
 
 import android.arch.persistence.room.TypeConverter;
-import android.arch.persistence.room.TypeConverters;
-import android.arch.persistence.room.util.StringUtil;
-import android.os.SystemClock;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.google.android.gms.common.util.ArrayUtils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.petnbu.petnbu.model.Feed;
-import com.petnbu.petnbu.model.FeedEntity;
 import com.petnbu.petnbu.model.Photo;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 

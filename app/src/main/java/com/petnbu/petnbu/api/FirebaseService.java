@@ -16,8 +16,8 @@ import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.firestore.Transaction;
 import com.google.firebase.firestore.WriteBatch;
 import com.petnbu.petnbu.model.Comment;
-import com.petnbu.petnbu.model.Feed;
-import com.petnbu.petnbu.model.User;
+import com.petnbu.petnbu.model.FeedResponse;
+import com.petnbu.petnbu.model.UserEntity;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -42,44 +42,44 @@ public class FirebaseService implements WebService {
     }
 
     @Override
-    public LiveData<ApiResponse<Feed>> createFeed(Feed feed) {
-        MutableLiveData<ApiResponse<Feed>> result = new MutableLiveData<>();
+    public LiveData<ApiResponse<FeedResponse>> createFeed(FeedResponse feedResponse) {
+        MutableLiveData<ApiResponse<FeedResponse>> result = new MutableLiveData<>();
 
         WriteBatch batch = mDb.batch();
 
         DocumentReference doc = mDb.collection(GLOBAL_FEEDS).document();
-        final String oldId = feed.getFeedId();
-        feed.setFeedId(doc.getId());
-        feed.setTimeCreated(new Date());
-        feed.setTimeUpdated(new Date());
-        batch.set(doc, feed);
+        final String oldId = feedResponse.getFeedId();
+        feedResponse.setFeedId(doc.getId());
+        feedResponse.setTimeCreated(new Date());
+        feedResponse.setTimeUpdated(new Date());
+        batch.set(doc, feedResponse);
         DocumentReference userFeed = mDb.collection(USER_FEEDS)
-                .document(feed.getFeedUser().getUserId())
-                .collection(FEEDS).document(feed.getFeedId());
-        batch.set(userFeed, feed);
+                .document(feedResponse.getFeedUser().getUserId())
+                .collection(FEEDS).document(feedResponse.getFeedId());
+        batch.set(userFeed, feedResponse);
         batch.commit()
-                .addOnSuccessListener(aVoid -> result.setValue(new ApiResponse<>(feed, true, null)))
+                .addOnSuccessListener(aVoid -> result.setValue(new ApiResponse<>(feedResponse, true, null)))
                 .addOnFailureListener(e -> {
-                    feed.setFeedId(oldId);
+                    feedResponse.setFeedId(oldId);
                     result.setValue(new ApiResponse<>(null, false, e.getMessage()));
                 });
         return result;
     }
 
 
-    public LiveData<ApiResponse<List<Feed>>> getGlobalFeeds(long after, int limit) {
-        MutableLiveData<ApiResponse<List<Feed>>> result = new MutableLiveData<>();
+    public LiveData<ApiResponse<List<FeedResponse>>> getGlobalFeeds(long after, int limit) {
+        MutableLiveData<ApiResponse<List<FeedResponse>>> result = new MutableLiveData<>();
         Date dateAfter = new Date(after);
         mDb.collection(GLOBAL_FEEDS).orderBy("timeCreated", Query.Direction.DESCENDING)
                 .limit(limit).startAfter(dateAfter)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<Feed> feeds = new ArrayList<>(limit);
+                    List<FeedResponse> feedResponses = new ArrayList<>(limit);
                     for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
-                        feeds.add(doc.toObject(Feed.class));
+                        feedResponses.add(doc.toObject(FeedResponse.class));
                     }
                     Timber.i("onSuccess: loaded %d feed(s)", queryDocumentSnapshots.getDocuments().size());
-                    result.setValue(new ApiResponse<>(feeds, true, null));
+                    result.setValue(new ApiResponse<>(feedResponses, true, null));
                 }).addOnFailureListener(e -> {
             Timber.e("onFailure: %s", e.getMessage());
             result.setValue(new ApiResponse<>(null, false, e.getMessage()));
@@ -89,8 +89,8 @@ public class FirebaseService implements WebService {
     }
 
     @Override
-    public LiveData<ApiResponse<List<Feed>>> getGlobalFeeds(String afterFeedId, int limit) {
-        MutableLiveData<ApiResponse<List<Feed>>> result = new MutableLiveData<>();
+    public LiveData<ApiResponse<List<FeedResponse>>> getGlobalFeeds(String afterFeedId, int limit) {
+        MutableLiveData<ApiResponse<List<FeedResponse>>> result = new MutableLiveData<>();
         DocumentReference feedDoc = mDb.collection(GLOBAL_FEEDS).document(afterFeedId);
         feedDoc.get().addOnSuccessListener(documentSnapshot ->
                 mDb.collection(GLOBAL_FEEDS).orderBy("timeCreated", Query.Direction.DESCENDING)
@@ -98,12 +98,12 @@ public class FirebaseService implements WebService {
                         .startAfter(documentSnapshot)
                         .get()
                         .addOnSuccessListener(queryDocumentSnapshots -> {
-                            List<Feed> feeds = new ArrayList<>(limit);
+                            List<FeedResponse> feedResponses = new ArrayList<>(limit);
                             for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
-                                feeds.add(doc.toObject(Feed.class));
+                                feedResponses.add(doc.toObject(FeedResponse.class));
                             }
                             Timber.i("onSuccess: loaded %d feed(s)", queryDocumentSnapshots.getDocuments().size());
-                            result.setValue(new ApiResponse<>(feeds, true, null));
+                            result.setValue(new ApiResponse<>(feedResponses, true, null));
                         }).addOnFailureListener(e -> {
                     Timber.e("onFailure: %s", e.getMessage());
                     result.setValue(new ApiResponse<>(null, false, e.getMessage()));
@@ -113,28 +113,28 @@ public class FirebaseService implements WebService {
     }
 
     @Override
-    public LiveData<ApiResponse<List<Feed>>> getUserFeed(String userId, long after, int limit) {
-        MutableLiveData<ApiResponse<List<Feed>>> result = new MutableLiveData<>();
+    public LiveData<ApiResponse<List<FeedResponse>>> getUserFeed(String userId, long after, int limit) {
+        MutableLiveData<ApiResponse<List<FeedResponse>>> result = new MutableLiveData<>();
         mDb.collection(USER_FEEDS).document(userId).collection(FEEDS)
                 .orderBy("timeCreated", Query.Direction.DESCENDING)
                 .startAfter(new Date(after))
                 .limit(limit)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<Feed> feeds = new ArrayList<>(limit);
+                    List<FeedResponse> feedResponses = new ArrayList<>(limit);
                     for (DocumentSnapshot doc :
                             queryDocumentSnapshots) {
-                        Timber.i("Feed: %s", doc.toString());
-                        feeds.add(doc.toObject(Feed.class));
+                        Timber.i("FeedResponse: %s", doc.toString());
+                        feedResponses.add(doc.toObject(FeedResponse.class));
                     }
-                    result.setValue(new ApiResponse<>(feeds, true, null));
+                    result.setValue(new ApiResponse<>(feedResponses, true, null));
                 }).addOnFailureListener(e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
         return result;
     }
 
     @Override
-    public LiveData<ApiResponse<List<Feed>>> getUserFeed(String userId, String afterFeedId, int limit) {
-        MutableLiveData<ApiResponse<List<Feed>>> result = new MutableLiveData<>();
+    public LiveData<ApiResponse<List<FeedResponse>>> getUserFeed(String userId, String afterFeedId, int limit) {
+        MutableLiveData<ApiResponse<List<FeedResponse>>> result = new MutableLiveData<>();
         mDb.collection(GLOBAL_FEEDS).document(afterFeedId).get()
                 .addOnSuccessListener(documentSnapshot -> mDb.collection(USER_FEEDS).document(userId).collection(FEEDS)
                         .orderBy("timeCreated", Query.Direction.DESCENDING)
@@ -142,12 +142,12 @@ public class FirebaseService implements WebService {
                         .limit(limit)
                         .get()
                         .addOnSuccessListener(queryDocumentSnapshots -> {
-                            List<Feed> feeds = new ArrayList<>(limit);
+                            List<FeedResponse> feedResponses = new ArrayList<>(limit);
                             for (DocumentSnapshot doc :
                                     queryDocumentSnapshots) {
-                                feeds.add(doc.toObject(Feed.class));
+                                feedResponses.add(doc.toObject(FeedResponse.class));
                             }
-                            result.setValue(new ApiResponse<>(feeds, true, null));
+                            result.setValue(new ApiResponse<>(feedResponses, true, null));
                         }).addOnFailureListener(e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())))).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
@@ -159,14 +159,14 @@ public class FirebaseService implements WebService {
     }
 
     @Override
-    public LiveData<ApiResponse<Feed>> getFeed(String feedId) {
-        MutableLiveData<ApiResponse<Feed>> result = new MutableLiveData<>();
+    public LiveData<ApiResponse<FeedResponse>> getFeed(String feedId) {
+        MutableLiveData<ApiResponse<FeedResponse>> result = new MutableLiveData<>();
         mDb.collection(GLOBAL_FEEDS).document(feedId)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    Feed feed = queryDocumentSnapshots.toObject(Feed.class);
-                    Timber.i("onSuccess: loaded %s feed(s)", feed);
-                    result.setValue(new ApiResponse<>(feed, true, null));
+                    FeedResponse feedResponse = queryDocumentSnapshots.toObject(FeedResponse.class);
+                    Timber.i("onSuccess: loaded %s feedResponse(s)", feedResponse);
+                    result.setValue(new ApiResponse<>(feedResponse, true, null));
                 }).addOnFailureListener(e -> {
             Timber.e("onFailure: %s", e.getMessage());
             result.setValue(new ApiResponse<>(null, false, e.getMessage()));
@@ -175,17 +175,17 @@ public class FirebaseService implements WebService {
     }
 
     @Override
-    public LiveData<ApiResponse<Feed>> likeFeed(String feedId) {
-        mDb.runTransaction(new Transaction.Function<Feed>() {
+    public LiveData<ApiResponse<FeedResponse>> likeFeed(String feedId) {
+        mDb.runTransaction(new Transaction.Function<FeedResponse>() {
             @Nullable
             @Override
-            public Feed apply(@NonNull Transaction transaction) throws FirebaseFirestoreException {
+            public FeedResponse apply(@NonNull Transaction transaction) throws FirebaseFirestoreException {
 
                 return null;
             }
-        }).addOnSuccessListener(new OnSuccessListener<Feed>() {
+        }).addOnSuccessListener(new OnSuccessListener<FeedResponse>() {
             @Override
-            public void onSuccess(Feed feed) {
+            public void onSuccess(FeedResponse feedResponse) {
 
             }
         });
@@ -193,25 +193,25 @@ public class FirebaseService implements WebService {
     }
 
     @Override
-    public LiveData<ApiResponse<User>> createUser(User user) {
-        MutableLiveData<ApiResponse<User>> result = new MutableLiveData<>();
-        DocumentReference userDoc = mDb.collection(USERS).document(user.getUserId());
-        userDoc.set(user)
-                .addOnSuccessListener(aVoid -> result.setValue(new ApiResponse<>(user, true, null)))
+    public LiveData<ApiResponse<UserEntity>> createUser(UserEntity userEntity) {
+        MutableLiveData<ApiResponse<UserEntity>> result = new MutableLiveData<>();
+        DocumentReference userDoc = mDb.collection(USERS).document(userEntity.getUserId());
+        userDoc.set(userEntity)
+                .addOnSuccessListener(aVoid -> result.setValue(new ApiResponse<>(userEntity, true, null)))
                 .addOnFailureListener(e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
         return result;
     }
 
     @Override
-    public LiveData<ApiResponse<User>> getUser(String userId) {
+    public LiveData<ApiResponse<UserEntity>> getUser(String userId) {
 
-        MutableLiveData<ApiResponse<User>> result = new MutableLiveData<>();
+        MutableLiveData<ApiResponse<UserEntity>> result = new MutableLiveData<>();
 
         mDb.collection(USERS).document(userId).get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
-                        User user = documentSnapshot.toObject(User.class);
-                        result.setValue(new ApiResponse<>(user, true, null));
+                        UserEntity userEntity = documentSnapshot.toObject(UserEntity.class);
+                        result.setValue(new ApiResponse<>(userEntity, true, null));
                     } else {
                         result.setValue(new ApiResponse<>(null, false, "User not found"));
                     }
@@ -223,10 +223,10 @@ public class FirebaseService implements WebService {
     }
 
     @Override
-    public void updateUser(User user, SuccessCallback<Void> callback) {
+    public void updateUser(UserEntity userEntity, SuccessCallback<Void> callback) {
         DocumentReference userDoc = mDb.collection(USERS).document();
-        user.setUserId(userDoc.getId());
-        userDoc.set(user, SetOptions.merge())
+        userEntity.setUserId(userDoc.getId());
+        userDoc.set(userEntity, SetOptions.merge())
                 .addOnSuccessListener(aVoid -> callback.onSuccess(aVoid))
                 .addOnFailureListener(e -> callback.onFailed(e));
     }

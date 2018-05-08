@@ -15,13 +15,12 @@ import com.petnbu.petnbu.api.ApiResponse;
 import com.petnbu.petnbu.api.FakeWebService;
 import com.petnbu.petnbu.api.WebService;
 import com.petnbu.petnbu.model.Comment;
-import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedUIModel;
 import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.Resource;
 import com.petnbu.petnbu.model.Status;
-import com.petnbu.petnbu.model.User;
+import com.petnbu.petnbu.model.UserEntity;
 import com.petnbu.petnbu.repo.FeedRepository;
 import com.petnbu.petnbu.repo.UserRepository;
 
@@ -52,9 +51,9 @@ public class CommentsViewModel extends ViewModel {
         mWebService = new FakeWebService();
     }
 
-    public LiveData<User> loadUserInfo() {
+    public LiveData<UserEntity> loadUserInfo() {
         return Transformations.switchMap(mUserRepository.getUserById(SharedPrefUtil.getUserId(mApplication)), userResource -> {
-            MutableLiveData<User> userLiveData = new MutableLiveData<>();
+            MutableLiveData<UserEntity> userLiveData = new MutableLiveData<>();
             if(userResource != null && userResource.data != null) {
                 userLiveData.setValue(userResource.data);
             } else {

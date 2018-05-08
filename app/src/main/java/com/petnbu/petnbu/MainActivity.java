@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.petnbu.petnbu.databinding.ActivityMainBinding;
+import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.login.LoginJavaActivity;
 
 public class MainActivity extends AppCompatActivity {
@@ -19,8 +20,11 @@ public class MainActivity extends AppCompatActivity {
                     case R.id.navigation_home:
                         return true;
                     case R.id.navigation_dashboard:
+                        PetApplication.getAppComponent().getJobDispatcher().cancelAll();
                         return true;
                     case R.id.navigation_notifications:
+                        PetApplication.getAppComponent().getAppExecutor().diskIO().execute(
+                                () ->PetApplication.getAppComponent().getPetDb().feedDao().deleteAll());
                         return true;
                 }
                 return false;

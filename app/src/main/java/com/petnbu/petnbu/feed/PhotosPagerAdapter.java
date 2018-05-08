@@ -11,7 +11,6 @@ import com.bumptech.glide.load.DecodeFormat;
 import com.bumptech.glide.request.RequestOptions;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.databinding.ViewFeedPhotosBinding;
-import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedUIModel;
 
 public class PhotosPagerAdapter extends PagerAdapter {

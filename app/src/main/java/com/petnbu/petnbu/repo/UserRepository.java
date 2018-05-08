@@ -10,7 +10,7 @@ import com.petnbu.petnbu.api.WebService;
 import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.db.UserDao;
 import com.petnbu.petnbu.model.Resource;
-import com.petnbu.petnbu.model.User;
+import com.petnbu.petnbu.model.UserEntity;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -36,33 +36,33 @@ public class UserRepository {
         mWebService = webService;
     }
 
-    public LiveData<Resource<User>> getUserById(@NonNull String id){
+    public LiveData<Resource<UserEntity>> getUserById(@NonNull String id){
         Timber.i("getUserById: %s", id);
-        return new NetworkBoundResource<User, User>(mAppExecutors){
+        return new NetworkBoundResource<UserEntity, UserEntity>(mAppExecutors){
             @Override
-            protected void saveCallResult(@NonNull User item) {
+            protected void saveCallResult(@NonNull UserEntity item) {
                 mUserDao.insert(item);
             }
 
             @Override
-            protected boolean shouldFetch(@Nullable User data) {
+            protected boolean shouldFetch(@Nullable UserEntity data) {
                 return true;
             }
 
             @NonNull
             @Override
-            protected LiveData<User> loadFromDb() {
+            protected LiveData<UserEntity> loadFromDb() {
                 return mUserDao.findLiveUserById(id);
             }
 
             @NonNull
             @Override
-            protected LiveData<ApiResponse<User>> createCall() {
+            protected LiveData<ApiResponse<UserEntity>> createCall() {
                 return mWebService.getUser(id);
             }
 
             @Override
-            protected void deleteDataFromDb(User body) {
+            protected void deleteDataFromDb(UserEntity body) {
 
             }
         }.asLiveData();

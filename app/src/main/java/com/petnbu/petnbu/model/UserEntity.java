@@ -13,7 +13,7 @@ import java.util.Date;
 
 @Entity(tableName = "users")
 @TypeConverters(PetTypeConverters.class)
-public class User {
+public class UserEntity {
 
     @PrimaryKey @NonNull
     private String userId;
@@ -30,11 +30,11 @@ public class User {
     @ServerTimestamp
     private Date timeUpdated;
 
-    public User() {
+    public UserEntity() {
     }
 
     @Ignore
-    public User(String userId, Photo avatar, String name, String email, Date timeCreated, Date timeUpdated) {
+    public UserEntity(String userId, Photo avatar, String name, String email, Date timeCreated, Date timeUpdated) {
         this.userId = userId;
         this.avatar = avatar;
         this.name = name;
@@ -93,7 +93,7 @@ public class User {
 
     @Override
     public String toString() {
-        return "User{" +
+        return "UserEntity{" +
                 "userId='" + userId + '\'' +
                 ", avatar=" + avatar +
                 ", name='" + name + '\'' +

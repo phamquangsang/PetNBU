@@ -6,16 +6,13 @@ import android.os.Parcelable;
 
 import com.google.firebase.firestore.Exclude;
 import com.google.firebase.firestore.ServerTimestamp;
-import com.petnbu.petnbu.PetApplication;
 import com.petnbu.petnbu.db.PetTypeConverters;
 
 import java.util.Date;
 import java.util.List;
 
-import static com.petnbu.petnbu.model.FeedEntity.STATUS_NEW;
-
 @TypeConverters(value = PetTypeConverters.class)
-public class Feed implements Parcelable {
+public class FeedResponse implements Parcelable {
 
     private String feedId;
     private FeedUser feedUser;
@@ -33,10 +30,10 @@ public class Feed implements Parcelable {
     @Exclude
     private boolean likeInProgress;
 
-    public Feed() {
+    public FeedResponse() {
     }
 
-    public Feed(String feedId, FeedUser feedUser, List<Photo> photos, int commentCount, int likeCount, String content, Date timeCreated, Date timeUpdated, int status) {
+    public FeedResponse(String feedId, FeedUser feedUser, List<Photo> photos, int commentCount, int likeCount, String content, Date timeCreated, Date timeUpdated, int status) {
         this.feedId = feedId;
         this.feedUser = feedUser;
         this.photos = photos;
@@ -134,7 +131,7 @@ public class Feed implements Parcelable {
 
     @Override
     public String toString() {
-        return "Feed{" +
+        return "FeedResponse{" +
                 "feedId='" + feedId + '\'' +
                 ", feedUser=" + feedUser +
                 ", photos=" + photos +
@@ -152,20 +149,20 @@ public class Feed implements Parcelable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Feed feed = (Feed) o;
+        FeedResponse feedResponse = (FeedResponse) o;
 
-        if (commentCount != feed.commentCount) return false;
-        if (likeCount != feed.likeCount) return false;
-        if (status != feed.status) return false;
-        if (likeInProgress != feed.likeInProgress) return false;
-        if (!feedId.equals(feed.feedId)) return false;
-        if (feedUser != null ? !feedUser.equals(feed.feedUser) : feed.feedUser != null)
+        if (commentCount != feedResponse.commentCount) return false;
+        if (likeCount != feedResponse.likeCount) return false;
+        if (status != feedResponse.status) return false;
+        if (likeInProgress != feedResponse.likeInProgress) return false;
+        if (!feedId.equals(feedResponse.feedId)) return false;
+        if (feedUser != null ? !feedUser.equals(feedResponse.feedUser) : feedResponse.feedUser != null)
             return false;
-        if (photos != null ? !photos.equals(feed.photos) : feed.photos != null) return false;
-        if (content != null ? !content.equals(feed.content) : feed.content != null) return false;
-        if (timeCreated != null ? !timeCreated.equals(feed.timeCreated) : feed.timeCreated != null)
+        if (photos != null ? !photos.equals(feedResponse.photos) : feedResponse.photos != null) return false;
+        if (content != null ? !content.equals(feedResponse.content) : feedResponse.content != null) return false;
+        if (timeCreated != null ? !timeCreated.equals(feedResponse.timeCreated) : feedResponse.timeCreated != null)
             return false;
-        return timeUpdated != null ? timeUpdated.equals(feed.timeUpdated) : feed.timeUpdated == null;
+        return timeUpdated != null ? timeUpdated.equals(feedResponse.timeUpdated) : feedResponse.timeUpdated == null;
     }
 
     @Override
@@ -202,7 +199,7 @@ public class Feed implements Parcelable {
         dest.writeByte(this.likeInProgress ? (byte) 1 : (byte) 0);
     }
 
-    protected Feed(Parcel in) {
+    protected FeedResponse(Parcel in) {
         this.feedId = in.readString();
         this.feedUser = in.readParcelable(FeedUser.class.getClassLoader());
         this.photos = in.createTypedArrayList(Photo.CREATOR);
@@ -217,15 +214,15 @@ public class Feed implements Parcelable {
         this.likeInProgress = in.readByte() != 0;
     }
 
-    public static final Creator<Feed> CREATOR = new Creator<Feed>() {
+    public static final Creator<FeedResponse> CREATOR = new Creator<FeedResponse>() {
         @Override
-        public Feed createFromParcel(Parcel source) {
-            return new Feed(source);
+        public FeedResponse createFromParcel(Parcel source) {
+            return new FeedResponse(source);
         }
 
         @Override
-        public Feed[] newArray(int size) {
-            return new Feed[size];
+        public FeedResponse[] newArray(int size) {
+            return new FeedResponse[size];
         }
     };
 

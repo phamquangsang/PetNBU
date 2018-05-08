@@ -15,9 +15,8 @@ import com.google.firebase.firestore.WriteBatch;
 import com.petnbu.petnbu.api.ApiResponse;
 import com.petnbu.petnbu.api.FirebaseService;
 import com.petnbu.petnbu.api.WebService;
-import com.petnbu.petnbu.db.FeedDao;
 import com.petnbu.petnbu.db.PetDb;
-import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.FeedResponse;
 import com.petnbu.petnbu.model.FeedEntity;
 import com.petnbu.petnbu.model.FeedPaging;
 import com.petnbu.petnbu.model.FeedUIModel;
@@ -41,20 +40,20 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 @RunWith(AndroidJUnit4.class)
-public class FeedApiTest {
-    private static final String TAG = FeedApiTest.class.getSimpleName();
+public class FeedResponseApiTest {
+    private static final String TAG = FeedResponseApiTest.class.getSimpleName();
 
     @Test
     public void testLoadFeed() {
         FeedUser userNhat = new FeedUser("2", "https://developer.android.com/static/images/android_logo_2x.png", "Nhat Nhat");
         List<Photo> photo2 = new ArrayList<>();
         photo2.add(new Photo("https://picsum.photos/1000/600/?image=383", "https://picsum.photos/500/300/?image=383", "https://picsum.photos/250/150/?image=383", "https://picsum.photos/100/60/?image=383", 1000, 600));
-        Feed feed1 = new Feed("2", userNhat, photo2, 12, 14, "", new Date(), new Date(), FeedEntity.STATUS_NEW);
+        FeedResponse feedResponse1 = new FeedResponse("2", userNhat, photo2, 12, 14, "", new Date(), new Date(), FeedEntity.STATUS_NEW);
 
         AppExecutors appExecutors = PetApplication.getAppComponent().getAppExecutor();
         PetDb petDb = PetApplication.getAppComponent().getPetDb();
         appExecutors.diskIO().execute(() -> {
-            petDb.feedDao().insertFromFeed(feed1);
+            petDb.feedDao().insertFromFeed(feedResponse1);
 
         });
 
@@ -71,15 +70,15 @@ public class FeedApiTest {
         List<Photo> photo1 = new ArrayList<>();
         photo1.add(new Photo("https://picsum.photos/1200/1300/?image=381", "https://picsum.photos/600/650/?image=381", "https://picsum.photos/300/325/?image=381", "https://picsum.photos/120/130/?image=381", 1200, 1300));
         photo1.add(new Photo("https://picsum.photos/1200/1300/?image=382", "https://picsum.photos/600/650/?image=382", "https://picsum.photos/300/325/?image=382", "https://picsum.photos/120/130/?image=382", 1200, 1300));
-        Feed feed = new Feed("1", userSang, photo1, 10, 12, "", new Date(), new Date(), FeedEntity.STATUS_NEW);
+        FeedResponse feedResponse = new FeedResponse("1", userSang, photo1, 10, 12, "", new Date(), new Date(), FeedEntity.STATUS_NEW);
 
         FeedUser userNhat = new FeedUser("2", "https://developer.android.com/static/images/android_logo_2x.png", "Nhat Nhat");
         List<Photo> photo2 = new ArrayList<>();
         photo2.add(new Photo("https://picsum.photos/1000/600/?image=383", "https://picsum.photos/500/300/?image=383", "https://picsum.photos/250/150/?image=383", "https://picsum.photos/100/60/?image=383", 1000, 600));
-        Feed feed1 = new Feed("2", userNhat, photo2, 12, 14, "", new Date(), new Date(),FeedEntity.STATUS_NEW);
+        FeedResponse feedResponse1 = new FeedResponse("2", userNhat, photo2, 12, 14, "", new Date(), new Date(),FeedEntity.STATUS_NEW);
 
         for (int i = 0; i < 30; i++) {
-            webService.createFeed(i % 2 == 0 ? feed : feed1);
+            webService.createFeed(i % 2 == 0 ? feedResponse : feedResponse1);
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
@@ -97,17 +96,17 @@ public class FeedApiTest {
         FirebaseFirestore firestore = FirebaseFirestore.getInstance();
         WebService webService = new FirebaseService(firestore);
         Date date = new Date();
-        LiveData<ApiResponse<List<Feed>>> result = webService.getGlobalFeeds(date.getTime(), 30);
+        LiveData<ApiResponse<List<FeedResponse>>> result = webService.getGlobalFeeds(date.getTime(), 30);
         result.observeForever(listApiResponse -> {
             assert listApiResponse != null;
-            List<Feed> feeds = listApiResponse.body;
-            Log.i(TAG, "onChanged: feeds == null ? " + (feeds == null));
+            List<FeedResponse> feedResponses = listApiResponse.body;
+            Log.i(TAG, "onChanged: feedResponses == null ? " + (feedResponses == null));
             signal.countDown();
-            if (feeds != null) {
-                assertThat(feeds.size(), is(30));
-                for (int i = 0; i < feeds.size() - 1; i++) {
-                    assertThat(feeds.get(i).getTimeCreated().before(new Date()), is(true));
-                    assertThat(feeds.get(i + 1).getTimeCreated().getTime() <= feeds.get(i).getTimeCreated().getTime(), is(true));
+            if (feedResponses != null) {
+                assertThat(feedResponses.size(), is(30));
+                for (int i = 0; i < feedResponses.size() - 1; i++) {
+                    assertThat(feedResponses.get(i).getTimeCreated().before(new Date()), is(true));
+                    assertThat(feedResponses.get(i + 1).getTimeCreated().getTime() <= feedResponses.get(i).getTimeCreated().getTime(), is(true));
                 }
                 signal.countDown();
             }
@@ -145,13 +144,13 @@ public class FeedApiTest {
         final CountDownLatch signal = new CountDownLatch(2);
         WebService webService = new FirebaseService(firestore);
 
-        webService.getGlobalFeeds(System.currentTimeMillis(), 200).observeForever(new Observer<ApiResponse<List<Feed>>>() {
+        webService.getGlobalFeeds(System.currentTimeMillis(), 200).observeForever(new Observer<ApiResponse<List<FeedResponse>>>() {
             @Override
-            public void onChanged(@Nullable ApiResponse<List<Feed>> listApiResponse) {
+            public void onChanged(@Nullable ApiResponse<List<FeedResponse>> listApiResponse) {
                 WriteBatch batch = firestore.batch();
                 if (listApiResponse != null && listApiResponse.isSucceed) {
-                    List<Feed> list = listApiResponse.body;
-                    for (Feed item : list) {
+                    List<FeedResponse> list = listApiResponse.body;
+                    for (FeedResponse item : list) {
                         String path = String.format("user_feeds/%s/feeds/%s", item.getFeedUser().getUserId(), item.getFeedId());
                         DocumentReference ref = firestore.document(path);
                         batch.set(ref, item);

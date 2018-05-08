@@ -9,9 +9,9 @@ import android.arch.lifecycle.ViewModel;
 import com.petnbu.petnbu.PetApplication;
 import com.petnbu.petnbu.SharedPrefUtil;
 import com.petnbu.petnbu.SingleLiveEvent;
-import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.FeedResponse;
 import com.petnbu.petnbu.model.Photo;
-import com.petnbu.petnbu.model.User;
+import com.petnbu.petnbu.model.UserEntity;
 import com.petnbu.petnbu.repo.FeedRepository;
 import com.petnbu.petnbu.repo.UserRepository;
 
@@ -37,9 +37,9 @@ public class CreateFeedViewModel extends ViewModel {
         PetApplication.getAppComponent().inject(this);
     }
 
-    public LiveData<User> loadUserInfo() {
+    public LiveData<UserEntity> loadUserInfo() {
         return Transformations.switchMap(mUserRepository.getUserById(SharedPrefUtil.getUserId(mApplication)), userResource -> {
-            MutableLiveData<User> userLiveData = new MutableLiveData<>();
+            MutableLiveData<UserEntity> userLiveData = new MutableLiveData<>();
             if (userResource != null && userResource.data != null) {
                 userLiveData.setValue(userResource.data);
             } else {
@@ -50,9 +50,9 @@ public class CreateFeedViewModel extends ViewModel {
     }
 
     public void createFeed(String content, ArrayList<Photo> photos) {
-        Feed feed = new Feed();
-        feed.setContent(content);
-        feed.setPhotos(photos);
-        mFeedRepository.createNewFeed(feed);
+        FeedResponse feedResponse = new FeedResponse();
+        feedResponse.setContent(content);
+        feedResponse.setPhotos(photos);
+        mFeedRepository.createNewFeed(feedResponse);
     }
 }

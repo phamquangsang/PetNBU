@@ -9,23 +9,21 @@ import android.support.annotation.Nullable;
 
 import com.firebase.jobdispatcher.JobParameters;
 import com.firebase.jobdispatcher.JobService;
-import com.google.android.gms.common.AccountPicker;
 import com.google.gson.Gson;
 import com.petnbu.petnbu.AppExecutors;
 import com.petnbu.petnbu.PetApplication;
 import com.petnbu.petnbu.api.ApiResponse;
 import com.petnbu.petnbu.api.StorageApi;
-import com.petnbu.petnbu.api.SuccessCallback;
 import com.petnbu.petnbu.api.WebService;
 import com.petnbu.petnbu.db.FeedDao;
 import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.db.UserDao;
-import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.FeedResponse;
 import com.petnbu.petnbu.model.FeedEntity;
 import com.petnbu.petnbu.model.FeedPaging;
 import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Photo;
-import com.petnbu.petnbu.model.User;
+import com.petnbu.petnbu.model.UserEntity;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -38,7 +36,7 @@ import timber.log.Timber;
 public class CreateFeedJob extends JobService {
     private static String FEED_ID_EXTRA = "feed-id-extra";
 
-    private Feed mFeed;
+    private FeedResponse mFeedResponse;
 
     private JobParameters mParams;
 
@@ -81,45 +79,45 @@ public class CreateFeedJob extends JobService {
         final String feedId = bundle.getString(FEED_ID_EXTRA);
         mAppExecutors.diskIO().execute(() -> {
             FeedEntity feedEntity = mFeedDao.findFeedEntityById(feedId);
-            User user = mUserDao.findUserById(feedEntity.getFromUserId());
-            FeedUser feedUser = new FeedUser(user.getUserId(), user.getAvatar().getOriginUrl(), user.getName());
-            mFeed = new Feed(feedEntity.getFeedId(), feedUser, feedEntity.getPhotos(), feedEntity.getCommentCount()
+            UserEntity userEntity = mUserDao.findUserById(feedEntity.getFromUserId());
+            FeedUser feedUser = new FeedUser(userEntity.getUserId(), userEntity.getAvatar().getOriginUrl(), userEntity.getName());
+            mFeedResponse = new FeedResponse(feedEntity.getFeedId(), feedUser, feedEntity.getPhotos(), feedEntity.getCommentCount()
                     , feedEntity.getLikeCount(), feedEntity.getContent(), feedEntity.getTimeCreated()
                     , feedEntity.getTimeUpdated(), feedEntity.getStatus());
 
-            if (mFeed.getStatus() != FeedEntity.STATUS_UPLOADING) {
+            if (mFeedResponse.getStatus() != FeedEntity.STATUS_UPLOADING) {
                 jobFinished(params, false);
                 Timber.i("status is not STATUS_UPLOADING");
                 return;
             }
 
-            Timber.i("received mFeed %s", mFeed);
+            Timber.i("received mFeedResponse %s", mFeedResponse);
 
-            mFeed.setTimeUpdated(new Date());
-            List<String> photoUrls = new ArrayList<>(mFeed.getPhotos().size());
-            for (Photo photo : mFeed.getPhotos()) {
+            mFeedResponse.setTimeUpdated(new Date());
+            List<String> photoUrls = new ArrayList<>(mFeedResponse.getPhotos().size());
+            for (Photo photo : mFeedResponse.getPhotos()) {
                 photoUrls.add(photo.getOriginUrl());
             }
 
-            final String localFeedId = mFeed.getFeedId();
+            final String localFeedId = mFeedResponse.getFeedId();
 
             if (photoUrls.isEmpty()) {
-                uploadFeed(mFeed, localFeedId);
+                uploadFeed(mFeedResponse, localFeedId);
             } else {
                 new StorageApi.OnUploadingImage(photoUrls) {
                     @Override
                     public void onCompleted(List<String> result) {
                         Timber.i("update %d photos complete", result.size());
                         for (int i = 0; i < result.size(); i++) {
-                            mFeed.getPhotos().get(i).setOriginUrl(result.get(i));
+                            mFeedResponse.getPhotos().get(i).setOriginUrl(result.get(i));
                         }
-                        uploadFeed(mFeed, localFeedId);
+                        uploadFeed(mFeedResponse, localFeedId);
                     }
 
                     @Override
                     public void onFailed(Exception e) {
                         Timber.e("upload photos failed with exception %s", e.toString());
-                        updateLocalFeedError(mFeed);
+                        updateLocalFeedError(mFeedResponse);
                     }
                 }.start();
             }
@@ -135,32 +133,32 @@ public class CreateFeedJob extends JobService {
         return true;
     }
 
-    private void uploadFeed(Feed feed, String temporaryFeedId) {
-        LiveData<ApiResponse<Feed>> apiResponse = mWebService.createFeed(feed);
-        apiResponse.observeForever(new Observer<ApiResponse<Feed>>() {
+    private void uploadFeed(FeedResponse feedResponse, String temporaryFeedId) {
+        LiveData<ApiResponse<FeedResponse>> apiResponse = mWebService.createFeed(feedResponse);
+        apiResponse.observeForever(new Observer<ApiResponse<FeedResponse>>() {
             @Override
-            public void onChanged(@Nullable ApiResponse<Feed> feedApiResponse) {
+            public void onChanged(@Nullable ApiResponse<FeedResponse> feedApiResponse) {
                 if (feedApiResponse != null) {
                     if(feedApiResponse.isSucceed && feedApiResponse.body != null){
-                        Feed newFeed = feedApiResponse.body;
-                        Timber.i("upload mFeed succeed %s", newFeed.toString());
+                        FeedResponse newFeedResponse = feedApiResponse.body;
+                        Timber.i("upload mFeedResponse succeed %s", newFeedResponse.toString());
                         mAppExecutors.diskIO().execute(() -> {
-                            Timber.i("update feedId from %s to %s", temporaryFeedId, newFeed.getFeedId());
+                            Timber.i("update feedId from %s to %s", temporaryFeedId, newFeedResponse.getFeedId());
 
                             FeedPaging currentPaging = mFeedDao.findFeedPaging(FeedPaging.GLOBAL_FEEDS_PAGING_ID);
                             if(currentPaging != null){
-                                currentPaging.getFeedIds().add(0, newFeed.getFeedId());
+                                currentPaging.getFeedIds().add(0, newFeedResponse.getFeedId());
                             }
 
-                            FeedPaging userFeedPaging = mFeedDao.findFeedPaging(newFeed.getFeedUser().getUserId());
+                            FeedPaging userFeedPaging = mFeedDao.findFeedPaging(newFeedResponse.getFeedUser().getUserId());
                             if(userFeedPaging != null){
-                                userFeedPaging.getFeedIds().add(0, newFeed.getFeedId());
+                                userFeedPaging.getFeedIds().add(0, newFeedResponse.getFeedId());
                             }
 
                             mPetDb.beginTransaction();
                             try{
-                                mFeedDao.updateFeedId(temporaryFeedId, newFeed.getFeedId());
-                                newFeed.setStatus(FeedEntity.STATUS_DONE);
+                                mFeedDao.updateFeedId(temporaryFeedId, newFeedResponse.getFeedId());
+                                newFeedResponse.setStatus(FeedEntity.STATUS_DONE);
 
                                 if(currentPaging != null){
                                     mFeedDao.update(currentPaging);
@@ -168,7 +166,7 @@ public class CreateFeedJob extends JobService {
                                 if(userFeedPaging != null){
                                     mFeedDao.update(userFeedPaging);
                                 }
-                                mFeedDao.update(newFeed.toEntity());
+                                mFeedDao.update(newFeedResponse.toEntity());
                                 mPetDb.setTransactionSuccessful();
                             } finally {
                                 mPetDb.endTransaction();
@@ -178,7 +176,7 @@ public class CreateFeedJob extends JobService {
                         });
                     }else{
                         Timber.e("uploadFeed error %s", feedApiResponse.errorMessage);
-                        updateLocalFeedError(feed);
+                        updateLocalFeedError(feedResponse);
                         jobFinished(mParams, true);
                     }
                     apiResponse.removeObserver(this);
@@ -187,10 +185,10 @@ public class CreateFeedJob extends JobService {
         });
     }
 
-    private void updateLocalFeedError(Feed feed) {
-        feed.setStatus(FeedEntity.STATUS_ERROR);
+    private void updateLocalFeedError(FeedResponse feedResponse) {
+        feedResponse.setStatus(FeedEntity.STATUS_ERROR);
         mAppExecutors.diskIO().execute(() -> {
-            mFeedDao.update(feed.toEntity());
+            mFeedDao.update(feedResponse.toEntity());
             jobFinished(mParams, true);
         });
     }

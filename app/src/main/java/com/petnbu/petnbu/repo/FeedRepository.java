@@ -20,13 +20,13 @@ import com.petnbu.petnbu.db.FeedDao;
 import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.db.UserDao;
 import com.petnbu.petnbu.jobs.CreateFeedJob;
-import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.FeedResponse;
 import com.petnbu.petnbu.model.FeedEntity;
 import com.petnbu.petnbu.model.FeedPaging;
 import com.petnbu.petnbu.model.FeedUIModel;
 import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Resource;
-import com.petnbu.petnbu.model.User;
+import com.petnbu.petnbu.model.UserEntity;
 import com.petnbu.petnbu.util.IdUtil;
 import com.petnbu.petnbu.util.RateLimiter;
 
@@ -70,11 +70,11 @@ public class FeedRepository {
     }
 
     public LiveData<Resource<List<FeedUIModel>>> loadFeeds(String pagingId) {
-        return new NetworkBoundResource<List<FeedUIModel>, List<Feed>>(mAppExecutors) {
+        return new NetworkBoundResource<List<FeedUIModel>, List<FeedResponse>>(mAppExecutors) {
             @Override
-            protected void saveCallResult(@NonNull List<Feed> items) {
+            protected void saveCallResult(@NonNull List<FeedResponse> items) {
                 List<String> listId = new ArrayList<>(items.size());
-                for (Feed item : items) {
+                for (FeedResponse item : items) {
                     listId.add(item.getFeedId());
                 }
                 FeedPaging paging = new FeedPaging(pagingId,
@@ -83,7 +83,7 @@ public class FeedRepository {
                 mPetDb.beginTransaction();
                 try {
                     mFeedDao.insertFromFeedList(items);
-                    for (Feed item : items) {
+                    for (FeedResponse item : items) {
                         mUserDao.insert(item.getFeedUser());
                     }
                     mFeedDao.insert(paging);
@@ -116,17 +116,17 @@ public class FeedRepository {
 
             @NonNull
             @Override
-            protected LiveData<ApiResponse<List<Feed>>> createCall() {
+            protected LiveData<ApiResponse<List<FeedResponse>>> createCall() {
                 return mWebService.getGlobalFeeds(System.currentTimeMillis(), FEEDS_PER_PAGE);
             }
 
             @Override
-            protected boolean shouldDeleteOldData(List<Feed> body) {
+            protected boolean shouldDeleteOldData(List<FeedResponse> body) {
                 return true;
             }
 
             @Override
-            protected void deleteDataFromDb(List<Feed> body) {
+            protected void deleteDataFromDb(List<FeedResponse> body) {
                 mPetDb.beginTransaction();
                 try {
                     mFeedDao.deleteFeedPaging(pagingId);
@@ -139,9 +139,9 @@ public class FeedRepository {
     }
 
     public LiveData<Resource<FeedUIModel>> getFeed(String feedId){
-        return new NetworkBoundResource<FeedUIModel, Feed>(mAppExecutors){
+        return new NetworkBoundResource<FeedUIModel, FeedResponse>(mAppExecutors){
             @Override
-            protected void saveCallResult(@NonNull Feed item) {
+            protected void saveCallResult(@NonNull FeedResponse item) {
                 mFeedDao.insertFromFeed(item);
             }
 
@@ -151,7 +151,7 @@ public class FeedRepository {
             }
 
             @Override
-            protected void deleteDataFromDb(Feed body) {
+            protected void deleteDataFromDb(FeedResponse body) {
                 mFeedDao.deleteFeedById(feedId);
             }
 
@@ -163,21 +163,21 @@ public class FeedRepository {
 
             @NonNull
             @Override
-            protected LiveData<ApiResponse<Feed>> createCall() {
+            protected LiveData<ApiResponse<FeedResponse>> createCall() {
                 return mWebService.getFeed(feedId);
             }
         }.asLiveData();
     }
 
     public LiveData<Resource<List<FeedUIModel>>> loadUserFeeds(String userId) {
-        return new NetworkBoundResource<List<FeedUIModel>, List<Feed>>(mAppExecutors) {
+        return new NetworkBoundResource<List<FeedUIModel>, List<FeedResponse>>(mAppExecutors) {
             @Override
-            protected void saveCallResult(@NonNull List<Feed> items) {
+            protected void saveCallResult(@NonNull List<FeedResponse> items) {
                 if(items.isEmpty()){
                     return;
                 }
                 List<String> listId = new ArrayList<>(items.size());
-                for (Feed item : items) {
+                for (FeedResponse item : items) {
                     listId.add(item.getFeedId());
                 }
                 FeedPaging paging = new FeedPaging(userId,
@@ -186,7 +186,7 @@ public class FeedRepository {
                 mPetDb.beginTransaction();
                 try {
                     mFeedDao.insertFromFeedList(items);
-                    for (Feed item : items) {
+                    for (FeedResponse item : items) {
                         mUserDao.insert(item.getFeedUser());
                     }
                     mFeedDao.insert(paging);
@@ -219,20 +219,20 @@ public class FeedRepository {
 
             @NonNull
             @Override
-            protected LiveData<ApiResponse<List<Feed>>> createCall() {
+            protected LiveData<ApiResponse<List<FeedResponse>>> createCall() {
                 Date now = new Date();
                 return mWebService.getUserFeed(userId, now.getTime(), FEEDS_PER_PAGE);
             }
 
             @Override
-            protected boolean shouldDeleteOldData(List<Feed> body) {
+            protected boolean shouldDeleteOldData(List<FeedResponse> body) {
                 boolean shouldDelete = body.isEmpty() || mRateLimiter.shouldFetch(userId);
                 Timber.i("loadUserProfile: should delete = %s", shouldDelete);
                 return shouldDelete;
             }
 
             @Override
-            protected void deleteDataFromDb(List<Feed> body) {
+            protected void deleteDataFromDb(List<FeedResponse> body) {
                 Timber.i("deleting old query for userId: %s", userId);
                 mPetDb.beginTransaction();
                 try {
@@ -257,28 +257,28 @@ public class FeedRepository {
         return fetchNextPageUserFeed.getLiveData();
     }
 
-    public void createNewFeed(Feed feed) {
+    public void createNewFeed(FeedResponse feedResponse) {
         mAppExecutors.diskIO().execute(() -> {
-            User user = mUserDao.findUserById(SharedPrefUtil.getUserId(mApplication));
-            FeedUser feedUser = new FeedUser(user.getUserId(), user.getAvatar().getOriginUrl(), user.getName());
-            feed.setStatus(FeedEntity.STATUS_UPLOADING);
-            feed.setFeedUser(feedUser);
-            feed.setTimeCreated(new Date());
-            feed.setTimeUpdated(new Date());
-            feed.setFeedId(IdUtil.generateID("feed"));
+            UserEntity userEntity = mUserDao.findUserById(SharedPrefUtil.getUserId(mApplication));
+            FeedUser feedUser = new FeedUser(userEntity.getUserId(), userEntity.getAvatar().getOriginUrl(), userEntity.getName());
+            feedResponse.setStatus(FeedEntity.STATUS_UPLOADING);
+            feedResponse.setFeedUser(feedUser);
+            feedResponse.setTimeCreated(new Date());
+            feedResponse.setTimeUpdated(new Date());
+            feedResponse.setFeedId(IdUtil.generateID("feed"));
 
-            mFeedDao.insertFromFeed(feed);
+            mFeedDao.insertFromFeed(feedResponse);
 
-            scheduleCreateFeedJob(feed);
+            scheduleCreateFeedJob(feedResponse);
         });
     }
 
-    private void scheduleCreateFeedJob(Feed feed) {
+    private void scheduleCreateFeedJob(FeedResponse feedResponse) {
         FirebaseJobDispatcher jobDispatcher = PetApplication.getAppComponent().getJobDispatcher();
         Job job = jobDispatcher.newJobBuilder()
                 .setService(CreateFeedJob.class)
-                .setExtras(CreateFeedJob.putExtras(feed.getFeedId()))
-                .setTag(feed.getFeedId())
+                .setExtras(CreateFeedJob.putExtras(feedResponse.getFeedId()))
+                .setTag(feedResponse.getFeedId())
                 .setConstraints(Constraint.ON_ANY_NETWORK)
                 .setTrigger(Trigger.executionWindow(0, 0))
                 .build();
@@ -286,11 +286,11 @@ public class FeedRepository {
     }
 
     public LiveData<Resource<List<FeedUIModel>>> refresh() {
-        return new NetworkBoundResource<List<FeedUIModel>, List<Feed>>(mAppExecutors) {
+        return new NetworkBoundResource<List<FeedUIModel>, List<FeedResponse>>(mAppExecutors) {
             @Override
-            protected void saveCallResult(@NonNull List<Feed> items) {
+            protected void saveCallResult(@NonNull List<FeedResponse> items) {
                 List<String> listId = new ArrayList<>(items.size());
-                for (Feed item : items) {
+                for (FeedResponse item : items) {
                     listId.add(item.getFeedId());
                 }
                 FeedPaging paging = new FeedPaging(FeedPaging.GLOBAL_FEEDS_PAGING_ID,
@@ -299,8 +299,8 @@ public class FeedRepository {
                 mPetDb.beginTransaction();
                 try {
                     mFeedDao.insertFromFeedList(items);
-                    for (Feed feedItem : items) {
-                        mUserDao.insert(feedItem.getFeedUser());
+                    for (FeedResponse feedResponseItem : items) {
+                        mUserDao.insert(feedResponseItem.getFeedUser());
                     }
                     mFeedDao.insert(paging);
                     mPetDb.setTransactionSuccessful();
@@ -331,17 +331,17 @@ public class FeedRepository {
 
             @NonNull
             @Override
-            protected LiveData<ApiResponse<List<Feed>>> createCall() {
+            protected LiveData<ApiResponse<List<FeedResponse>>> createCall() {
                 return mWebService.getGlobalFeeds(System.currentTimeMillis(), FEEDS_PER_PAGE);
             }
 
             @Override
-            protected boolean shouldDeleteOldData(List<Feed> body) {
+            protected boolean shouldDeleteOldData(List<FeedResponse> body) {
                 return true;
             }
 
             @Override
-            protected void deleteDataFromDb(List<Feed> body) {
+            protected void deleteDataFromDb(List<FeedResponse> body) {
                 mPetDb.beginTransaction();
                 FeedPaging paging = mFeedDao.findFeedPaging(FeedPaging.GLOBAL_FEEDS_PAGING_ID);
                 try {

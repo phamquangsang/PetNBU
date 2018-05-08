@@ -3,22 +3,14 @@ package com.petnbu.petnbu.userprofile;
 import android.databinding.DataBindingUtil;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.databinding.FragmentFeedProfileItemBinding;
-import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedUIModel;
-import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.ui.common.DataBoundListAdapter;
 import com.petnbu.petnbu.userprofile.dummy.DummyContent.DummyItem;
 import com.petnbu.petnbu.util.Objects;
-
-import java.util.List;
 
 /**
  * {@link RecyclerView.Adapter} that can display a {@link DummyItem} and makes a call to the

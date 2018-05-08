@@ -1,21 +1,15 @@
 package com.petnbu.petnbu.userprofile;
 
-import android.app.Application;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModel;
 import android.support.annotation.Nullable;
 
-import com.petnbu.petnbu.AppExecutors;
 import com.petnbu.petnbu.PetApplication;
-import com.petnbu.petnbu.db.PetDb;
-import com.petnbu.petnbu.feed.FeedsViewModel;
-import com.petnbu.petnbu.model.Feed;
-import com.petnbu.petnbu.model.FeedPaging;
 import com.petnbu.petnbu.model.FeedUIModel;
 import com.petnbu.petnbu.model.Resource;
-import com.petnbu.petnbu.model.User;
+import com.petnbu.petnbu.model.UserEntity;
 import com.petnbu.petnbu.repo.FeedRepository;
 import com.petnbu.petnbu.repo.UserRepository;
 
@@ -46,7 +40,7 @@ public class UserProfileViewModel extends ViewModel {
         return mFeedsLiveData;
     }
 
-    public LiveData<Resource<User>> getUser(String userId) {
+    public LiveData<Resource<UserEntity>> getUser(String userId) {
         return mUserRepository.getUserById(userId);
     }
 

@@ -29,13 +29,12 @@ import com.petnbu.petnbu.PetApplication;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.SharedPrefUtil;
 import com.petnbu.petnbu.api.ApiResponse;
-import com.petnbu.petnbu.api.SuccessCallback;
 import com.petnbu.petnbu.api.WebService;
 import com.petnbu.petnbu.databinding.ActivityLoginJavaBinding;
 import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.db.UserDao;
 import com.petnbu.petnbu.model.Photo;
-import com.petnbu.petnbu.model.User;
+import com.petnbu.petnbu.model.UserEntity;
 
 import javax.inject.Inject;
 
@@ -195,21 +194,21 @@ public class LoginJavaActivity extends AppCompatActivity implements View.OnClick
             photoUrl = firebaseUser.getPhotoUrl().toString();
         }
         Photo photo = new Photo(photoUrl, null, null, null, 0, 0);
-        User user = new User(firebaseUser.getUid(), photo, firebaseUser.getDisplayName(), firebaseUser.getEmail(), null, null);
-        LiveData<ApiResponse<User>> userResponse = mWebService.getUser(firebaseUser.getUid());
-        userResponse.observe(this, new Observer<ApiResponse<User>>() {
+        UserEntity userEntity = new UserEntity(firebaseUser.getUid(), photo, firebaseUser.getDisplayName(), firebaseUser.getEmail(), null, null);
+        LiveData<ApiResponse<UserEntity>> userResponse = mWebService.getUser(firebaseUser.getUid());
+        userResponse.observe(this, new Observer<ApiResponse<UserEntity>>() {
             @Override
-            public void onChanged(@Nullable ApiResponse<User> userApiResponse) {
+            public void onChanged(@Nullable ApiResponse<UserEntity> userApiResponse) {
                 if(userApiResponse != null){
                     if (userApiResponse.isSucceed && userApiResponse.body != null){
-                        User user = userApiResponse.body;
+                        UserEntity userEntity = userApiResponse.body;
                         //user existed -> go to Main screen
-                        SharedPrefUtil.saveUserId(getApplicationContext(), user.getUserId());
-                        mAppExecutors.diskIO().execute(() -> mUserDao.insert(user));
+                        SharedPrefUtil.saveUserId(getApplicationContext(), userEntity.getUserId());
+                        mAppExecutors.diskIO().execute(() -> mUserDao.insert(userEntity));
                         openMainActivity();
                     }else{
                         //user not existed -> create new user
-                        createNewUser(user);
+                        createNewUser(userEntity);
                     }
                 }
             }
@@ -217,8 +216,8 @@ public class LoginJavaActivity extends AppCompatActivity implements View.OnClick
 
     }
 
-    private void createNewUser(User user) {
-        LiveData<ApiResponse<User>> apiResponse = mWebService.createUser(user);
+    private void createNewUser(UserEntity userEntity) {
+        LiveData<ApiResponse<UserEntity>> apiResponse = mWebService.createUser(userEntity);
         apiResponse.observe(LoginJavaActivity.this, createUserApiResponse -> {
             if(createUserApiResponse != null){
                 if(createUserApiResponse.isSucceed && createUserApiResponse.body != null){

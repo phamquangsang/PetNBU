@@ -3,7 +3,6 @@ package com.petnbu.petnbu.feed;
 
 import android.app.Activity;
 import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
@@ -22,10 +21,8 @@ import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.Utils;
 import com.petnbu.petnbu.databinding.FragmentFeedsBinding;
 import com.petnbu.petnbu.feed.comment.CommentsActivity;
-import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedPaging;
 import com.petnbu.petnbu.model.FeedUIModel;
-import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.Resource;
 import com.petnbu.petnbu.model.Status;

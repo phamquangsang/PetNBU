@@ -8,7 +8,7 @@ import android.arch.persistence.room.Query;
 
 import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Photo;
-import com.petnbu.petnbu.model.User;
+import com.petnbu.petnbu.model.UserEntity;
 
 import java.util.HashMap;
 import java.util.List;
@@ -17,17 +17,17 @@ import java.util.Map;
 @Dao
 public abstract class UserDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    public abstract void insert(User user);
+    public abstract void insert(UserEntity userEntity);
 
     @Query("SELECT * FROM users WHERE userId = :id")
-    public abstract LiveData<User> findLiveUserById(String id);
+    public abstract LiveData<UserEntity> findLiveUserById(String id);
 
     @Query("SELECT * FROM users WHERE userId = :id")
-    public abstract User findUserById(String id);
+    public abstract UserEntity findUserById(String id);
 
     public void insert(FeedUser feedUser){
         Photo avatar = new Photo(feedUser.getPhotoUrl(), null, null, null, 0,0);
-        insert(new User(feedUser.getUserId(), avatar, feedUser.getDisplayName(), null, null, null));
+        insert(new UserEntity(feedUser.getUserId(), avatar, feedUser.getDisplayName(), null, null, null));
     }
 
     public void insertFromFeedUsers(List<FeedUser> feedUserList){

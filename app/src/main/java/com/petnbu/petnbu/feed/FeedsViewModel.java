@@ -7,7 +7,6 @@ import android.arch.lifecycle.ViewModel;
 import android.support.annotation.Nullable;
 
 import com.petnbu.petnbu.PetApplication;
-import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedPaging;
 import com.petnbu.petnbu.model.FeedUIModel;
 import com.petnbu.petnbu.model.Resource;

@@ -8,7 +8,7 @@ import android.arch.persistence.room.OnConflictStrategy;
 import android.arch.persistence.room.Query;
 import android.arch.persistence.room.Update;
 
-import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.FeedResponse;
 import com.petnbu.petnbu.model.FeedEntity;
 import com.petnbu.petnbu.model.FeedPaging;
 import com.petnbu.petnbu.model.FeedUIModel;
@@ -19,19 +19,19 @@ import java.util.List;
 @Dao
 public abstract class FeedDao {
 
-    public void insertFromFeed(Feed feed){
-        FeedEntity feedEntity = new FeedEntity(feed.getFeedId(), feed.getFeedUser().getUserId(),
-                feed.getPhotos(), feed.getCommentCount(), feed.getLikeCount(), feed.getContent(),
-                feed.getTimeCreated(), feed.getTimeUpdated(), feed.getStatus(), feed.isLikeInProgress());
+    public void insertFromFeed(FeedResponse feedResponse){
+        FeedEntity feedEntity = new FeedEntity(feedResponse.getFeedId(), feedResponse.getFeedUser().getUserId(),
+                feedResponse.getPhotos(), feedResponse.getCommentCount(), feedResponse.getLikeCount(), feedResponse.getContent(),
+                feedResponse.getTimeCreated(), feedResponse.getTimeUpdated(), feedResponse.getStatus(), feedResponse.isLikeInProgress());
         insert(feedEntity);
     }
 
-    public void insertFromFeedList(List<Feed> listFeed){
-        List<FeedEntity> entities = new ArrayList<>(listFeed.size());
-        for (Feed feed : listFeed){
-            entities.add(new FeedEntity(feed.getFeedId(), feed.getFeedUser().getUserId(),
-                    feed.getPhotos(), feed.getCommentCount(), feed.getLikeCount(), feed.getContent(),
-                    feed.getTimeCreated(), feed.getTimeUpdated(), feed.getStatus(), feed.isLikeInProgress()));
+    public void insertFromFeedList(List<FeedResponse> listFeedResponse){
+        List<FeedEntity> entities = new ArrayList<>(listFeedResponse.size());
+        for (FeedResponse feedResponse : listFeedResponse){
+            entities.add(new FeedEntity(feedResponse.getFeedId(), feedResponse.getFeedUser().getUserId(),
+                    feedResponse.getPhotos(), feedResponse.getCommentCount(), feedResponse.getLikeCount(), feedResponse.getContent(),
+                    feedResponse.getTimeCreated(), feedResponse.getTimeUpdated(), feedResponse.getStatus(), feedResponse.isLikeInProgress()));
 
         }
         insert(entities);
