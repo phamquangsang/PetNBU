@@ -74,12 +74,18 @@ public class FeedRepository {
             @Override
             protected void saveCallResult(@NonNull List<FeedResponse> items) {
                 List<String> listId = new ArrayList<>(items.size());
-                for (FeedResponse item : items) {
-                    listId.add(item.getFeedId());
+                Paging paging;
+                if(items.isEmpty()){
+                    paging = new Paging(pagingId, listId, true, null);
+                }else{
+                    for (FeedResponse item : items) {
+                        listId.add(item.getFeedId());
+                    }
+                    paging = new Paging(pagingId,
+                            listId, false,
+                            listId.get(listId.size() - 1));
                 }
-                Paging paging = new Paging(pagingId,
-                        listId, false,
-                        listId.get(listId.size() - 1));
+
                 mPetDb.beginTransaction();
                 try {
                     mFeedDao.insertFromFeedList(items);
