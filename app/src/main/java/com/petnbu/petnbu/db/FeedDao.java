@@ -6,12 +6,15 @@ import android.arch.persistence.room.Delete;
 import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.OnConflictStrategy;
 import android.arch.persistence.room.Query;
+import android.arch.persistence.room.TypeConverter;
+import android.arch.persistence.room.TypeConverters;
 import android.arch.persistence.room.Update;
 
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedResponse;
 import com.petnbu.petnbu.model.FeedEntity;
 import com.petnbu.petnbu.model.Paging;
+import com.petnbu.petnbu.model.Photo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +48,13 @@ public abstract class FeedDao {
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
     public abstract void update(FeedEntity feed);
+
+    @Query("UPDATE feeds SET content = :content WHERE feedId = :feedId")
+    public abstract void updateContent(String content, String feedId);
+
+    @TypeConverters(value = PetTypeConverters.class)
+    @Query("UPDATE feeds SET photos = :photos WHERE feedId = :feedId")
+    public abstract void updatePhotos(List<Photo> photos, String feedId);
 
     @Query("UPDATE feeds set feedId = :newId where feedId = :feedId")
     public abstract void updateFeedId(String feedId, String newId);
