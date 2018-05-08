@@ -21,6 +21,17 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
+    flavorDimensions "production, staging"
+    productFlavors {
+
+        production{
+            applicationId "com.petnbu.petnbu"
+        }
+
+        staging{
+            applicationId "com.staging.petnbu"
+        }
+    }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
