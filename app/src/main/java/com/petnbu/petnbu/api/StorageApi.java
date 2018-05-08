@@ -36,7 +36,7 @@ public class StorageApi {
     }
 
     public static StorageReference getStorageRef() {
-        StorageReference storage = FirebaseStorage.getInstance().getReferenceFromUrl("gs://petnbu.appspot.com");
+        StorageReference storage = FirebaseStorage.getInstance().getReferenceFromUrl("gs://pet-lovers-4edb2.appspot.com");
         return storage.child("pets").child("photos");
     }
 
