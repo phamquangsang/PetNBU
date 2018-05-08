@@ -153,34 +153,37 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
                 mBinding.layoutRoot.setShouldInterceptEvents(true);
                 mBinding.layoutDisable.setVisibility(View.VISIBLE);
                 mBinding.spinKit.setVisibility(View.VISIBLE);
-                mBinding.layoutError.setVisibility(View.GONE);
 
+                mBinding.layoutError.setVisibility(View.GONE);
                 mBinding.imgLike.setVisibility(View.GONE);
                 mBinding.imgComment.setVisibility(View.GONE);
                 mBinding.tvLikesCount.setVisibility(View.GONE);
+                mBinding.tvViewComments.setVisibility(View.GONE);
+                mBinding.imgOptions.setVisibility(View.GONE);
+
                 if(TextUtils.isEmpty(feed.getContent())) {
                     mBinding.tvContent.setVisibility(View.GONE);
                 } else {
                     mBinding.tvContent.setVisibility(View.VISIBLE);
                 }
-                mBinding.tvViewComments.setVisibility(View.GONE);
             } else {
                 mBinding.layoutRoot.setShouldInterceptEvents(false);
 
                 if (feed.getStatus() == FeedEntity.STATUS_ERROR) {
-                    mBinding.spinKit.setVisibility(View.GONE);
                     mBinding.layoutError.setVisibility(View.VISIBLE);
+                    mBinding.spinKit.setVisibility(View.GONE);
                     mBinding.imgLike.setVisibility(View.GONE);
                     mBinding.imgComment.setVisibility(View.GONE);
                     mBinding.tvLikesCount.setVisibility(View.GONE);
                     mBinding.tvViewComments.setVisibility(View.GONE);
+                    mBinding.imgOptions.setVisibility(View.GONE);
                 } else {
                     mBinding.layoutDisable.setVisibility(View.GONE);
                     mBinding.imgLike.setVisibility(View.VISIBLE);
                     mBinding.imgComment.setVisibility(View.VISIBLE);
                     mBinding.tvLikesCount.setVisibility(View.VISIBLE);
-                    mBinding.tvContent.setVisibility(View.VISIBLE);
                     mBinding.tvViewComments.setVisibility(View.VISIBLE);
+                    mBinding.imgOptions.setVisibility(View.VISIBLE);
                 }
                 if(TextUtils.isEmpty(feed.getContent())) {
                     mBinding.tvContent.setVisibility(View.GONE);
