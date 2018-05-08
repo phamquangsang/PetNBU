@@ -17,18 +17,17 @@ package com.petnbu.petnbu.repo;
  */
 
 
-import com.petnbu.petnbu.AppExecutors;
-import com.petnbu.petnbu.api.ApiResponse;
-import com.petnbu.petnbu.model.Resource;
-import com.petnbu.petnbu.util.Objects;
-
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MediatorLiveData;
-import android.arch.lifecycle.Observer;
 import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
+
+import com.petnbu.petnbu.AppExecutors;
+import com.petnbu.petnbu.api.ApiResponse;
+import com.petnbu.petnbu.model.Resource;
+import com.petnbu.petnbu.util.Objects;
 
 /**
  * A generic class that can provide a resource backed by both the sqlite database and the network.

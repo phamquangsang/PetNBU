@@ -37,6 +37,7 @@ import com.github.ybq.android.spinkit.style.FadingCircle;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.Utils;
 import com.petnbu.petnbu.databinding.ActivityCreateFeedBinding;
+import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.util.ColorUtils;
 import com.petnbu.petnbu.views.HorizontalSpaceItemDecoration;
@@ -47,21 +48,29 @@ import timber.log.Timber;
 
 public class CreateFeedActivity extends AppCompatActivity {
 
+    public static final String EXTRA_EDIT_FEED_ID = "EDIT_FEED_ID";
     private static final int REQUEST_READ_EXTERNAL_PERMISSIONS = 8;
 
     public static final int GALLERY_INTENT_CALLED = 3;
     public static final int GALLERY_KITKAT_INTENT_CALLED = 2;
 
     private ActivityCreateFeedBinding mBinding;
-    private CreateFeedViewModel mCreateFeedViewModel;
+    private CreateEditFeedViewModel mCreateEditFeedViewModel;
     private RequestManager mRequestManager;
 
     private ProgressDialog mProgressDialog;
-    private MenuItem postMenuItem;
+    private MenuItem mPostMenuItem;
 
     private PhotosAdapter mPhotosAdapter;
     private ArrayList<Photo> mSelectedPhotos = new ArrayList<>();
     private boolean cameraClicked = false;
+    private Feed mFeed;
+
+    public static Intent newIntent(Context context, String feedId) {
+        Intent intent = new Intent(context, CreateFeedActivity.class);
+        intent.putExtra(EXTRA_EDIT_FEED_ID, feedId);
+        return intent;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,15 +80,28 @@ public class CreateFeedActivity extends AppCompatActivity {
     }
 
     private void setUp() {
+        String feedId = "";
+
+        Intent intent = getIntent();
+        if(intent != null && intent.hasExtra(EXTRA_EDIT_FEED_ID)) {
+            feedId = getIntent().getStringExtra(EXTRA_EDIT_FEED_ID);
+        }
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         mRequestManager = Glide.with(this);
-        mCreateFeedViewModel = ViewModelProviders.of(this).get(CreateFeedViewModel.class);
-        mCreateFeedViewModel.createdFeedLiveData.observe(this, success -> finish());
-        mCreateFeedViewModel.showLoadingLiveData.observe(this, this::setLoadingVisibility);
+        mCreateEditFeedViewModel = ViewModelProviders.of(this).get(CreateEditFeedViewModel.class);
+        mCreateEditFeedViewModel.loadFeed(feedId).observe(this, feed -> {
+            if(feed != null) {
+                mFeed = feed;
+                mSelectedPhotos.addAll(mFeed.getPhotos());
+                mPhotosAdapter.notifyDataSetChanged();
+                mBinding.edText.setText(mFeed.getContent());
+            }
+        });
+        mCreateEditFeedViewModel.showLoadingLiveData.observe(this, this::setLoadingVisibility);
 
         setPlaceHolderLayoutVisibility(true);
-        mCreateFeedViewModel.loadUserInfo().observe(this, user -> {
+        mCreateEditFeedViewModel.loadUserInfo().observe(this, user -> {
             if (user != null) {
                 Timber.i("user : %s", user.toString());
                 mRequestManager.asBitmap()
@@ -188,7 +210,12 @@ public class CreateFeedActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.create_post, menu);
-        postMenuItem = menu.findItem(R.id.action_post);
+        mPostMenuItem = menu.findItem(R.id.action_post);
+        if(mFeed != null) {
+            mPostMenuItem.setTitle(R.string.menu_action_save_title);
+        } else {
+            mPostMenuItem.setTitle(R.string.menu_action_create_title);
+        }
         return true;
     }
 
@@ -202,7 +229,7 @@ public class CreateFeedActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_post) {
-            mCreateFeedViewModel.createFeed(mBinding.edText.getText().toString().trim(), mSelectedPhotos);
+            mCreateEditFeedViewModel.saveFeed(mBinding.edText.getText().toString().trim(), mSelectedPhotos);
             finish();
 
         } else if (item.getItemId() == android.R.id.home) {
@@ -300,7 +327,7 @@ public class CreateFeedActivity extends AppCompatActivity {
     }
 
     private void checkToEnablePostMenu() {
-        Utils.enableMenuItem(this, postMenuItem, !mPhotosAdapter.getPhotos().isEmpty());
+        Utils.enableMenuItem(this, mPostMenuItem, !mPhotosAdapter.getPhotos().isEmpty());
     }
 
     private void setLoadingVisibility(boolean visible) {

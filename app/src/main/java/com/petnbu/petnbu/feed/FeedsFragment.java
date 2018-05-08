@@ -13,12 +13,14 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.petnbu.petnbu.R;
+import com.petnbu.petnbu.SharedPrefUtil;
 import com.petnbu.petnbu.Utils;
 import com.petnbu.petnbu.databinding.FragmentFeedsBinding;
 import com.petnbu.petnbu.feed.comment.CommentsActivity;
@@ -42,6 +44,7 @@ public class FeedsFragment extends Fragment {
     private FeedsViewModel mFeedsViewModel;
     private FeedsRecyclerViewAdapter mAdapter;
     private RateLimiter<String> mLikeClickLimiter = new RateLimiter<>(1, TimeUnit.SECONDS);
+    private String mUserId;
 
     public FeedsFragment() {
         // Required empty public constructor
@@ -59,6 +62,7 @@ public class FeedsFragment extends Fragment {
         Activity activity = getActivity();
         if (activity != null) {
             mFeedsViewModel = ViewModelProviders.of(getActivity()).get(FeedsViewModel.class);
+            mUserId = SharedPrefUtil.getUserId(getActivity());
             mFeedsViewModel.getFeeds(FeedPaging.GLOBAL_FEEDS_PAGING_ID).observe(this, feeds -> {
                 if (feeds != null && feeds.data != null) {
                     if (feeds.status == Status.LOADING) {
@@ -111,7 +115,23 @@ public class FeedsFragment extends Fragment {
             public void onCommentClicked(String feedId) {
                 startActivity(CommentsActivity.newIntent(getActivity(), feedId));
             }
+
+            @Override
+            public void onOptionClicked(View view, Feed feed) {
+                if(feed.getFeedUser().getUserId().equals(mUserId)) {
+                    PopupMenu popupMenu = new PopupMenu(view.getContext(), view);
+                    popupMenu.getMenu().add("Edit");
+                    popupMenu.setOnMenuItemClickListener(item -> {
+                        if ("Edit".equals(item.getTitle())) {
+                            startActivity(CreateFeedActivity.newIntent(getActivity(), feed.getFeedId()));
+                        }
+                        return true;
+                    });
+                    popupMenu.show();
+                }
+            }
         });
+
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
         mBinding.rvFeeds.setLayoutManager(linearLayoutManager);
         mBinding.rvFeeds.post(() -> {

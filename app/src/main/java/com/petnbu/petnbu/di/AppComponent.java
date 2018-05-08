@@ -3,7 +3,7 @@ package com.petnbu.petnbu.di;
 import com.firebase.jobdispatcher.FirebaseJobDispatcher;
 import com.petnbu.petnbu.AppExecutors;
 import com.petnbu.petnbu.db.PetDb;
-import com.petnbu.petnbu.feed.CreateFeedViewModel;
+import com.petnbu.petnbu.feed.CreateEditFeedViewModel;
 import com.petnbu.petnbu.feed.FeedsViewModel;
 import com.petnbu.petnbu.feed.comment.CommentsViewModel;
 import com.petnbu.petnbu.jobs.CreateFeedJob;
@@ -26,7 +26,7 @@ public interface AppComponent {
 
     void inject(CreateFeedJob createFeedJob);
 
-    void inject(CreateFeedViewModel viewModel);
+    void inject(CreateEditFeedViewModel viewModel);
 
     void inject(UserProfileViewModel userProfileViewModel);
 
