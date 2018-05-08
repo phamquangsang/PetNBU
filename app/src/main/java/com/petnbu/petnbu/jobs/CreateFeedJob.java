@@ -79,6 +79,10 @@ public class CreateFeedJob extends JobService {
         final String feedId = bundle.getString(FEED_ID_EXTRA);
         mAppExecutors.diskIO().execute(() -> {
             FeedEntity feedEntity = mFeedDao.findFeedEntityById(feedId);
+            if(feedEntity == null){
+                jobFinished(params, false);
+                return;
+            }
             UserEntity userEntity = mUserDao.findUserById(feedEntity.getFromUserId());
             FeedUser feedUser = new FeedUser(userEntity.getUserId(), userEntity.getAvatar().getOriginUrl(), userEntity.getName());
             mFeedResponse = new FeedResponse(feedEntity.getFeedId(), feedUser, feedEntity.getPhotos(), feedEntity.getCommentCount()
