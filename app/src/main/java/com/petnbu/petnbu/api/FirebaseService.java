@@ -49,8 +49,8 @@ public class FirebaseService implements WebService {
         DocumentReference doc = mDb.collection(GLOBAL_FEEDS).document();
         final String oldId = feedResponse.getFeedId();
         feedResponse.setFeedId(doc.getId());
-        feedResponse.setTimeCreated(new Date());
-        feedResponse.setTimeUpdated(new Date());
+        feedResponse.setTimeCreated(null);
+        feedResponse.setTimeUpdated(null);
         batch.set(doc, feedResponse);
         DocumentReference userFeed = mDb.collection(USERS)
                 .document(feedResponse.getFeedUser().getUserId())
@@ -60,6 +60,30 @@ public class FirebaseService implements WebService {
                 .addOnSuccessListener(aVoid -> result.setValue(new ApiResponse<>(feedResponse, true, null)))
                 .addOnFailureListener(e -> {
                     feedResponse.setFeedId(oldId);
+                    result.setValue(new ApiResponse<>(null, false, e.getMessage()));
+                });
+        return result;
+    }
+
+    @Override
+    public LiveData<ApiResponse<FeedResponse>> updateFeed(FeedResponse feedResponse) {
+        MutableLiveData<ApiResponse<FeedResponse>> result = new MutableLiveData<>();
+        if(feedResponse.getFeedId() == null || feedResponse.getFeedUser() == null
+                || feedResponse.getFeedUser().getUserId() == null){
+            result.setValue(new ApiResponse<>(null, false,
+                    "to update Feed. It is required feedId, feedUser, feedUserId must not null!"));
+            return result;
+        }
+        WriteBatch batch = mDb.batch();
+        DocumentReference doc = mDb.collection(GLOBAL_FEEDS).document(feedResponse.getFeedId());
+        feedResponse.setTimeUpdated(null);
+        batch.set(doc, feedResponse);
+        DocumentReference userFeed =
+                mDb.document(String.format("users/%s/feeds/%s", feedResponse.getFeedUser().getUserId(), feedResponse.getFeedId()));
+        batch.set(userFeed, feedResponse);
+        batch.commit()
+                .addOnSuccessListener(aVoid -> result.setValue(new ApiResponse<>(feedResponse, true, null)))
+                .addOnFailureListener(e -> {
                     result.setValue(new ApiResponse<>(null, false, e.getMessage()));
                 });
         return result;

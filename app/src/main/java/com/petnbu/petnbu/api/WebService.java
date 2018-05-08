@@ -12,6 +12,8 @@ public interface WebService {
 
     public LiveData<ApiResponse<FeedResponse>> createFeed(FeedResponse feedResponse);
 
+    public LiveData<ApiResponse<FeedResponse>> updateFeed(FeedResponse feedResponse);
+
     public LiveData<ApiResponse<List<FeedResponse>>> getGlobalFeeds(long after, int limit);
 
     public LiveData<ApiResponse<List<FeedResponse>>> getGlobalFeeds(String afterFeedId, int limit);

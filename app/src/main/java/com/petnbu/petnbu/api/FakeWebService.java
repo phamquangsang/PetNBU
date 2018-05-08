@@ -20,6 +20,10 @@ public class FakeWebService implements WebService {
         return null;
     }
 
+    @Override
+    public LiveData<ApiResponse<FeedResponse>> updateFeed(FeedResponse feedResponse) {
+        return null;
+    }
 
     @Override
     public LiveData<ApiResponse<UserEntity>> createUser(UserEntity userEntity) {
