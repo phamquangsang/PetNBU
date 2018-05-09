@@ -1,6 +1,7 @@
 package com.petnbu.petnbu.api;
 
 
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.util.Log;
 
@@ -9,11 +10,17 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.petnbu.petnbu.AppExecutors;
 import com.petnbu.petnbu.BuildConfig;
+import com.petnbu.petnbu.PetApplication;
+import com.petnbu.petnbu.util.IdUtil;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import timber.log.Timber;
 
 /**
  * Created by Quang Quang on 11/23/2016.
@@ -34,6 +41,26 @@ public class StorageApi {
             onSuccessListener.onSuccess(taskSnapshot);
 
         }).addOnFailureListener(e -> onFailureListener.onFailure(e));
+    }
+
+    public static void updateBitmap(Bitmap bitmap,
+                                   final OnSuccessListener onSuccessListener,
+                                   final OnFailureListener onFailureListener) {
+        AppExecutors appExecutors = PetApplication.getAppComponent().getAppExecutor();
+        Timber.i("updateBitmap");
+        appExecutors.networkIO().execute(()->{
+            StorageReference ref = getStorageRef().child(IdUtil.generateID("image") + System.currentTimeMillis());
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.WEBP, 75, baos);
+            byte[] data = baos.toByteArray();
+            ref.putBytes(data).addOnSuccessListener(taskSnapshot -> {
+                // Get a URL to the uploaded content
+                Uri downloadUrl = taskSnapshot.getDownloadUrl();
+                Timber.i("downloadUrl : %s", downloadUrl);
+                onSuccessListener.onSuccess(taskSnapshot);
+
+            }).addOnFailureListener(e -> onFailureListener.onFailure(e));
+        });
     }
 
     public static StorageReference getStorageRef() {
