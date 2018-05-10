@@ -10,31 +10,31 @@ import java.util.List;
 
 public interface WebService {
 
-    public LiveData<ApiResponse<FeedResponse>> createFeed(FeedResponse feedResponse);
+    LiveData<ApiResponse<FeedResponse>> createFeed(FeedResponse feedResponse);
 
-    public LiveData<ApiResponse<FeedResponse>> updateFeed(FeedResponse feedResponse);
+    LiveData<ApiResponse<FeedResponse>> updateFeed(FeedResponse feedResponse);
 
-    public LiveData<ApiResponse<List<FeedResponse>>> getGlobalFeeds(long after, int limit);
+    LiveData<ApiResponse<List<FeedResponse>>> getGlobalFeeds(long after, int limit);
 
-    public LiveData<ApiResponse<List<FeedResponse>>> getGlobalFeeds(String afterFeedId, int limit);
+    LiveData<ApiResponse<List<FeedResponse>>> getGlobalFeeds(String afterFeedId, int limit);
 
-    public LiveData<ApiResponse<List<FeedResponse>>> getUserFeed(String userId, long after, int limit);
+    LiveData<ApiResponse<List<FeedResponse>>> getUserFeed(String userId, long after, int limit);
 
-    public LiveData<ApiResponse<List<FeedResponse>>> getUserFeed(String userId, String afterFeedId, int limit);
+    LiveData<ApiResponse<List<FeedResponse>>> getUserFeed(String userId, String afterFeedId, int limit);
 
-    public LiveData<ApiResponse<FeedResponse>> getFeed(String feedId);
+    LiveData<ApiResponse<FeedResponse>> getFeed(String feedId);
 
-    public LiveData<ApiResponse<UserEntity>> createUser(UserEntity userEntity);
+    LiveData<ApiResponse<UserEntity>> createUser(UserEntity userEntity);
 
-    public LiveData<ApiResponse<FeedResponse>> likeFeed(String feedId);
+    LiveData<ApiResponse<FeedResponse>> likeFeed(String feedId);
 
-    public LiveData<ApiResponse<UserEntity>> getUser(String userId);
+    LiveData<ApiResponse<UserEntity>> getUser(String userId);
 
-    public void updateUser(UserEntity userEntity, SuccessCallback<Void> callback);
+    void updateUser(UserEntity userEntity, SuccessCallback<Void> callback);
 
-    public LiveData<ApiResponse<List<Comment>>> getComments(String feedId);
+    LiveData<ApiResponse<List<Comment>>> getComments(String feedId);
 
-    public LiveData<ApiResponse<List<Comment>>> getCommentsByComment(String commentId);
+    LiveData<ApiResponse<List<Comment>>> getCommentsByComment(String commentId);
 }
 
 

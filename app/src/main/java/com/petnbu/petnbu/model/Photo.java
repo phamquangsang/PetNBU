@@ -5,11 +5,11 @@ import android.os.Parcelable;
 
 public class Photo implements Parcelable {
 
-    private String originUrl;   //for larger than FHD
-    private String largeUrl;    //for FHD
-    private String mediumUrl;   //for HD
-    private String smallUrl;    //for qHD
-    private String thumbnailUrl;//for thumbnail
+    private String originUrl;   //origin
+    private String largeUrl;    //for FHD 1920x1080
+    private String mediumUrl;   //for HD 1280x720
+    private String smallUrl;    //for qHD 960x540
+    private String thumbnailUrl;//for thumbnail 150x150
     private int width;
     private int height;
 
@@ -71,6 +71,14 @@ public class Photo implements Parcelable {
 
     public void setHeight(int height) {
         this.height = height;
+    }
+
+    public String getMediumUrl() {
+        return mediumUrl;
+    }
+
+    public void setMediumUrl(String mediumUrl) {
+        this.mediumUrl = mediumUrl;
     }
 
     @Override

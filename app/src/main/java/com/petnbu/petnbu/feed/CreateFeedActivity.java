@@ -148,7 +148,7 @@ public class CreateFeedActivity extends AppCompatActivity {
         });
 
         int imageSize = Utils.getDeviceWidth(this) * 9 / 16;
-        mPhotosAdapter = new PhotosAdapter(this, mRequestManager, mSelectedPhotos, new PhotosAdapter.ItemClickListener() {
+        mPhotosAdapter = new PhotosAdapter(mRequestManager, mSelectedPhotos, new PhotosAdapter.ItemClickListener() {
             @Override
             public void onCameraIconClicked() {
                 mCameraClicked = true;
@@ -185,8 +185,9 @@ public class CreateFeedActivity extends AppCompatActivity {
     }
 
     protected boolean requestReadExternalPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            String[] permissions = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE};
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+                && ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            String[] permissions = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
             ActivityCompat.requestPermissions(this, permissions, REQUEST_READ_EXTERNAL_PERMISSIONS);
             return true;
         } else {
@@ -236,7 +237,6 @@ public class CreateFeedActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
@@ -270,7 +270,7 @@ public class CreateFeedActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 if (data.getData() != null) {
                     Uri uri = data.getData();
-                    requestPersistablePermission(data, uri);
+                        requestPersistablePermission(data, uri);
                     BitmapFactory.Options options = Utils.getBitmapSize(this, uri);
 
                     Photo photo = new Photo();

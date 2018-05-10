@@ -63,17 +63,14 @@ public class FeedsFragment extends Fragment {
             mUserId = SharedPrefUtil.getUserId(getActivity());
             mFeedsViewModel = ViewModelProviders.of(getActivity()).get(FeedsViewModel.class);
             mFeedsViewModel.getFeeds(Paging.GLOBAL_FEEDS_PAGING_ID).observe(this, feeds -> {
-
                 if (feeds != null && feeds.data != null) {
                     if (feeds.status == Status.LOADING) {
                         mBinding.pullToRefresh.setRefreshing(true);
                     } else {
                         mBinding.pullToRefresh.setRefreshing(false);
                     }
-
                     mAdapter.setFeeds(feeds.data);
                 }
-
             });
 
             mFeedsViewModel.getLoadMoreState().observe(this, state -> {

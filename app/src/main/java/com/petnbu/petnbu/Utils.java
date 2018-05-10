@@ -101,7 +101,7 @@ public final class Utils {
                 }
 
                 final String selection = "_id=?";
-                final String[] selectionArgs = new String[] {
+                final String[] selectionArgs = new String[]{
                         split[1]
                 };
 
@@ -129,9 +129,9 @@ public final class Utils {
      * Get the value of the data column for this Uri. This is useful for
      * MediaStore Uris, and other file-based ContentProviders.
      *
-     * @param context The context.
-     * @param uri The Uri to query.
-     * @param selection (Optional) Filter used in the query.
+     * @param context       The context.
+     * @param uri           The Uri to query.
+     * @param selection     (Optional) Filter used in the query.
      * @param selectionArgs (Optional) Selection arguments used in the query.
      * @return The value of the _data column, which is typically a file path.
      */
@@ -139,16 +139,13 @@ public final class Utils {
                                        String[] selectionArgs) {
 
         Cursor cursor = null;
-        final String column = "_data";
-        final String[] projection = {
-                column
-        };
+        final String[] projection = {MediaStore.Images.Media.DATA};
 
         try {
             cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs,
                     null);
             if (cursor != null && cursor.moveToFirst()) {
-                final int index = cursor.getColumnIndexOrThrow(column);
+                final int index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
                 return cursor.getString(index);
             }
         } finally {
@@ -204,7 +201,7 @@ public final class Utils {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            if(inputStream != null) {
+            if (inputStream != null) {
                 try {
                     inputStream.close();
                 } catch (IOException e) {
@@ -220,7 +217,7 @@ public final class Utils {
             int iconColor = ContextCompat.getColor(context, android.R.color.black);
 
             CharSequence menuTitle = menuItem.getTitle();
-            if(!TextUtils.isEmpty(menuTitle)) {
+            if (!TextUtils.isEmpty(menuTitle)) {
                 SpannableString styledMenuTitle = new SpannableString(menuTitle);
                 if (enable) {
                     menuItem.setEnabled(true);

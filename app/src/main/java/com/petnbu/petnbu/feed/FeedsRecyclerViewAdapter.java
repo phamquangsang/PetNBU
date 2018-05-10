@@ -195,30 +195,33 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
 
         private void displayUserInfo() {
             mBinding.tvName.setText(mFeed.getName());
-            mRequestManager.asBitmap()
-                    .load(mFeed.getAvatar().getOriginUrl())
-                    .apply(RequestOptions.centerCropTransform())
-                    .into(new BitmapImageViewTarget(mBinding.imgProfile) {
-                        @Override
-                        public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                            Context context = mBinding.imgProfile.getContext();
-                            if(ColorUtils.isDark(resource)) {
-                                mBinding.imgProfile.setBorderWidth(0);
-                            } else {
-                                mBinding.imgProfile.setBorderColor(ContextCompat.getColor(context, android.R.color.darker_gray));
-                                mBinding.imgProfile.setBorderWidth(1);
+            if(mFeed.getAvatar() != null) {
+                String avatarUrl = !TextUtils.isEmpty(mFeed.getAvatar().getThumbnailUrl())
+                        ? mFeed.getAvatar().getThumbnailUrl() : mFeed.getAvatar().getOriginUrl();
+                mRequestManager.asBitmap()
+                        .load(avatarUrl)
+                        .apply(RequestOptions.centerCropTransform())
+                        .into(new BitmapImageViewTarget(mBinding.imgProfile) {
+                            @Override
+                            public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                                Context context = mBinding.imgProfile.getContext();
+                                if (ColorUtils.isDark(resource)) {
+                                    mBinding.imgProfile.setBorderWidth(0);
+                                } else {
+                                    mBinding.imgProfile.setBorderColor(ContextCompat.getColor(context, android.R.color.darker_gray));
+                                    mBinding.imgProfile.setBorderWidth(1);
+                                }
+                                getView().setImageBitmap(resource);
                             }
-                            getView().setImageBitmap(resource);
-                        }
-                    });
+                        });
+            }
         }
 
         private void displayTime() {
-            if(mFeed.getTimeCreated() == null){
-                return;
+            if(mFeed.getTimeCreated() != null){
+                mBinding.tvDate.setText(DateUtils.getRelativeTimeSpanString(mFeed.getTimeCreated().getTime(),
+                        Calendar.getInstance().getTimeInMillis(), 0L, DateUtils.FORMAT_ABBREV_ALL));
             }
-            mBinding.tvDate.setText(DateUtils.getRelativeTimeSpanString(mFeed.getTimeCreated().getTime(),
-                    Calendar.getInstance().getTimeInMillis(), 0L, DateUtils.FORMAT_ABBREV_ALL));
         }
 
         private void displayPhotos() {
@@ -230,7 +233,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
                     pagerAdapter.setData(mFeed);
 
                 } else {
-                    mBinding.vpPhotos.setAdapter(new PhotosPagerAdapter(mFeed, mRequestManager, () -> {
+                    mBinding.vpPhotos.setAdapter(new PhotosPagerAdapter(itemView.getContext(), mFeed, mRequestManager, () -> {
                         if (mOnItemClickListener != null && mFeed.getStatus() == FeedEntity.STATUS_DONE) {
                             mOnItemClickListener.onPhotoClicked(mFeed.getPhotos().get(mBinding.vpPhotos.getCurrentItem()));
                         }

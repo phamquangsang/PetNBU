@@ -4,14 +4,19 @@ package com.petnbu.petnbu.jobs;
 import android.annotation.SuppressLint;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.util.ArrayMap;
 import android.webkit.URLUtil;
 
 import com.firebase.jobdispatcher.JobParameters;
 import com.firebase.jobdispatcher.JobService;
 import com.petnbu.petnbu.AppExecutors;
 import com.petnbu.petnbu.PetApplication;
+import com.petnbu.petnbu.Utils;
 import com.petnbu.petnbu.api.ApiResponse;
 import com.petnbu.petnbu.api.StorageApi;
 import com.petnbu.petnbu.api.WebService;
@@ -24,7 +29,9 @@ import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Paging;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.UserEntity;
+import com.petnbu.petnbu.util.ImageUtils;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -115,21 +122,58 @@ public class CreateEditFeedJob extends JobService {
                 if (photoUrls.isEmpty()) {
                     updateFeed(mFeedResponse);
                 } else {
-                    new StorageApi.OnUploadingImage(photoUrls) {
+                    int []sizeTypes = {ImageUtils.FHD, ImageUtils.HD, ImageUtils.qHD, ImageUtils.THUMBNAIL};
+                    new StorageApi.OnUploadingMultiSizeBitmap<Photo>(mFeedResponse.getPhotos(), sizeTypes) {
+
+                        private ArrayMap<String, Photo> mFileNamePhotoMap = new ArrayMap<>();
+
                         @Override
-                        public void onCompleted(List<String> result) {
-                            Timber.i("update %d photos complete", result.size());
-                            for (int i = 0; i < result.size(); i++) {
-                                mFeedResponse.getPhotos().get(mFeedResponse.getPhotos().size() - result.size() + i)
-                                        .setOriginUrl(result.get(i));
+                        public void onCompleted(ArrayMap<String, String> result) {
+                            for (String key : result.keySet()) {
+                                Photo photo = mFileNamePhotoMap.get(key);
+                                String url = result.get(key);
+
+                                if(key.contains("FHD")) {
+                                    photo.setLargeUrl(url);
+                                } else if(key.contains("HD")) {
+                                    photo.setMediumUrl(url);
+                                } else if(key.contains("qHD")) {
+                                    photo.setSmallUrl(url);
+                                } else if(key.contains("thumbnail")) {
+                                    photo.setThumbnailUrl(url);
+                                } else {
+                                    photo.setOriginUrl(url);
+                                }
                             }
                             updateFeed(mFeedResponse);
                         }
 
                         @Override
                         public void onFailed(Exception e) {
-                            Timber.e("upload photos failed with exception %s", e.toString());
                             updateLocalFeedError(mFeedResponse);
+                        }
+
+                        @Override
+                        public StorageApi.UploadRequest getUploadRequest(Photo photo) {
+                            if (!URLUtil.isHttpUrl(photo.getOriginUrl()) && !URLUtil.isHttpsUrl(photo.getOriginUrl())) {
+                                StorageApi.UploadRequest uploadRequest = new StorageApi.UploadRequest();
+                                File file = new File(Utils.getPath(CreateEditFeedJob.this, Uri.parse(photo.getOriginUrl())));
+                                uploadRequest.setBitmap(BitmapFactory.decodeFile(file.getAbsolutePath()));
+                                uploadRequest.setResourceName(Uri.fromFile(file).getLastPathSegment());
+                                mFileNamePhotoMap.put(uploadRequest.getResourceName(), photo);
+                                return uploadRequest;
+                            }
+                            return null;
+                        }
+
+                        @Override
+                        public StorageApi.UploadRequest getResizedBitmapRequest(Photo photo, String originSrcName, Bitmap bitmap, int sizeType) {
+                            int[] resolution = ImageUtils.getResolutionForImage(sizeType, bitmap.getWidth(), bitmap.getHeight());
+                            StorageApi.UploadRequest uploadRequest = new StorageApi.UploadRequest();
+                            uploadRequest.setResourceName(String.format("%s-%s", originSrcName , ImageUtils.getResolutionTitle(sizeType)));
+                            uploadRequest.setBitmap(Bitmap.createScaledBitmap(bitmap, resolution[0], resolution[1], false));
+                            mFileNamePhotoMap.put(uploadRequest.getResourceName(), photo);
+                            return uploadRequest;
                         }
                     }.start();
                 }
@@ -141,21 +185,55 @@ public class CreateEditFeedJob extends JobService {
                 if (photoUrls.isEmpty()) {
                     createFeed(mFeedResponse, localFeedId);
                 } else {
-                    new StorageApi.OnUploadingImage(photoUrls) {
+                    int []sizeTypes = {ImageUtils.FHD, ImageUtils.HD, ImageUtils.qHD, ImageUtils.THUMBNAIL};
+                    new StorageApi.OnUploadingMultiSizeBitmap<Photo>(mFeedResponse.getPhotos(), sizeTypes) {
+
+                        private ArrayMap<String, Photo> mFileNamePhotoMap = new ArrayMap<>();
+
                         @Override
-                        public void onCompleted(List<String> result) {
-                            Timber.i("update %d photos complete", result.size());
-                            for (int i = 0; i < result.size(); i++) {
-                                mFeedResponse.getPhotos().get(mFeedResponse.getPhotos().size() - result.size() + i)
-                                        .setOriginUrl(result.get(i));
+                        public void onCompleted(ArrayMap<String, String> result) {
+                            for (String fileName : result.keySet()) {
+                                Photo photo = mFileNamePhotoMap.get(fileName);
+                                String fileUrl = result.get(fileName);
+
+                                if(fileName.endsWith("-FHD")) {
+                                    photo.setLargeUrl(fileUrl);
+                                } else if(fileName.endsWith("-HD")) {
+                                    photo.setMediumUrl(fileUrl);
+                                } else if(fileName.endsWith("-qHD")) {
+                                    photo.setSmallUrl(fileUrl);
+                                } else if(fileName.endsWith("-thumbnail")) {
+                                    photo.setThumbnailUrl(fileUrl);
+                                } else {
+                                    photo.setOriginUrl(fileUrl);
+                                }
                             }
                             createFeed(mFeedResponse, localFeedId);
                         }
 
                         @Override
                         public void onFailed(Exception e) {
-                            Timber.e("upload photos failed with exception %s", e.toString());
                             updateLocalFeedError(mFeedResponse);
+                        }
+
+                        @Override
+                        public StorageApi.UploadRequest getUploadRequest(Photo photo) {
+                            StorageApi.UploadRequest uploadRequest = new StorageApi.UploadRequest();
+                            File file = new File(Utils.getPath(CreateEditFeedJob.this, Uri.parse(photo.getOriginUrl())));
+                            uploadRequest.setBitmap(BitmapFactory.decodeFile(file.getAbsolutePath()));
+                            uploadRequest.setResourceName(Uri.fromFile(file).getLastPathSegment());
+                            mFileNamePhotoMap.put(uploadRequest.getResourceName(), photo);
+                            return uploadRequest;
+                        }
+
+                        @Override
+                        public StorageApi.UploadRequest getResizedBitmapRequest(Photo photo, String originSrcName, Bitmap bitmap, int sizeType) {
+                            int[] resolution = ImageUtils.getResolutionForImage(sizeType, bitmap.getWidth(), bitmap.getHeight());
+                            StorageApi.UploadRequest uploadRequest = new StorageApi.UploadRequest();
+                            uploadRequest.setResourceName(String.format("%s-%s", originSrcName , ImageUtils.getResolutionTitle(sizeType)));
+                            uploadRequest.setBitmap(Bitmap.createScaledBitmap(bitmap, resolution[0], resolution[1], false));
+                            mFileNamePhotoMap.put(uploadRequest.getResourceName(), photo);
+                            return uploadRequest;
                         }
                     }.start();
                 }

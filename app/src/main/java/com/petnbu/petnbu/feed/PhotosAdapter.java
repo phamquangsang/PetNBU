@@ -1,6 +1,5 @@
 package com.petnbu.petnbu.feed;
 
-import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -26,7 +25,7 @@ public class PhotosAdapter extends RecyclerView.Adapter<BaseBindingViewHolder> {
     private final int mImageSize;
     private final ItemClickListener mItemClickListener;
 
-    public PhotosAdapter(Context context, RequestManager requestManager, ArrayList<Photo> photos,
+    public PhotosAdapter(RequestManager requestManager, ArrayList<Photo> photos,
                          ItemClickListener itemClickListener, int imageSize) {
         mPhotos = photos;
         mRequestManager = requestManager;

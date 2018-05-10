@@ -64,9 +64,6 @@ public class FeedEntity {
         this.likeInProgress = likeInProgress;
     }
 
-
-
-
     public String getFeedId() {
         return feedId;
     }
