@@ -61,6 +61,7 @@ public class FeedsViewModel extends ViewModel {
     }
 
     public LiveData<Resource<List<Feed>>> refresh() {
+        loadMoreHandler.reset();
         return mFeedRepository.refresh();
     }
 
@@ -117,6 +118,7 @@ public class FeedsViewModel extends ViewModel {
 
         public void loadNextPage(String pagingId) {
             if (!hasMore || loadMoreState.getValue() == null || loadMoreState.getValue().running) {
+                Timber.i("hasMore = %s", hasMore);
                 return;
             }
             Timber.i("loadNextPage");
