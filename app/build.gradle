@@ -52,6 +52,9 @@ android {
 }
 
 dependencies {
+    def work_version = "1.0.0-alpha01"
+    def room_version = "1.1.0"
+
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
     implementation 'com.android.support:appcompat-v7:27.1.1'
@@ -83,15 +86,11 @@ dependencies {
     // alternatively, just LiveData
     implementation 'android.arch.lifecycle:livedata:1.1.1'
     annotationProcessor "android.arch.lifecycle:compiler:1.1.1"
-    // Room (use 1.1.0-beta3 for latest beta)
-    implementation 'android.arch.persistence.room:runtime:1.0.0'
-    annotationProcessor "android.arch.persistence.room:compiler:1.0.0"
     // Paging
     implementation 'android.arch.paging:runtime:1.0.0'
     // Test helpers for LiveData
     testImplementation 'android.arch.core:core-testing:1.1.1'
     // Test helpers for Room
-    testImplementation 'android.arch.persistence.room:testing:1.0.0'
     // Gson
     implementation 'com.google.code.gson:gson:2.8.2'
     //Glide
@@ -116,6 +115,23 @@ dependencies {
     androidTestImplementation 'com.android.support:support-annotations:27.1.1'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test:rules:1.0.2'
+
+
+    //WorkManager
+    implementation "android.arch.work:work-runtime:$work_version" // use -ktx for Kotlin
+    // optional - Firebase JobDispatcher support
+    implementation "android.arch.work:work-firebase:$work_version"
+    // optional - Test helpers
+    androidTestImplementation "android.arch.work:work-testing:$work_version"
+
+
+    //Room Persistent
+    implementation "android.arch.persistence.room:runtime:$room_version"
+    annotationProcessor "android.arch.persistence.room:compiler:$room_version"
+    // optional - Guava support for Room, including Optional and ListenableFuture
+    implementation "android.arch.persistence.room:guava:$room_version"
+    // Test helpers
+    testImplementation "android.arch.persistence.room:testing:$room_version"
 
 
 }
