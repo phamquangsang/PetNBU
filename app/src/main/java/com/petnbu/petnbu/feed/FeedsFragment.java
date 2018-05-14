@@ -115,7 +115,7 @@ public class FeedsFragment extends Fragment {
 
             @Override
             public void onOptionClicked(View view, Feed feed) {
-                if(feed.getUserId().equals(mUserId)) {
+                if(feed.getFeedUser().getUserId().equals(mUserId)) {
                     PopupMenu popupMenu = new PopupMenu(view.getContext(), view);
                     popupMenu.getMenu().add("Edit");
                     popupMenu.setOnMenuItemClickListener(item -> {

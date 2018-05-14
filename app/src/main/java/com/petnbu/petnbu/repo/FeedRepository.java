@@ -245,7 +245,7 @@ public class FeedRepository {
         mAppExecutors.diskIO().execute(() -> {
             mPetDb.runInTransaction(() -> {
                 UserEntity userEntity = mUserDao.findUserById(SharedPrefUtil.getUserId(mApplication));
-                FeedUser feedUser = new FeedUser(userEntity.getUserId(), userEntity.getAvatar().getOriginUrl(), userEntity.getName());
+                FeedUser feedUser = new FeedUser(userEntity.getUserId(), userEntity.getAvatar(), userEntity.getName());
                 feedResponse.setStatus(FeedEntity.STATUS_UPLOADING);
                 feedResponse.setFeedUser(feedUser);
                 feedResponse.setTimeCreated(new Date());

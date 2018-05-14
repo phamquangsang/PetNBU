@@ -42,8 +42,8 @@ public class FakeWebService implements WebService {
 
         FeedUser feedUser = new FeedUser();
         feedUser.setUserId("1");
-        feedUser.setDisplayName("Nhat Pham");
-        feedUser.setPhotoUrl("https://academy-stg-assets.s3.amazonaws.com/user_50/hN5JRUzjs8nXifDEWnBc1522315546980_optimized.jpg");
+        feedUser.setName("Nhat Pham");
+        feedUser.setAvatarUrl("https://academy-stg-assets.s3.amazonaws.com/user_50/hN5JRUzjs8nXifDEWnBc1522315546980_optimized.jpg");
         feedResponse.setFeedUser(feedUser);
 
         List<Photo> photos = new ArrayList<>();
@@ -59,8 +59,8 @@ public class FakeWebService implements WebService {
 
         feedUser = new FeedUser();
         feedUser.setUserId("2");
-        feedUser.setDisplayName("Nhat Pham");
-        feedUser.setPhotoUrl("https://picsum.photos/54/54/?random");
+        feedUser.setName("Nhat Pham");
+        feedUser.setAvatarUrl("https://picsum.photos/54/54/?random");
         feedResponse.setFeedUser(feedUser);
 
         photos = new ArrayList<>();
@@ -81,8 +81,8 @@ public class FakeWebService implements WebService {
 
         feedUser = new FeedUser();
         feedUser.setUserId("3");
-        feedUser.setDisplayName("Thanh Nguyen");
-        feedUser.setPhotoUrl("https://picsum.photos/55/55/?random");
+        feedUser.setName("Thanh Nguyen");
+        feedUser.setAvatarUrl("https://picsum.photos/55/55/?random");
         feedResponse.setFeedUser(feedUser);
 
         photos = new ArrayList<>();
@@ -98,8 +98,8 @@ public class FakeWebService implements WebService {
 
         feedUser = new FeedUser();
         feedUser.setUserId("4");
-        feedUser.setDisplayName("Ho Nguyen");
-        feedUser.setPhotoUrl("https://picsum.photos/56/56/?random");
+        feedUser.setName("Ho Nguyen");
+        feedUser.setAvatarUrl("https://picsum.photos/56/56/?random");
         feedResponse.setFeedUser(feedUser);
 
         photos = new ArrayList<>();
@@ -115,8 +115,8 @@ public class FakeWebService implements WebService {
 
         feedUser = new FeedUser();
         feedUser.setUserId("5");
-        feedUser.setDisplayName("Hien Nguyen");
-        feedUser.setPhotoUrl("https://picsum.photos/57/57/?random");
+        feedUser.setName("Hien Nguyen");
+        feedUser.setAvatarUrl("https://picsum.photos/57/57/?random");
         feedResponse.setFeedUser(feedUser);
 
         photos = new ArrayList<>();
@@ -136,8 +136,8 @@ public class FakeWebService implements WebService {
 
         feedUser = new FeedUser();
         feedUser.setUserId("6");
-        feedUser.setDisplayName("Nam Dinh");
-        feedUser.setPhotoUrl("https://picsum.photos/58/58/?random");
+        feedUser.setName("Nam Dinh");
+        feedUser.setAvatarUrl("https://picsum.photos/58/58/?random");
         feedResponse.setFeedUser(feedUser);
 
         photos = new ArrayList<>();
@@ -153,8 +153,8 @@ public class FakeWebService implements WebService {
 
         feedUser = new FeedUser();
         feedUser.setUserId("7");
-        feedUser.setDisplayName("Thuan Duc");
-        feedUser.setPhotoUrl("https://picsum.photos/59/59/?random");
+        feedUser.setName("Thuan Duc");
+        feedUser.setAvatarUrl("https://picsum.photos/59/59/?random");
         feedResponse.setFeedUser(feedUser);
 
         photos = new ArrayList<>();
@@ -170,8 +170,8 @@ public class FakeWebService implements WebService {
 
         feedUser = new FeedUser();
         feedUser.setUserId("8");
-        feedUser.setDisplayName("Than Banh");
-        feedUser.setPhotoUrl("https://picsum.photos/60/60/?random");
+        feedUser.setName("Than Banh");
+        feedUser.setAvatarUrl("https://picsum.photos/60/60/?random");
         feedResponse.setFeedUser(feedUser);
 
         photos = new ArrayList<>();
@@ -187,8 +187,8 @@ public class FakeWebService implements WebService {
 
         feedUser = new FeedUser();
         feedUser.setUserId("9");
-        feedUser.setDisplayName("Khiem Le");
-        feedUser.setPhotoUrl("https://picsum.photos/61/61/?random");
+        feedUser.setName("Khiem Le");
+        feedUser.setAvatarUrl("https://picsum.photos/61/61/?random");
         feedResponse.setFeedUser(feedUser);
 
         photos = new ArrayList<>();
@@ -204,8 +204,8 @@ public class FakeWebService implements WebService {
 
         feedUser = new FeedUser();
         feedUser.setUserId("10");
-        feedUser.setDisplayName("Duc Tran");
-        feedUser.setPhotoUrl("https://picsum.photos/62/62/?random");
+        feedUser.setName("Duc Tran");
+        feedUser.setAvatarUrl("https://picsum.photos/62/62/?random");
         feedResponse.setFeedUser(feedUser);
 
         photos = new ArrayList<>();
@@ -267,8 +267,8 @@ public class FakeWebService implements WebService {
 
         FeedUser feedUser = new FeedUser();
         feedUser.setUserId("1");
-        feedUser.setDisplayName("Nhat Pham");
-        feedUser.setPhotoUrl("https://lh4.googleusercontent.com/-pBi1Gc4MU6Y/AAAAAAAAAAI/AAAAAAAAA18/A7gZ4lFOrl8/s96-c/photo.jpg");
+        feedUser.setName("Nhat Pham");
+        feedUser.setAvatarUrl("https://lh4.googleusercontent.com/-pBi1Gc4MU6Y/AAAAAAAAAAI/AAAAAAAAA18/A7gZ4lFOrl8/s96-c/photo.jpg");
         comment.setFeedUser(feedUser);
         comment.setLikeCount(1);
         comment.setCommentCount(5);
@@ -280,8 +280,8 @@ public class FakeWebService implements WebService {
 
         feedUser = new FeedUser();
         feedUser.setUserId("2");
-        feedUser.setDisplayName("Sang Pham");
-        feedUser.setPhotoUrl("https://lh5.googleusercontent.com/-FJzPGWw8bAk/AAAAAAAAAAI/AAAAAAAAAu8/GohAJXC8_78/s96-c/photo.jpg");
+        feedUser.setName("Sang Pham");
+        feedUser.setAvatarUrl("https://lh5.googleusercontent.com/-FJzPGWw8bAk/AAAAAAAAAAI/AAAAAAAAAu8/GohAJXC8_78/s96-c/photo.jpg");
         latestComment.setFeedUser(feedUser);
         comment.setLatestComment(latestComment);
 
@@ -293,8 +293,8 @@ public class FakeWebService implements WebService {
 
         feedUser = new FeedUser();
         feedUser.setUserId("2");
-        feedUser.setDisplayName("Sang Pham");
-        feedUser.setPhotoUrl("https://lh5.googleusercontent.com/-FJzPGWw8bAk/AAAAAAAAAAI/AAAAAAAAAu8/GohAJXC8_78/s96-c/photo.jpg");
+        feedUser.setName("Sang Pham");
+        feedUser.setAvatarUrl("https://lh5.googleusercontent.com/-FJzPGWw8bAk/AAAAAAAAAAI/AAAAAAAAAu8/GohAJXC8_78/s96-c/photo.jpg");
         comment.setFeedUser(feedUser);
         comment.setLikeCount(0);
         comment.setCommentCount(1);
@@ -307,8 +307,8 @@ public class FakeWebService implements WebService {
 
         feedUser = new FeedUser();
         feedUser.setUserId("2");
-        feedUser.setDisplayName("Sang Pham");
-        feedUser.setPhotoUrl("https://lh5.googleusercontent.com/-FJzPGWw8bAk/AAAAAAAAAAI/AAAAAAAAAu8/GohAJXC8_78/s96-c/photo.jpg");
+        feedUser.setName("Sang Pham");
+        feedUser.setAvatarUrl("https://lh5.googleusercontent.com/-FJzPGWw8bAk/AAAAAAAAAAI/AAAAAAAAAu8/GohAJXC8_78/s96-c/photo.jpg");
         comment.setFeedUser(feedUser);
         comment.setLikeCount(5);
         comment.setCommentCount(0);
@@ -335,8 +335,8 @@ public class FakeWebService implements WebService {
 
         FeedUser feedUser = new FeedUser();
         feedUser.setUserId("1");
-        feedUser.setDisplayName("Nhat Pham");
-        feedUser.setPhotoUrl("https://lh4.googleusercontent.com/-pBi1Gc4MU6Y/AAAAAAAAAAI/AAAAAAAAA18/A7gZ4lFOrl8/s96-c/photo.jpg");
+        feedUser.setName("Nhat Pham");
+        feedUser.setAvatarUrl("https://lh4.googleusercontent.com/-pBi1Gc4MU6Y/AAAAAAAAAAI/AAAAAAAAA18/A7gZ4lFOrl8/s96-c/photo.jpg");
         comment.setFeedUser(feedUser);
         comment.setLikeCount(1);
         comment.setCommentCount(5);
@@ -348,8 +348,8 @@ public class FakeWebService implements WebService {
 
         feedUser = new FeedUser();
         feedUser.setUserId("2");
-        feedUser.setDisplayName("Sang Pham");
-        feedUser.setPhotoUrl("https://lh5.googleusercontent.com/-FJzPGWw8bAk/AAAAAAAAAAI/AAAAAAAAAu8/GohAJXC8_78/s96-c/photo.jpg");
+        feedUser.setName("Sang Pham");
+        feedUser.setAvatarUrl("https://lh5.googleusercontent.com/-FJzPGWw8bAk/AAAAAAAAAAI/AAAAAAAAAu8/GohAJXC8_78/s96-c/photo.jpg");
         latestComment.setFeedUser(feedUser);
         comment.setLatestComment(latestComment);
 
@@ -361,8 +361,8 @@ public class FakeWebService implements WebService {
 
         feedUser = new FeedUser();
         feedUser.setUserId("2");
-        feedUser.setDisplayName("Sang Pham");
-        feedUser.setPhotoUrl("https://lh5.googleusercontent.com/-FJzPGWw8bAk/AAAAAAAAAAI/AAAAAAAAAu8/GohAJXC8_78/s96-c/photo.jpg");
+        feedUser.setName("Sang Pham");
+        feedUser.setAvatarUrl("https://lh5.googleusercontent.com/-FJzPGWw8bAk/AAAAAAAAAAI/AAAAAAAAAu8/GohAJXC8_78/s96-c/photo.jpg");
         comment.setFeedUser(feedUser);
         comment.setLikeCount(0);
         comment.setCommentCount(1);
@@ -375,8 +375,8 @@ public class FakeWebService implements WebService {
 
         feedUser = new FeedUser();
         feedUser.setUserId("2");
-        feedUser.setDisplayName("Sang Pham");
-        feedUser.setPhotoUrl("https://lh5.googleusercontent.com/-FJzPGWw8bAk/AAAAAAAAAAI/AAAAAAAAAu8/GohAJXC8_78/s96-c/photo.jpg");
+        feedUser.setName("Sang Pham");
+        feedUser.setAvatarUrl("https://lh5.googleusercontent.com/-FJzPGWw8bAk/AAAAAAAAAAI/AAAAAAAAAu8/GohAJXC8_78/s96-c/photo.jpg");
         comment.setFeedUser(feedUser);
         comment.setLikeCount(5);
         comment.setCommentCount(0);

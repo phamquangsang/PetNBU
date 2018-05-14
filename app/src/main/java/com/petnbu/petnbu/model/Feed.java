@@ -1,5 +1,6 @@
 package com.petnbu.petnbu.model;
 
+import android.arch.persistence.room.Embedded;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.TypeConverters;
 import android.support.annotation.NonNull;
@@ -16,12 +17,13 @@ public class Feed {
     @NonNull
     private String feedId;
 
-    private String name;
-    private String userId;
-    private Photo avatar;
+    @Embedded
+    private FeedUser feedUser;
 
     private List<Photo> photos;
     private int commentCount;
+    @Ignore
+    private Comment latestComment;
     private int likeCount;
     private String content;
     private Date timeCreated;
@@ -37,52 +39,21 @@ public class Feed {
     public Feed() {
     }
 
-    @Ignore
-    public Feed(@NonNull String feedId, String name, String userId, Photo avatar, List<Photo> photos, int commentCount, int likeCount, String content, Date timeCreated, Date timeUpdated, int status, boolean likeInProgress) {
-        this.feedId = feedId;
-        this.name = name;
-        this.userId = userId;
-        this.avatar = avatar;
-        this.photos = photos;
-        this.commentCount = commentCount;
-        this.likeCount = likeCount;
-        this.content = content;
-        this.timeCreated = timeCreated;
-        this.timeUpdated = timeUpdated;
-        this.status = status;
-        this.likeInProgress = likeInProgress;
-    }
-
+    @NonNull
     public String getFeedId() {
         return feedId;
     }
 
-    public void setFeedId(String feedId) {
+    public void setFeedId(@NonNull String feedId) {
         this.feedId = feedId;
     }
 
-    public String getName() {
-        return name;
+    public FeedUser getFeedUser() {
+        return feedUser;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public Photo getAvatar() {
-        return avatar;
-    }
-
-    public void setAvatar(Photo avatar) {
-        this.avatar = avatar;
+    public void setFeedUser(FeedUser feedUser) {
+        this.feedUser = feedUser;
     }
 
     public List<Photo> getPhotos() {
@@ -109,6 +80,14 @@ public class Feed {
         this.likeCount = likeCount;
     }
 
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
     public Date getTimeCreated() {
         return timeCreated;
     }
@@ -125,12 +104,13 @@ public class Feed {
         this.timeUpdated = timeUpdated;
     }
 
-    public String getContent() {
-        return content;
+    @Exclude
+    public int getStatus() {
+        return status;
     }
 
-    public void setContent(String content) {
-        this.content = content;
+    public void setStatus(int status) {
+        this.status = status;
     }
 
     @Exclude
@@ -142,14 +122,12 @@ public class Feed {
         this.likeInProgress = likeInProgress;
     }
 
-    @FeedEntity.LOCAL_STATUS
-    @Exclude
-    public int getStatus() {
-        return status;
+    public Comment getLatestComment() {
+        return latestComment;
     }
 
-    public void setStatus(@FeedEntity.LOCAL_STATUS int status) {
-        this.status = status;
+    public void setLatestComment(Comment latestComment) {
+        this.latestComment = latestComment;
     }
 
     @Override
@@ -157,31 +135,31 @@ public class Feed {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Feed that = (Feed) o;
+        Feed feed = (Feed) o;
 
-        if (commentCount != that.commentCount) return false;
-        if (likeCount != that.likeCount) return false;
-        if (status != that.status) return false;
-        if (likeInProgress != that.likeInProgress) return false;
-        if (!feedId.equals(that.feedId)) return false;
-        if (name != null ? !name.equals(that.name) : that.name != null) return false;
-        if (!userId.equals(that.userId)) return false;
-        if (avatar != null ? !avatar.equals(that.avatar) : that.avatar != null) return false;
-        if (photos != null ? !photos.equals(that.photos) : that.photos != null) return false;
-        if (content != null ? !content.equals(that.content) : that.content != null) return false;
-        if (timeCreated != null ? !timeCreated.equals(that.timeCreated) : that.timeCreated != null)
+        if (commentCount != feed.commentCount) return false;
+        if (likeCount != feed.likeCount) return false;
+        if (status != feed.status) return false;
+        if (likeInProgress != feed.likeInProgress) return false;
+        if (!feedId.equals(feed.feedId)) return false;
+        if (feedUser != null ? !feedUser.equals(feed.feedUser) : feed.feedUser != null)
             return false;
-        return timeUpdated != null ? timeUpdated.equals(that.timeUpdated) : that.timeUpdated == null;
+        if (photos != null ? !photos.equals(feed.photos) : feed.photos != null) return false;
+        if (latestComment != null ? !latestComment.equals(feed.latestComment) : feed.latestComment != null)
+            return false;
+        if (content != null ? !content.equals(feed.content) : feed.content != null) return false;
+        if (timeCreated != null ? !timeCreated.equals(feed.timeCreated) : feed.timeCreated != null)
+            return false;
+        return timeUpdated != null ? timeUpdated.equals(feed.timeUpdated) : feed.timeUpdated == null;
     }
 
     @Override
     public int hashCode() {
         int result = feedId.hashCode();
-        result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + userId.hashCode();
-        result = 31 * result + (avatar != null ? avatar.hashCode() : 0);
+        result = 31 * result + (feedUser != null ? feedUser.hashCode() : 0);
         result = 31 * result + (photos != null ? photos.hashCode() : 0);
         result = 31 * result + commentCount;
+        result = 31 * result + (latestComment != null ? latestComment.hashCode() : 0);
         result = 31 * result + likeCount;
         result = 31 * result + (content != null ? content.hashCode() : 0);
         result = 31 * result + (timeCreated != null ? timeCreated.hashCode() : 0);
@@ -189,5 +167,21 @@ public class Feed {
         result = 31 * result + status;
         result = 31 * result + (likeInProgress ? 1 : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "Feed{" +
+                "feedId='" + feedId + '\'' +
+                ", feedUser=" + feedUser +
+                ", photos=" + photos +
+                ", commentCount=" + commentCount +
+                ", likeCount=" + likeCount +
+                ", content='" + content + '\'' +
+                ", timeCreated=" + timeCreated +
+                ", timeUpdated=" + timeUpdated +
+                ", status=" + status +
+                ", likeInProgress=" + likeInProgress +
+                '}';
     }
 }

@@ -6,7 +6,6 @@ import android.arch.persistence.room.Delete;
 import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.OnConflictStrategy;
 import android.arch.persistence.room.Query;
-import android.arch.persistence.room.TypeConverter;
 import android.arch.persistence.room.TypeConverters;
 import android.arch.persistence.room.Update;
 
@@ -83,6 +82,7 @@ public abstract class FeedDao {
     @Query("SELECT feedId, name, userId, avatar, photos, commentCount, likeCount, content, feeds.timeCreated, feeds.timeUpdated, status, likeInProgress  " +
             "FROM feeds, users WHERE feeds.fromUserId = users.userId AND feedId = :feedId")
     public abstract LiveData<Feed> loadFeedById(String feedId);
+
 
     @Query("SELECT * FROM feeds WHERE feedId = :feedId")
     public abstract FeedEntity findFeedEntityById(String feedId);

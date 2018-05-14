@@ -111,7 +111,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
         private Feed mFeed;
         private final View.OnClickListener profileClickListener = v -> {
             if (mOnItemClickListener != null && getAdapterPosition() != RecyclerView.NO_POSITION) {
-                mOnItemClickListener.onProfileClicked(mFeeds.get(getAdapterPosition()).getUserId());
+                mOnItemClickListener.onProfileClicked(mFeeds.get(getAdapterPosition()).getFeedUser().getUserId());
             }
         };
 
@@ -195,10 +195,10 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
         }
 
         private void displayUserInfo() {
-            mBinding.tvName.setText(mFeed.getName());
-            if(mFeed.getAvatar() != null) {
-                String avatarUrl = !TextUtils.isEmpty(mFeed.getAvatar().getThumbnailUrl())
-                        ? mFeed.getAvatar().getThumbnailUrl() : mFeed.getAvatar().getOriginUrl();
+            mBinding.tvName.setText(mFeed.getFeedUser().getName());
+            if(mFeed.getFeedUser().getAvatar() != null) {
+                String avatarUrl = !TextUtils.isEmpty(mFeed.getFeedUser().getAvatar().getThumbnailUrl())
+                        ? mFeed.getFeedUser().getAvatar().getThumbnailUrl() : mFeed.getFeedUser().getAvatar().getOriginUrl();
                 mRequestManager.asBitmap()
                         .load(avatarUrl)
                         .apply(RequestOptions.centerCropTransform())
@@ -282,7 +282,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
         }
 
         private void displayText() {
-            SpannableStringBuilder builder = new SpannableStringBuilder(mFeed.getName() + "");
+            SpannableStringBuilder builder = new SpannableStringBuilder(mFeed.getFeedUser().getName() + "");
             builder.setSpan(new StyleSpan(Typeface.BOLD), 0, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             builder.setSpan(new ForegroundColorSpan(Color.BLACK), 0, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             builder.append("  ");

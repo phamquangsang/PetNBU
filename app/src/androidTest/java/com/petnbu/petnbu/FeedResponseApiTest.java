@@ -20,6 +20,7 @@ import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedEntity;
 import com.petnbu.petnbu.model.FeedResponse;
 import com.petnbu.petnbu.model.FeedUser;
+import com.petnbu.petnbu.model.FeedUserUI;
 import com.petnbu.petnbu.model.Paging;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.Resource;
@@ -42,6 +43,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 @RunWith(AndroidJUnit4.class)
 public class FeedResponseApiTest {
     private static final String TAG = FeedResponseApiTest.class.getSimpleName();
+
+
 
     @Test
     public void testLoadFeed() {

@@ -113,7 +113,7 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<RepliesRecy
 
         private void displayUserInfo() {
             mRequestManager.asBitmap()
-                    .load(mComment.getFeedUser().getPhotoUrl())
+                    .load(mComment.getFeedUser().getAvatar().getOriginUrl())
                     .apply(RequestOptions.centerCropTransform())
                     .into(new BitmapImageViewTarget(mBinding.imgProfile) {
                         @Override
@@ -131,7 +131,7 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<RepliesRecy
         }
 
         private void displayContent() {
-            SpannableStringBuilder builder = new SpannableStringBuilder(mComment.getFeedUser().getDisplayName() + "");
+            SpannableStringBuilder builder = new SpannableStringBuilder(mComment.getFeedUser().getName() + "");
             int start = 0;
             builder.setSpan(new StyleSpan(Typeface.BOLD), start, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             builder.setSpan(new ForegroundColorSpan(Color.BLACK), start, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -168,7 +168,7 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<RepliesRecy
                 mBinding.tvLatestComment.setCompoundDrawables(leftDrawable, null, null, null);
                 mBinding.tvLatestComment.setCompoundDrawablePadding((int) Utils.convertDpToPixel(context, 8));
 
-                SpannableStringBuilder builder = new SpannableStringBuilder(mComment.getLatestComment().getFeedUser().getDisplayName() + "");
+                SpannableStringBuilder builder = new SpannableStringBuilder(mComment.getLatestComment().getFeedUser().getName() + "");
                 int start = 0;
                 builder.setSpan(new StyleSpan(Typeface.BOLD), start, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                 builder.setSpan(new ForegroundColorSpan(Color.BLACK), start, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -180,7 +180,7 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<RepliesRecy
                 mBinding.tvLatestComment.setText(builder);
                 mBinding.tvPreviousReplies.setText(context.getString(R.string.feed_view_previous_replies, mComment.getCommentCount() - 1));
 
-                mRequestManager.asBitmap().load(mComment.getLatestComment().getFeedUser().getPhotoUrl())
+                mRequestManager.asBitmap().load(mComment.getLatestComment().getFeedUser().getAvatar().getOriginUrl())
                         .apply(RequestOptions.overrideOf(imageSize, imageSize))
                         .listener(new RequestListener<Bitmap>() {
                             @Override
