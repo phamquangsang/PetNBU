@@ -11,7 +11,6 @@ import com.petnbu.petnbu.PetApplication;
 import com.petnbu.petnbu.SharedPrefUtil;
 import com.petnbu.petnbu.SingleLiveEvent;
 import com.petnbu.petnbu.model.Feed;
-import com.petnbu.petnbu.model.FeedResponse;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.Status;
 import com.petnbu.petnbu.model.UserEntity;
@@ -80,12 +79,12 @@ public class CreateEditFeedViewModel extends ViewModel {
 
     public void saveFeed(String content, ArrayList<Photo> photos) {
         if(mIsNewFeed && TextUtils.isEmpty(mFeedId)) {
-            FeedResponse feed = new FeedResponse();
+            Feed feed = new Feed();
             feed.setContent(content);
             feed.setPhotos(photos);
             mFeedRepository.createNewFeed(feed);
         } else {
-            FeedResponse feed = new FeedResponse();
+            Feed feed = new Feed();
             feed.setFeedId(mFeedId);
             feed.setContent(content);
             feed.setPhotos(photos);

@@ -1,31 +1,30 @@
 package com.petnbu.petnbu.model;
 
+import android.arch.persistence.room.Embedded;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.TypeConverters;
-import android.support.annotation.NonNull;
 
 import com.google.firebase.firestore.Exclude;
+import com.google.firebase.firestore.ServerTimestamp;
 import com.petnbu.petnbu.db.PetTypeConverters;
 
 import java.util.Date;
 import java.util.List;
 
-
 @TypeConverters(value = PetTypeConverters.class)
 public class Feed {
-    @NonNull
+
     private String feedId;
-
-    private String name;
-    private String userId;
-    private Photo avatar;
-
+    @Embedded
+    private FeedUser feedUser;
     private List<Photo> photos;
     private int commentCount;
     private int likeCount;
     private String content;
-    private Date timeCreated;
-    private Date timeUpdated;
+    @Ignore
+    private Comment latestComment;
+    @ServerTimestamp private Date timeCreated;
+    @ServerTimestamp private Date timeUpdated;
 
     @FeedEntity.LOCAL_STATUS
     @Exclude
@@ -37,20 +36,18 @@ public class Feed {
     public Feed() {
     }
 
-    @Ignore
-    public Feed(@NonNull String feedId, String name, String userId, Photo avatar, List<Photo> photos, int commentCount, int likeCount, String content, Date timeCreated, Date timeUpdated, int status, boolean likeInProgress) {
+    public Feed(String feedId, FeedUser feedUser, List<Photo> photos, int commentCount, Comment latestComment, int likeCount, String content, Date timeCreated, Date timeUpdated, int status) {
         this.feedId = feedId;
-        this.name = name;
-        this.userId = userId;
-        this.avatar = avatar;
+        this.feedUser = feedUser;
         this.photos = photos;
         this.commentCount = commentCount;
+        this.latestComment = latestComment;
         this.likeCount = likeCount;
         this.content = content;
         this.timeCreated = timeCreated;
         this.timeUpdated = timeUpdated;
         this.status = status;
-        this.likeInProgress = likeInProgress;
+        this.likeInProgress = false;
     }
 
     public String getFeedId() {
@@ -61,28 +58,12 @@ public class Feed {
         this.feedId = feedId;
     }
 
-    public String getName() {
-        return name;
+    public FeedUser getFeedUser() {
+        return feedUser;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public Photo getAvatar() {
-        return avatar;
-    }
-
-    public void setAvatar(Photo avatar) {
-        this.avatar = avatar;
+    public void setFeedUser(FeedUser feedUser) {
+        this.feedUser = feedUser;
     }
 
     public List<Photo> getPhotos() {
@@ -133,6 +114,15 @@ public class Feed {
         this.content = content;
     }
 
+    @Ignore
+    public Comment getLatestComment() {
+        return latestComment;
+    }
+
+    public void setLatestComment(Comment latestComment) {
+        this.latestComment = latestComment;
+    }
+
     @Exclude
     public boolean isLikeInProgress() {
         return likeInProgress;
@@ -153,6 +143,21 @@ public class Feed {
     }
 
     @Override
+    public String toString() {
+        return "Feed{" +
+                "feedId='" + feedId + '\'' +
+                ", feedUser=" + feedUser +
+                ", photos=" + photos +
+                ", commentCount=" + commentCount +
+                ", likeCount=" + likeCount +
+                ", content='" + content + '\'' +
+                ", timeCreated=" + timeCreated +
+                ", timeUpdated=" + timeUpdated +
+                ", status=" + status +
+                '}';
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -164,11 +169,12 @@ public class Feed {
         if (status != that.status) return false;
         if (likeInProgress != that.likeInProgress) return false;
         if (!feedId.equals(that.feedId)) return false;
-        if (name != null ? !name.equals(that.name) : that.name != null) return false;
-        if (!userId.equals(that.userId)) return false;
-        if (avatar != null ? !avatar.equals(that.avatar) : that.avatar != null) return false;
+        if (feedUser != null ? !feedUser.equals(that.feedUser) : that.feedUser != null)
+            return false;
         if (photos != null ? !photos.equals(that.photos) : that.photos != null) return false;
         if (content != null ? !content.equals(that.content) : that.content != null) return false;
+        if (latestComment != null ? !latestComment.equals(that.latestComment) : that.latestComment != null)
+            return false;
         if (timeCreated != null ? !timeCreated.equals(that.timeCreated) : that.timeCreated != null)
             return false;
         return timeUpdated != null ? timeUpdated.equals(that.timeUpdated) : that.timeUpdated == null;
@@ -177,17 +183,24 @@ public class Feed {
     @Override
     public int hashCode() {
         int result = feedId.hashCode();
-        result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + userId.hashCode();
-        result = 31 * result + (avatar != null ? avatar.hashCode() : 0);
+        result = 31 * result + (feedUser != null ? feedUser.hashCode() : 0);
         result = 31 * result + (photos != null ? photos.hashCode() : 0);
         result = 31 * result + commentCount;
         result = 31 * result + likeCount;
         result = 31 * result + (content != null ? content.hashCode() : 0);
+        result = 31 * result + (latestComment != null ? latestComment.hashCode() : 0);
         result = 31 * result + (timeCreated != null ? timeCreated.hashCode() : 0);
         result = 31 * result + (timeUpdated != null ? timeUpdated.hashCode() : 0);
         result = 31 * result + status;
         result = 31 * result + (likeInProgress ? 1 : 0);
         return result;
     }
+
+    public FeedEntity toEntity(){
+        return new FeedEntity(getFeedId(), getFeedUser().getUserId(),
+                getPhotos(), getCommentCount(), getLikeCount(), getContent(),
+                getTimeCreated(), getTimeUpdated(), getStatus(), isLikeInProgress());
+    }
+
+
 }

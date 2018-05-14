@@ -14,6 +14,7 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    testBuildType "staging"
     defaultConfig {
         applicationId "com.petnbu.petnbu"
         minSdkVersion 16
@@ -21,7 +22,8 @@ android {
         multiDexEnabled true
         versionCode 1
         versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        // Specifies the fully-qualified class name of the test instrumentation runner.
+        testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
         vectorDrawables.useSupportLibrary = true
 
         multiDexEnabled true //important
@@ -50,19 +52,20 @@ android {
 }
 
 dependencies {
+    def work_version = "1.0.0-alpha01"
+    def room_version = "1.1.0"
+
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
     implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'com.android.support:design:27.1.1'
-    implementation 'com.android.support.constraint:constraint-layout:1.1.0-beta5'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.0'
     implementation 'com.android.support:support-vector-drawable:27.1.1'
     implementation 'com.android.support:support-v4:27.1.1'
     implementation 'com.android.support:support-emoji:27.1.1'
     implementation 'com.android.support:palette-v7:27.1.1'
     implementation 'com.android.support:recyclerview-v7:27.1.1'
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.1'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+
     implementation 'com.google.firebase:firebase-auth:15.0.0'
     implementation 'com.google.android.gms:play-services-auth:15.0.0'
     implementation 'com.google.firebase:firebase-firestore:15.0.0'
@@ -70,9 +73,6 @@ dependencies {
     implementation 'com.jakewharton.timber:timber:4.7.0'
     implementation 'com.github.bumptech.glide:glide:4.7.1'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.7.1'
-    // Room (use 1.1.0-beta3 for latest beta)
-    implementation 'android.arch.persistence.room:runtime:1.0.0'
-    annotationProcessor "android.arch.persistence.room:compiler:1.0.0"
     //dagger 2
     implementation 'com.google.dagger:dagger-android:2.11'
     implementation 'com.google.dagger:dagger-android-support:2.11'
@@ -86,15 +86,11 @@ dependencies {
     // alternatively, just LiveData
     implementation 'android.arch.lifecycle:livedata:1.1.1'
     annotationProcessor "android.arch.lifecycle:compiler:1.1.1"
-    // Room (use 1.1.0-beta3 for latest beta)
-    implementation 'android.arch.persistence.room:runtime:1.0.0'
-    annotationProcessor "android.arch.persistence.room:compiler:1.0.0"
     // Paging
     implementation 'android.arch.paging:runtime:1.0.0'
     // Test helpers for LiveData
     testImplementation 'android.arch.core:core-testing:1.1.1'
     // Test helpers for Room
-    testImplementation 'android.arch.persistence.room:testing:1.0.0'
     // Gson
     implementation 'com.google.code.gson:gson:2.8.2'
     //Glide
@@ -109,6 +105,34 @@ dependencies {
     implementation 'com.google.firebase:firebase-perf:15.0.0'
     implementation 'com.crashlytics.sdk.android:crashlytics:2.9.2'
     compile 'com.android.support:multidex:1.0.3'
+
+    // Required -- JUnit 4 framework
+    testImplementation 'junit:junit:4.12'
+    // Optional -- Mockito framework
+    testImplementation 'org.mockito:mockito-core:1.10.19'
+
+    // AndroidJUnitRunner and JUnit Rules
+    androidTestImplementation 'com.android.support:support-annotations:27.1.1'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test:rules:1.0.2'
+
+
+    //WorkManager
+    implementation "android.arch.work:work-runtime:$work_version" // use -ktx for Kotlin
+    // optional - Firebase JobDispatcher support
+    implementation "android.arch.work:work-firebase:$work_version"
+    // optional - Test helpers
+    androidTestImplementation "android.arch.work:work-testing:$work_version"
+
+
+    //Room Persistent
+    implementation "android.arch.persistence.room:runtime:$room_version"
+    annotationProcessor "android.arch.persistence.room:compiler:$room_version"
+    // optional - Guava support for Room, including Optional and ListenableFuture
+    implementation "android.arch.persistence.room:guava:$room_version"
+    // Test helpers
+    testImplementation "android.arch.persistence.room:testing:$room_version"
+
 
 }
 

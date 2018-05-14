@@ -1,60 +1,73 @@
 package com.petnbu.petnbu.model;
 
+import com.google.firebase.firestore.Exclude;
 import com.google.firebase.firestore.ServerTimestamp;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Comment {
 
-    private String mId;
-    private FeedUser mFeedUser;
-    private String mContent;
-    private Photo mPhoto;
-    private int mLikeCount;
-    private int mCommentCount;
-    private Comment mLatestComment;
+    private String id;
+    private FeedUser feedUser;
+    private String content;
+    private Photo photo;
+    private int likeCount;
+    private int commentCount;
+    private Comment latestComment;
+    private String parentCommentId;
+    private String parentFeedId;
+
+    @Exclude
+    private int localStatus;
 
     @ServerTimestamp private Date timeCreated;
     @ServerTimestamp private Date timeUpdated;
 
+    public Comment() {
+    }
+
+
+
     public String getId() {
-        return mId;
+        return id;
     }
 
     public void setId(String id) {
-        mId = id;
+        this.id = id;
     }
 
     public FeedUser getFeedUser() {
-        return mFeedUser;
+        return feedUser;
     }
 
     public void setFeedUser(FeedUser feedUser) {
-        mFeedUser = feedUser;
+        this.feedUser = feedUser;
     }
 
     public String getContent() {
-        return mContent;
+        return content;
     }
 
     public void setContent(String content) {
-        mContent = content;
+        this.content = content;
     }
 
     public Photo getPhoto() {
-        return mPhoto;
+        return photo;
     }
 
     public void setPhoto(Photo photo) {
-        mPhoto = photo;
+        this.photo = photo;
     }
 
     public int getLikeCount() {
-        return mLikeCount;
+        return likeCount;
     }
 
     public void setLikeCount(int likeCount) {
-        mLikeCount = likeCount;
+        this.likeCount = likeCount;
     }
 
     public Date getTimeCreated() {
@@ -74,19 +87,35 @@ public class Comment {
     }
 
     public int getCommentCount() {
-        return mCommentCount;
+        return commentCount;
     }
 
     public void setCommentCount(int commentCount) {
-        mCommentCount = commentCount;
+        this.commentCount = commentCount;
     }
 
     public Comment getLatestComment() {
-        return mLatestComment;
+        return latestComment;
     }
 
     public void setLatestComment(Comment latestComment) {
-        mLatestComment = latestComment;
+        this.latestComment = latestComment;
+    }
+
+    public String getParentCommentId() {
+        return parentCommentId;
+    }
+
+    public void setParentCommentId(String parentCommentId) {
+        this.parentCommentId = parentCommentId;
+    }
+
+    public String getParentFeedId() {
+        return parentFeedId;
+    }
+
+    public void setParentFeedId(String parentFeedId) {
+        this.parentFeedId = parentFeedId;
     }
 
     @Override
@@ -96,28 +125,70 @@ public class Comment {
 
         Comment comment = (Comment) o;
 
-        if (getLikeCount() != comment.getLikeCount()) return false;
-        if (getCommentCount() != comment.getCommentCount()) return false;
-        if (!getId().equals(comment.getId())) return false;
-        if (!getFeedUser().equals(comment.getFeedUser())) return false;
-        if (getContent() != null ? !getContent().equals(comment.getContent()) : comment.getContent() != null)
+        if (likeCount != comment.likeCount) return false;
+        if (commentCount != comment.commentCount) return false;
+        if (!id.equals(comment.id)) return false;
+        if (feedUser != null ? !feedUser.equals(comment.feedUser) : comment.feedUser != null)
             return false;
-        if (getPhoto() != null ? !getPhoto().equals(comment.getPhoto()) : comment.getPhoto() != null)
+        if (content != null ? !content.equals(comment.content) : comment.content != null)
             return false;
-        if (!getTimeCreated().equals(comment.getTimeCreated())) return false;
-        return getTimeUpdated().equals(comment.getTimeUpdated());
+        if (photo != null ? !photo.equals(comment.photo) : comment.photo != null) return false;
+        if (latestComment != null ? !latestComment.equals(comment.latestComment) : comment.latestComment != null)
+            return false;
+        if (parentCommentId != null ? !parentCommentId.equals(comment.parentCommentId) : comment.parentCommentId != null)
+            return false;
+        if (parentFeedId != null ? !parentFeedId.equals(comment.parentFeedId) : comment.parentFeedId != null)
+            return false;
+        if (timeCreated != null ? !timeCreated.equals(comment.timeCreated) : comment.timeCreated != null)
+            return false;
+        return timeUpdated != null ? timeUpdated.equals(comment.timeUpdated) : comment.timeUpdated == null;
     }
 
     @Override
     public int hashCode() {
-        int result = getId().hashCode();
-        result = 31 * result + getFeedUser().hashCode();
-        result = 31 * result + (getContent() != null ? getContent().hashCode() : 0);
-        result = 31 * result + (getPhoto() != null ? getPhoto().hashCode() : 0);
-        result = 31 * result + getLikeCount();
-        result = 31 * result + getCommentCount();
-        result = 31 * result + getTimeCreated().hashCode();
-        result = 31 * result + getTimeUpdated().hashCode();
+        int result = id.hashCode();
+        result = 31 * result + (feedUser != null ? feedUser.hashCode() : 0);
+        result = 31 * result + (content != null ? content.hashCode() : 0);
+        result = 31 * result + (photo != null ? photo.hashCode() : 0);
+        result = 31 * result + likeCount;
+        result = 31 * result + commentCount;
+        result = 31 * result + (latestComment != null ? latestComment.hashCode() : 0);
+        result = 31 * result + (parentCommentId != null ? parentCommentId.hashCode() : 0);
+        result = 31 * result + (parentFeedId != null ? parentFeedId.hashCode() : 0);
+        result = 31 * result + (timeCreated != null ? timeCreated.hashCode() : 0);
+        result = 31 * result + (timeUpdated != null ? timeUpdated.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "Comment{" +
+                "id='" + id + '\'' +
+                ", feedUser=" + feedUser +
+                ", content='" + content + '\'' +
+                ", photo=" + photo +
+                ", likeCount=" + likeCount +
+                ", commentCount=" + commentCount +
+                ", latestComment=" + latestComment +
+                ", parentCommentId='" + parentCommentId + '\'' +
+                ", parentFeedId='" + parentFeedId + '\'' +
+                ", timeCreated=" + timeCreated +
+                ", timeUpdated=" + timeUpdated +
+                '}';
+    }
+
+    public Map<String, Object> toMap(){
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", getId());
+        map.put("feedUser", feedUser!= null ? feedUser.toMap() : null);
+        map.put("content", content);
+        map.put("photo", photo != null ? photo.toMap() : null);
+        map.put("likeCount", likeCount);
+        map.put("commentCount", commentCount);
+        map.put("latestComment", latestComment != null ? latestComment.toMap() : null);
+        map.put("parentCommentId", parentCommentId);
+        map.put("timeCreated", timeCreated);
+        map.put("timeUpdated", timeUpdated);
+        return map;
     }
 }

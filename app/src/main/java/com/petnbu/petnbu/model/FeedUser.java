@@ -1,55 +1,55 @@
 package com.petnbu.petnbu.model;
 
 import android.arch.persistence.room.Ignore;
-import android.os.Parcel;
-import android.os.Parcelable;
+import android.support.annotation.NonNull;
 
-public class FeedUser implements Parcelable {
+import java.util.HashMap;
+import java.util.Map;
+
+public class FeedUser {
+    @NonNull
     private String userId;
-    private String photoUrl;
-    private String displayName;
+    private Photo avatar;
+    private String name;
 
     public FeedUser() {
     }
 
     @Ignore
-    public FeedUser(String userId, String photoUrl, String displayName) {
+    public FeedUser(@NonNull String userId, Photo avatar, String name) {
         this.userId = userId;
-        this.photoUrl = photoUrl;
-        this.displayName = displayName;
+        this.avatar = avatar;
+        this.name = name;
     }
 
+    @NonNull
     public String getUserId() {
         return userId;
     }
 
-    public void setUserId(String userId) {
+    public void setUserId(@NonNull String userId) {
         this.userId = userId;
     }
 
-    public String getPhotoUrl() {
-        return photoUrl;
+    public Photo getAvatar() {
+        return avatar;
     }
 
-    public void setPhotoUrl(String photoUrl) {
-        this.photoUrl = photoUrl;
+    public void setAvatar(Photo avatar) {
+        this.avatar = avatar;
     }
 
-    public String getDisplayName() {
-        return displayName;
+    public void setAvatarUrl(String originUrl){
+        Photo photo = new Photo(originUrl, null, null, null, 0, 0);
+        setAvatar(photo);
     }
 
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
+    public String getName() {
+        return name;
     }
 
-    @Override
-    public String toString() {
-        return "FeedUser{" +
-                "userId='" + userId + '\'' +
-                ", photoUrl='" + photoUrl + '\'' +
-                ", displayName='" + displayName + '\'' +
-                '}';
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Override
@@ -59,48 +59,34 @@ public class FeedUser implements Parcelable {
 
         FeedUser feedUser = (FeedUser) o;
 
-        if (!getUserId().equals(feedUser.getUserId())) return false;
-        if (getPhotoUrl() != null ? !getPhotoUrl().equals(feedUser.getPhotoUrl()) : feedUser.getPhotoUrl() != null)
+        if (!userId.equals(feedUser.userId)) return false;
+        if (avatar != null ? !avatar.equals(feedUser.avatar) : feedUser.avatar != null)
             return false;
-        return getDisplayName() != null ? getDisplayName().equals(feedUser.getDisplayName()) : feedUser.getDisplayName() == null;
+        return name != null ? name.equals(feedUser.name) : feedUser.name == null;
     }
 
     @Override
     public int hashCode() {
-        int result = getUserId().hashCode();
-        result = 31 * result + (getPhotoUrl() != null ? getPhotoUrl().hashCode() : 0);
-        result = 31 * result + (getDisplayName() != null ? getDisplayName().hashCode() : 0);
+        int result = userId.hashCode();
+        result = 31 * result + (avatar != null ? avatar.hashCode() : 0);
+        result = 31 * result + (name != null ? name.hashCode() : 0);
         return result;
     }
 
-
-    @Override
-    public int describeContents() {
-        return 0;
+    public Map<String, Object> toMap(){
+        Map<String, Object> map = new HashMap<>();
+        map.put("userId", userId);
+        map.put("avatar", avatar.toMap());
+        map.put("name", name);
+        return map;
     }
 
     @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(this.userId);
-        dest.writeString(this.photoUrl);
-        dest.writeString(this.displayName);
+    public String toString() {
+        return "FeedUser{" +
+                "userId='" + userId + '\'' +
+                ", avatar=" + avatar +
+                ", name='" + name + '\'' +
+                '}';
     }
-
-    protected FeedUser(Parcel in) {
-        this.userId = in.readString();
-        this.photoUrl = in.readString();
-        this.displayName = in.readString();
-    }
-
-    public static final Creator<FeedUser> CREATOR = new Creator<FeedUser>() {
-        @Override
-        public FeedUser createFromParcel(Parcel source) {
-            return new FeedUser(source);
-        }
-
-        @Override
-        public FeedUser[] newArray(int size) {
-            return new FeedUser[size];
-        }
-    };
 }

@@ -26,8 +26,7 @@ public abstract class UserDao {
     public abstract UserEntity findUserById(String id);
 
     public void insert(FeedUser feedUser){
-        Photo avatar = new Photo(feedUser.getPhotoUrl(), null, null, null, 0,0);
-        insert(new UserEntity(feedUser.getUserId(), avatar, feedUser.getDisplayName(), null, null, null));
+        insert(new UserEntity(feedUser.getUserId(), feedUser.getAvatar(), feedUser.getName(), null, null, null));
     }
 
     public void insertFromFeedUsers(List<FeedUser> feedUserList){

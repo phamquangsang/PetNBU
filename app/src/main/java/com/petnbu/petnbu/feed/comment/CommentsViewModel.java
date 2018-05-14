@@ -89,8 +89,7 @@ public class CommentsViewModel extends ViewModel {
     private Comment createCommentFromFeed(Feed feed) {
         Comment comment = new Comment();
         comment.setId(feed.getFeedId());
-        FeedUser feedUser = new FeedUser(feed.getUserId(), feed.getAvatar().getOriginUrl(), feed.getName());
-        comment.setFeedUser(feedUser);
+        comment.setFeedUser(feed.getFeedUser());
         comment.setContent(feed.getContent());
         comment.setTimeCreated(feed.getTimeCreated());
         return comment;
