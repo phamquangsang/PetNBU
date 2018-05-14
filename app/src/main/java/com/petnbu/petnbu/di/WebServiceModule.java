@@ -1,6 +1,7 @@
 package com.petnbu.petnbu.di;
 
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreSettings;
 import com.petnbu.petnbu.api.FirebaseService;
 import com.petnbu.petnbu.api.WebService;
 
@@ -18,7 +19,13 @@ public class WebServiceModule {
     @Singleton
     @Provides
     FirebaseFirestore provideFirebaseFirestore(){
-        return FirebaseFirestore.getInstance();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
+                .setPersistenceEnabled(false)
+                .build();
+        db.setFirestoreSettings(settings);
+
+        return db;
     }
 
     @Singleton
