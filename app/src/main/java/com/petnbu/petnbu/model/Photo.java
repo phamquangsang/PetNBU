@@ -3,6 +3,9 @@ package com.petnbu.petnbu.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class Photo implements Parcelable {
 
     private String originUrl;   //origin
@@ -163,4 +166,16 @@ public class Photo implements Parcelable {
             return new Photo[size];
         }
     };
+
+    public Map<String, Object> toMap() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("originUrl", originUrl);
+        map.put("largeUrl", largeUrl);
+        map.put("mediumUrl", mediumUrl);
+        map.put("smallUrl", smallUrl);
+        map.put("thumbnailUrl", thumbnailUrl);
+        map.put("width", width);
+        map.put("height", height);
+        return map;
+    }
 }

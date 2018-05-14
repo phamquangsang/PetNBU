@@ -1,8 +1,12 @@
 package com.petnbu.petnbu.model;
 
+import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Ignore;
 import android.os.Parcel;
 import android.os.Parcelable;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class FeedUser implements Parcelable {
     private String userId;
@@ -103,4 +107,12 @@ public class FeedUser implements Parcelable {
             return new FeedUser[size];
         }
     };
+
+    public Map<String, Object> toMap() {
+        Map<String, Object> result = new HashMap<>();
+        result.put("userId", userId);
+        result.put("photoUrl", photoUrl);
+        result.put("displayName", displayName);
+        return result;
+    }
 }

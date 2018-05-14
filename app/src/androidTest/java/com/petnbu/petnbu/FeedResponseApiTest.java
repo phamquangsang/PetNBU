@@ -17,10 +17,10 @@ import com.petnbu.petnbu.api.FirebaseService;
 import com.petnbu.petnbu.api.WebService;
 import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.model.Feed;
-import com.petnbu.petnbu.model.FeedResponse;
 import com.petnbu.petnbu.model.FeedEntity;
-import com.petnbu.petnbu.model.Paging;
+import com.petnbu.petnbu.model.FeedResponse;
 import com.petnbu.petnbu.model.FeedUser;
+import com.petnbu.petnbu.model.Paging;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.Resource;
 import com.petnbu.petnbu.repo.FeedRepository;
@@ -48,7 +48,7 @@ public class FeedResponseApiTest {
         FeedUser userNhat = new FeedUser("2", "https://developer.android.com/static/images/android_logo_2x.png", "Nhat Nhat");
         List<Photo> photo2 = new ArrayList<>();
         photo2.add(new Photo("https://picsum.photos/1000/600/?image=383", "https://picsum.photos/500/300/?image=383", "https://picsum.photos/250/150/?image=383", "https://picsum.photos/100/60/?image=383", 1000, 600));
-        FeedResponse feedResponse1 = new FeedResponse("2", userNhat, photo2, 12, 14, "", new Date(), new Date(), FeedEntity.STATUS_NEW);
+        FeedResponse feedResponse1 = new FeedResponse("2", userNhat, photo2, 12, null, 14, "", new Date(), new Date(), FeedEntity.STATUS_NEW);
 
         AppExecutors appExecutors = PetApplication.getAppComponent().getAppExecutor();
         PetDb petDb = PetApplication.getAppComponent().getPetDb();
@@ -70,12 +70,12 @@ public class FeedResponseApiTest {
         List<Photo> photo1 = new ArrayList<>();
         photo1.add(new Photo("https://picsum.photos/1200/1300/?image=381", "https://picsum.photos/600/650/?image=381", "https://picsum.photos/300/325/?image=381", "https://picsum.photos/120/130/?image=381", 1200, 1300));
         photo1.add(new Photo("https://picsum.photos/1200/1300/?image=382", "https://picsum.photos/600/650/?image=382", "https://picsum.photos/300/325/?image=382", "https://picsum.photos/120/130/?image=382", 1200, 1300));
-        FeedResponse feedResponse = new FeedResponse("1", userSang, photo1, 10, 12, "", new Date(), new Date(), FeedEntity.STATUS_NEW);
+        FeedResponse feedResponse = new FeedResponse("1", userSang, photo1, 10, null, 12, "", new Date(), new Date(), FeedEntity.STATUS_NEW);
 
         FeedUser userNhat = new FeedUser("2", "https://developer.android.com/static/images/android_logo_2x.png", "Nhat Nhat");
         List<Photo> photo2 = new ArrayList<>();
         photo2.add(new Photo("https://picsum.photos/1000/600/?image=383", "https://picsum.photos/500/300/?image=383", "https://picsum.photos/250/150/?image=383", "https://picsum.photos/100/60/?image=383", 1000, 600));
-        FeedResponse feedResponse1 = new FeedResponse("2", userNhat, photo2, 12, 14, "", new Date(), new Date(),FeedEntity.STATUS_NEW);
+        FeedResponse feedResponse1 = new FeedResponse("2", userNhat, photo2, 12, null, 14, "", new Date(), new Date(),FeedEntity.STATUS_NEW);
 
         for (int i = 0; i < 30; i++) {
             webService.createFeed(i % 2 == 0 ? feedResponse : feedResponse1);

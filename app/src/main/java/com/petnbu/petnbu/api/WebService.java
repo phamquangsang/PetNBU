@@ -2,6 +2,7 @@ package com.petnbu.petnbu.api;
 
 import android.arch.lifecycle.LiveData;
 
+import com.google.android.gms.common.api.Api;
 import com.petnbu.petnbu.model.Comment;
 import com.petnbu.petnbu.model.FeedResponse;
 import com.petnbu.petnbu.model.UserEntity;
@@ -33,6 +34,12 @@ public interface WebService {
     void updateUser(UserEntity userEntity, SuccessCallback<Void> callback);
 
     LiveData<ApiResponse<List<Comment>>> getComments(String feedId);
+
+    LiveData<ApiResponse<List<Comment>>> getCommentsPaging(String feedId, String commentId);
+
+    LiveData<ApiResponse<Comment>> createFeedComment(Comment comment, String feedId);
+
+    LiveData<ApiResponse<Comment>> createReplyComment(Comment comment, String parentCommentId);
 
     LiveData<ApiResponse<List<Comment>>> getCommentsByComment(String commentId);
 }

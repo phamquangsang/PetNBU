@@ -386,4 +386,19 @@ public class FakeWebService implements WebService {
         commentsLiveData.setValue(new ApiResponse<>(comments, true, null));
         return commentsLiveData;
     }
+
+    @Override
+    public LiveData<ApiResponse<List<Comment>>> getCommentsPaging(String feedId, String commentId) {
+        return null;
+    }
+
+    @Override
+    public LiveData<ApiResponse<Comment>> createFeedComment(Comment comment, String feedId) {
+        return null;
+    }
+
+    @Override
+    public LiveData<ApiResponse<Comment>> createReplyComment(Comment comment, String parentCommentId) {
+        return null;
+    }
 }

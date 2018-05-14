@@ -96,7 +96,7 @@ public class CreateEditFeedJob extends JobService {
             }
             UserEntity userEntity = mUserDao.findUserById(feedEntity.getFromUserId());
             FeedUser feedUser = new FeedUser(userEntity.getUserId(), userEntity.getAvatar().getOriginUrl(), userEntity.getName());
-            mFeedResponse = new FeedResponse(feedEntity.getFeedId(), feedUser, feedEntity.getPhotos(), feedEntity.getCommentCount()
+            mFeedResponse = new FeedResponse(feedEntity.getFeedId(), feedUser, feedEntity.getPhotos(), feedEntity.getCommentCount(), null
                     , feedEntity.getLikeCount(), feedEntity.getContent(), feedEntity.getTimeCreated()
                     , feedEntity.getTimeUpdated(), feedEntity.getStatus());
 
