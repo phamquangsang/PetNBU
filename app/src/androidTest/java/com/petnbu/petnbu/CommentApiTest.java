@@ -11,7 +11,6 @@ import com.petnbu.petnbu.api.FirebaseService;
 import com.petnbu.petnbu.api.WebService;
 import com.petnbu.petnbu.model.Comment;
 import com.petnbu.petnbu.model.Feed;
-import com.petnbu.petnbu.model.FeedResponse;
 import com.petnbu.petnbu.util.IdUtil;
 
 import org.junit.Test;
@@ -37,13 +36,13 @@ public class CommentApiTest {
         CountDownLatch signalFeed = new CountDownLatch(1);
 
         appExecutors.networkIO().execute(() ->{
-            LiveData<ApiResponse<FeedResponse>> feedApiResponse = webService.getFeed("01AHzDY3dxhCP74ZpbWy");
-            feedApiResponse.observeForever(new Observer<ApiResponse<FeedResponse>>() {
+            LiveData<ApiResponse<Feed>> feedApiResponse = webService.getFeed("01AHzDY3dxhCP74ZpbWy");
+            feedApiResponse.observeForever(new Observer<ApiResponse<Feed>>() {
                 @Override
-                public void onChanged(@Nullable ApiResponse<FeedResponse> feedResponseApiResponse) {
+                public void onChanged(@Nullable ApiResponse<Feed> feedResponseApiResponse) {
                     if(feedResponseApiResponse!= null && feedResponseApiResponse.isSucceed){
                         feedApiResponse.removeObserver(this);
-                        FeedResponse feed = feedResponseApiResponse.body;
+                        Feed feed = feedResponseApiResponse.body;
                         Comment comment = new Comment();
                         comment.setParentFeedId(feed.getFeedId());
                         comment.setContent("this is the test comment");
