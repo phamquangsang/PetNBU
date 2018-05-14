@@ -38,6 +38,7 @@ import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedEntity;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.util.ColorUtils;
+import com.petnbu.petnbu.util.TraceUtils;
 
 import java.util.Calendar;
 import java.util.List;
@@ -71,7 +72,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.bindData(mFeeds.get(position));
+        TraceUtils.begin("onBindFeed", () -> holder.bindData(mFeeds.get(position)));
     }
 
     @Override

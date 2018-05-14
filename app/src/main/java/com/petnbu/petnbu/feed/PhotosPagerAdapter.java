@@ -60,7 +60,6 @@ public class PhotosPagerAdapter extends PagerAdapter {
         String photoUrl = getPhotoUrl(mFeed.getPhotos().get(position));
         mRequestManager
                 .load(!TextUtils.isEmpty(photoUrl) ? photoUrl : mFeed.getPhotos().get(position).getOriginUrl())
-                .apply(RequestOptions.formatOf(DecodeFormat.PREFER_RGB_565))
                 .apply(RequestOptions.centerInsideTransform())
                 .into(viewFeedPhotosBinding.imgContent);
         viewFeedPhotosBinding.imgContent.setOnClickListener(onPhotoClickedListener);

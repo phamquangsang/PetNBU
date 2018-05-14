@@ -141,9 +141,13 @@ public class FeedsFragment extends Fragment {
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
                 if (dy > 0) {
-                    mBinding.fabNewPost.hide();
+                    if(mBinding.fabNewPost.isShown()){
+                        mBinding.fabNewPost.hide();
+                    }
                 } else if (dy < 0) {
-                    mBinding.fabNewPost.show();
+                    if(!mBinding.fabNewPost.isShown()){
+                        mBinding.fabNewPost.show();
+                    }
                 }
 
                 LinearLayoutManager layoutManager = (LinearLayoutManager)
