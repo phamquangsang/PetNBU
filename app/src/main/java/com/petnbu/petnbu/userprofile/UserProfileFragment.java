@@ -18,6 +18,7 @@ import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.databinding.FragmentFeedProfileListBinding;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedUI;
+import com.petnbu.petnbu.model.Paging;
 import com.petnbu.petnbu.model.UserEntity;
 
 import timber.log.Timber;
@@ -111,7 +112,7 @@ public class UserProfileFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         mViewModel = ViewModelProviders.of(getActivity()).get(UserProfileViewModel.class);
-        mViewModel.getFeeds(mUserId).observe(this, feedsResource -> {
+        mViewModel.getFeeds(Paging.userFeedsPagingId(mUserId)).observe(this, feedsResource -> {
             Timber.i("onChanged %s :", feedsResource == null ? "null" : feedsResource.toString());
             if (feedsResource != null && feedsResource.data != null) {
                 mAdapter.replace(feedsResource.data);

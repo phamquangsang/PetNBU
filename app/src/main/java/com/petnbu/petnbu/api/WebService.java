@@ -32,7 +32,7 @@ public interface WebService {
 
     void updateUser(UserEntity userEntity, SuccessCallback<Void> callback);
 
-    LiveData<ApiResponse<List<Comment>>> getComments(String feedId);
+    LiveData<ApiResponse<List<Comment>>> getFeedComments(String feedId, long after, int limit);
 
     LiveData<ApiResponse<List<Comment>>> getCommentsPaging(String feedId, String commentId);
 

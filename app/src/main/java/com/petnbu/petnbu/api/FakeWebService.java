@@ -252,7 +252,7 @@ public class FakeWebService implements WebService {
     public LiveData<ApiResponse<List<Feed>>> getUserFeed(String userId, String afterFeedId, int limit) {
         return null;
     }
-    public LiveData<ApiResponse<List<Comment>>> getComments(String feedId) {
+    public LiveData<ApiResponse<List<Comment>>> getFeedComments(String feedId, long after, int limit) {
         MutableLiveData<ApiResponse<List<Comment>>> commentsLiveData = new MutableLiveData<>();
         List<Comment> comments = new ArrayList<>();
 

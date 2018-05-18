@@ -33,6 +33,9 @@ public class CommentEntity {
     @Nullable
     private String parentFeedId;
 
+    @Nullable
+    private String latestCommentId;
+
     @Exclude
     private int localStatus;
 
@@ -46,7 +49,7 @@ public class CommentEntity {
     @Ignore
     public CommentEntity(@NonNull String id, String ownerId, String content, Photo photo, int likeCount,
                          int commentCount, @Nullable String parentCommentId, @Nullable String parentFeedId,
-                         int localStatus, Date timeCreated, Date timeUpdated) {
+                         @Nullable String latestCommentId, int localStatus, Date timeCreated, Date timeUpdated) {
         this.id = id;
         this.ownerId = ownerId;
         this.content = content;
@@ -55,6 +58,7 @@ public class CommentEntity {
         this.commentCount = commentCount;
         this.parentCommentId = parentCommentId;
         this.parentFeedId = parentFeedId;
+        this.latestCommentId = latestCommentId;
         this.localStatus = localStatus;
         this.timeCreated = timeCreated;
         this.timeUpdated = timeUpdated;
@@ -146,5 +150,14 @@ public class CommentEntity {
 
     public void setParentFeedId(String parentFeedId) {
         this.parentFeedId = parentFeedId;
+    }
+
+    @Nullable
+    public String getLatestCommentId() {
+        return latestCommentId;
+    }
+
+    public void setLatestCommentId(@Nullable String latestCommentId) {
+        this.latestCommentId = latestCommentId;
     }
 }

@@ -7,12 +7,14 @@ import android.support.annotation.Nullable;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.firestore.Transaction;
 import com.google.firebase.firestore.WriteBatch;
@@ -267,7 +269,7 @@ public class FirebaseService implements WebService {
         return result;
     }
 
-    public LiveData<ApiResponse<List<UserEntity>>> getAllUser(int limit){
+    public LiveData<ApiResponse<List<UserEntity>>> getAllUser(int limit) {
         MutableLiveData<ApiResponse<List<UserEntity>>> result = new MutableLiveData<>();
         List<UserEntity> users = new ArrayList<>();
         mDb.collection(USERS).get()
@@ -352,8 +354,28 @@ public class FirebaseService implements WebService {
     }
 
     @Override
-    public LiveData<ApiResponse<List<Comment>>> getComments(String feedId) {
-        return null;
+    public LiveData<ApiResponse<List<Comment>>> getFeedComments(String feedId, long after, int limit) {
+        MutableLiveData<ApiResponse<List<Comment>>> result = new MutableLiveData<>();
+        String feedCommentsPath = String.format("global_feeds/%s/comments", feedId);
+        CollectionReference ref = mDb.collection(feedCommentsPath);
+        ref.orderBy("timeCreated").startAfter(after).limit(limit)
+                .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                Timber.i("getFeedComments succeed");
+                List<Comment> comments = new ArrayList<>();
+                for (DocumentSnapshot cmtSnapShot : queryDocumentSnapshots) {
+                    comments.add(cmtSnapShot.toObject(Comment.class));
+                }
+                result.setValue(new ApiResponse<>(comments, true, null));
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                result.setValue(new ApiResponse<>(null, false, e.getMessage()));
+            }
+        });
+        return result;
     }
 
     @Override

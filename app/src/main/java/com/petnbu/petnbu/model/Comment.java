@@ -3,6 +3,7 @@ package com.petnbu.petnbu.model;
 import android.arch.persistence.room.Embedded;
 import android.arch.persistence.room.Ignore;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.google.firebase.firestore.Exclude;
 import com.google.firebase.firestore.ServerTimestamp;
@@ -19,16 +20,21 @@ public class Comment {
     private Photo photo;
     private int likeCount;
     private int commentCount;
+    @Nullable
     private Comment latestComment;
+    @Nullable
     private String parentCommentId;
+    @Nullable
     private String parentFeedId;
 
     @Exclude
     @LocalStatus.LOCAL_STATUS
     private int localStatus;
 
-    @ServerTimestamp private Date timeCreated;
-    @ServerTimestamp private Date timeUpdated;
+    @ServerTimestamp
+    private Date timeCreated;
+    @ServerTimestamp
+    private Date timeUpdated;
 
     public Comment() {
     }
@@ -209,10 +215,10 @@ public class Comment {
                 '}';
     }
 
-    public Map<String, Object> toMap(){
+    public Map<String, Object> toMap() {
         Map<String, Object> map = new HashMap<>();
         map.put("id", getId());
-        map.put("feedUser", feedUser!= null ? feedUser.toMap() : null);
+        map.put("feedUser", feedUser != null ? feedUser.toMap() : null);
         map.put("content", content);
         map.put("photo", photo != null ? photo.toMap() : null);
         map.put("likeCount", likeCount);
@@ -224,8 +230,8 @@ public class Comment {
         return map;
     }
 
-    public CommentEntity toEntity(){
+    public CommentEntity toEntity() {
         return new CommentEntity(id, feedUser.getUserId(), content, photo, likeCount, commentCount,
-                parentCommentId, parentFeedId, localStatus, timeCreated, timeUpdated);
+                parentCommentId, parentFeedId, latestComment == null ? null : latestComment.getId(), localStatus, timeCreated, timeUpdated);
     }
 }
