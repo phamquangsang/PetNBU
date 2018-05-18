@@ -74,4 +74,14 @@ public class Paging {
     public void setEnded(boolean ended) {
         this.ended = ended;
     }
+
+    public  void replaceId(String oldId, String newId){
+        for (int i = 0; i < ids.size(); i++) {
+            String id = ids.get(i);
+            if (id.equals(oldId)) {
+                ids.set(i, newId);
+                return;
+            }
+        }
+    }
 }

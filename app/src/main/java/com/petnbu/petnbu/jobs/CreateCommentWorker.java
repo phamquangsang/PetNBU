@@ -16,6 +16,7 @@ import com.petnbu.petnbu.db.UserDao;
 import com.petnbu.petnbu.model.Comment;
 import com.petnbu.petnbu.model.CommentEntity;
 import com.petnbu.petnbu.model.FeedUser;
+import com.petnbu.petnbu.model.Paging;
 import com.petnbu.petnbu.model.UserEntity;
 
 import java.util.concurrent.CountDownLatch;
@@ -89,6 +90,8 @@ public class CreateCommentWorker extends Worker {
 
     private void createComment(Comment comment) throws InterruptedException {
         CountDownLatch countDownLatch = new CountDownLatch(1);
+        final String oldCommentId = comment.getId();
+
         LiveData<ApiResponse<Comment>> apiResponse = mWebService.createFeedComment(comment, comment.getParentFeedId());
         apiResponse.observeForever(new Observer<ApiResponse<Comment>>() {
             @Override
@@ -98,17 +101,26 @@ public class CreateCommentWorker extends Worker {
                 if(commentApiResponse != null && commentApiResponse.isSucceed && commentApiResponse.body != null) {
                     Timber.d("create comment %s success", comment.getId());
                     Comment newComment = commentApiResponse.body;
-                    newComment.setLocalStatus(STATUS_DONE);
-                    mAppExecutors.diskIO().execute(() -> mCommentDao.insertFromComment(newComment));
 
+                    mAppExecutors.diskIO().execute(() -> mPetDb.runInTransaction(() -> {
+                        Paging feedCommentPaging = mPetDb.feedDao().findFeedPaging(Paging.feedCommentsPagingId(comment.getParentFeedId()));
+                        if(feedCommentPaging != null) {
+                            feedCommentPaging.replaceId(oldCommentId, newComment.getId());
+                            mPetDb.feedDao().update(feedCommentPaging);
+                        }
+                        mCommentDao.updateCommentId(oldCommentId, newComment.getId());
+                        newComment.setLocalStatus(STATUS_DONE);
+                        mCommentDao.update(newComment.toEntity());
+                    }));
                 } else {
                     Timber.d("create comment %s error : %s", comment.getId(), commentApiResponse.errorMessage);
                     comment.setLocalStatus(STATUS_ERROR);
-                    mAppExecutors.diskIO().execute(() -> mCommentDao.insertFromComment(comment));
+                    mAppExecutors.diskIO().execute(() -> mCommentDao.update(comment.toEntity()));
                 }
                 countDownLatch.countDown();
             }
         });
         countDownLatch.await();
     }
+
 }

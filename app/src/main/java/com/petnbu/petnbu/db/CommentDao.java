@@ -6,6 +6,7 @@ import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.OnConflictStrategy;
 import android.arch.persistence.room.Query;
 import android.arch.persistence.room.Transaction;
+import android.arch.persistence.room.Update;
 import android.support.annotation.Nullable;
 
 import com.petnbu.petnbu.model.Comment;
@@ -55,5 +56,11 @@ public abstract class CommentDao {
             "left join comments as subComments on comments.latestCommentId = subComments.id " +
             "left join users as subCommentUser on subComments.ownerId = subCommentUser.userId " +
             "where comments.id in (:ids)")
-    public abstract LiveData<List<CommentUI>> loadCommentsIncludeUploadingPost(List<String> ids);
+    public abstract LiveData<List<CommentUI>> loadCommentsIncludeUploading(List<String> ids);
+
+    @Update(onConflict = OnConflictStrategy.REPLACE)
+    public abstract void update(CommentEntity commentEntity);
+
+    @Query("UPDATE comments set id = :newId where id = :oldId")
+    public abstract void updateCommentId(String oldId, String newId);
 }

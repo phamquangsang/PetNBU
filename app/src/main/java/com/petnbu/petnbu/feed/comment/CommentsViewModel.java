@@ -11,7 +11,6 @@ import android.databinding.ObservableBoolean;
 import com.petnbu.petnbu.PetApplication;
 import com.petnbu.petnbu.SharedPrefUtil;
 import com.petnbu.petnbu.SingleLiveEvent;
-import com.petnbu.petnbu.api.ApiResponse;
 import com.petnbu.petnbu.api.WebService;
 import com.petnbu.petnbu.model.Comment;
 import com.petnbu.petnbu.model.CommentUI;
@@ -87,7 +86,7 @@ public class CommentsViewModel extends ViewModel {
                             if(resourceComments.status != Status.LOADING){
                                 showLoading.set(false);
                             }
-                            if(resourceComments.status == Status.SUCCESS && resourceComments.data != null)
+                            if(resourceComments.data != null)
                                 resourceComments.data.add(0, feedComment);
                             mediatorLiveData.setValue(Resource.success(resourceComments.data));
                         }

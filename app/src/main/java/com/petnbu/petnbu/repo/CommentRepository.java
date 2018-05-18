@@ -84,6 +84,9 @@ public class CommentRepository {
                 comment.setTimeUpdated(new Date());
                 comment.setId(IdUtil.generateID("comment"));
                 mCommentDao.insertFromComment(comment);
+                Paging feedCommentPaging = mFeedDao.findFeedPaging(Paging.feedCommentsPagingId(comment.getParentFeedId()));
+                feedCommentPaging.getIds().add(0, comment.getId());
+                mFeedDao.update(feedCommentPaging);
             });
             scheduleSaveCommentWorker(comment);
         });
@@ -142,7 +145,7 @@ public class CommentRepository {
                         return data;
                     } else {
                         Timber.i("loadFeedsFromDb paging: %s", input.toString());
-                        return mCommentDao.loadCommentsIncludeUploadingPost(input.getIds());
+                        return mCommentDao.loadCommentsIncludeUploading(input.getIds());
                     }
                 });
             }
