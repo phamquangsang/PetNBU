@@ -2,6 +2,7 @@ package com.petnbu.petnbu.repo;
 
 import android.app.Application;
 import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.MediatorLiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.Transformations;
 import android.support.annotation.NonNull;
@@ -20,10 +21,12 @@ import com.petnbu.petnbu.jobs.CreateCommentWorker;
 import com.petnbu.petnbu.jobs.UploadPhotoWorker;
 import com.petnbu.petnbu.model.Comment;
 import com.petnbu.petnbu.model.CommentUI;
+import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.LocalStatus;
 import com.petnbu.petnbu.model.Paging;
 import com.petnbu.petnbu.model.Resource;
+import com.petnbu.petnbu.model.Status;
 import com.petnbu.petnbu.model.UserEntity;
 import com.petnbu.petnbu.util.IdUtil;
 import com.petnbu.petnbu.util.RateLimiter;
@@ -87,6 +90,73 @@ public class CommentRepository {
             });
             scheduleSaveCommentWorker(comment);
         });
+    }
+
+    private CommentUI createCommentUIFromFeed(Feed feed) {
+        CommentUI comment = new CommentUI();
+        comment.setId(feed.getFeedId());
+        comment.setOwner(feed.getFeedUser());
+        comment.setContent(feed.getContent());
+        comment.setTimeCreated(feed.getTimeCreated());
+        return comment;
+    }
+
+    public LiveData<Resource<Feed>> loadFeedById(String feedId){
+        return new NetworkBoundResource<Feed, Feed>(mAppExecutors){
+            @Override
+            protected void saveCallResult(@NonNull Feed item) {
+                mFeedDao.insertFromFeed(item);
+                mUserDao.insert(item.getFeedUser());
+                mCommentDao.insertFromComment(item.getLatestComment());
+            }
+
+            @Override
+            protected boolean shouldFetch(@Nullable Feed data) {
+                return data == null;
+            }
+
+            @Override
+            protected void deleteDataFromDb(Feed body) {
+                mFeedDao.deleteFeedById(feedId);
+            }
+
+            @NonNull
+            @Override
+            protected LiveData<Feed> loadFromDb() {
+                return mFeedDao.loadFeedById(feedId);
+            }
+
+            @NonNull
+            @Override
+            protected LiveData<ApiResponse<Feed>> createCall() {
+                return mWebService.getFeed(feedId);
+            }
+        }.asLiveData();
+    }
+
+    public LiveData<Resource<List<CommentUI>>> getFeedCommentsIncludeFeedContentHeader(String feedId, long after, int limit) {
+
+        LiveData<Resource<Feed>> feedSource = loadFeedById(feedId);
+        MediatorLiveData<Resource<List<CommentUI>>> mediatorLiveData = new MediatorLiveData<>();
+        mediatorLiveData.addSource(feedSource, feedResource -> {
+            if(feedResource != null){
+                if(feedResource.status == Status.SUCCESS && feedResource.data != null){
+                    mediatorLiveData.removeSource(feedSource);
+                    CommentUI feedComment = createCommentUIFromFeed(feedResource.data);
+                    LiveData<Resource<List<CommentUI>>> commentsLiveData = getFeedComments(feedId, after, limit);
+                    mediatorLiveData.addSource(commentsLiveData, resourceComments -> {
+                        if(resourceComments != null) {
+                            if(resourceComments.data != null)
+                                resourceComments.data.add(0, feedComment);
+                            mediatorLiveData.setValue(Resource.success(resourceComments.data));
+                        }
+                    });
+                }
+            }
+        });
+        return mediatorLiveData;
+
+
     }
 
     public LiveData<Resource<List<CommentUI>>> getFeedComments(String feedId, long after, int limit) {

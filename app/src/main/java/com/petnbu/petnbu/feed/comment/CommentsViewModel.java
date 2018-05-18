@@ -31,6 +31,7 @@ import javax.inject.Inject;
 
 public class CommentsViewModel extends ViewModel {
 
+    private static final int COMMENT_PAGING_LIMIT = 10;
     @Inject
     FeedRepository mFeedRepository;
 
@@ -73,41 +74,9 @@ public class CommentsViewModel extends ViewModel {
     }
 
     public LiveData<Resource<List<CommentUI>>> loadComments(String feedId) {
-        showLoading.set(true);
-        LiveData<Resource<Feed>> dbSource = mFeedRepository.getFeed(feedId);
-        MediatorLiveData<Resource<List<CommentUI>>> mediatorLiveData = new MediatorLiveData<>();
-        mediatorLiveData.addSource(dbSource, feedResource -> {
-            if(feedResource != null){
-                if(feedResource.status == Status.SUCCESS && feedResource.data != null){
-                    mediatorLiveData.removeSource(dbSource);
-                    CommentUI feedComment = createCommentUIFromFeed(feedResource.data);
-                    LiveData<Resource<List<CommentUI>>> commentsLiveData = mCommentRepo.getFeedComments(feedId, new Date().getTime(), 10);
-                    mediatorLiveData.addSource(commentsLiveData, resourceComments -> {
-                        if(resourceComments != null) {
-                            if(resourceComments.status != Status.LOADING){
-                                showLoading.set(false);
-                            }
-                            if(resourceComments.status == Status.SUCCESS && resourceComments.data != null)
-                                resourceComments.data.add(0, feedComment);
-                            mediatorLiveData.setValue(Resource.success(resourceComments.data));
-                        }
-                    });
-                }else if(feedResource.status == Status.ERROR){
-                    showLoading.set(false);
-                }
-            }
-        });
-        return mediatorLiveData;
+        return mCommentRepo.getFeedCommentsIncludeFeedContentHeader(feedId, new Date().getTime(), COMMENT_PAGING_LIMIT);
     }
 
-    private CommentUI createCommentUIFromFeed(Feed feed) {
-        CommentUI comment = new CommentUI();
-        comment.setId(feed.getFeedId());
-        comment.setOwner(feed.getFeedUser());
-        comment.setContent(feed.getContent());
-        comment.setTimeCreated(feed.getTimeCreated());
-        return comment;
-    }
 
     public LiveData<Resource<List<Comment>>> loadSubComments(String commentId) {
         showLoading.set(true);
