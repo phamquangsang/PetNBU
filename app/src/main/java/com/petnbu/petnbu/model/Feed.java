@@ -3,6 +3,7 @@ package com.petnbu.petnbu.model;
 import android.arch.persistence.room.Embedded;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.TypeConverters;
+import android.support.annotation.Nullable;
 
 import com.google.firebase.firestore.Exclude;
 import com.google.firebase.firestore.ServerTimestamp;
@@ -21,12 +22,13 @@ public class Feed {
     private int commentCount;
     private int likeCount;
     private String content;
+    @Nullable
     @Ignore
     private Comment latestComment;
     @ServerTimestamp private Date timeCreated;
     @ServerTimestamp private Date timeUpdated;
 
-    @FeedEntity.LOCAL_STATUS
+    @LocalStatus.LOCAL_STATUS
     @Exclude
     private int status;
 
@@ -36,7 +38,8 @@ public class Feed {
     public Feed() {
     }
 
-    public Feed(String feedId, FeedUser feedUser, List<Photo> photos, int commentCount, Comment latestComment, int likeCount, String content, Date timeCreated, Date timeUpdated, int status) {
+    @Ignore
+    public Feed(String feedId, FeedUser feedUser, List<Photo> photos, int commentCount, @Nullable Comment latestComment, int likeCount, String content, Date timeCreated, Date timeUpdated, int status) {
         this.feedId = feedId;
         this.feedUser = feedUser;
         this.photos = photos;
@@ -114,7 +117,7 @@ public class Feed {
         this.content = content;
     }
 
-    @Ignore
+    @Nullable
     public Comment getLatestComment() {
         return latestComment;
     }
@@ -132,13 +135,13 @@ public class Feed {
         this.likeInProgress = likeInProgress;
     }
 
-    @FeedEntity.LOCAL_STATUS
+    @LocalStatus.LOCAL_STATUS
     @Exclude
     public int getStatus() {
         return status;
     }
 
-    public void setStatus(@FeedEntity.LOCAL_STATUS int status) {
+    public void setStatus(@LocalStatus.LOCAL_STATUS int status) {
         this.status = status;
     }
 
@@ -198,7 +201,8 @@ public class Feed {
 
     public FeedEntity toEntity(){
         return new FeedEntity(getFeedId(), getFeedUser().getUserId(),
-                getPhotos(), getCommentCount(), getLikeCount(), getContent(),
+                getPhotos(), getCommentCount(), getLatestComment() == null ? null : getLatestComment().getId()
+                ,getLikeCount(), getContent(),
                 getTimeCreated(), getTimeUpdated(), getStatus(), isLikeInProgress());
     }
 

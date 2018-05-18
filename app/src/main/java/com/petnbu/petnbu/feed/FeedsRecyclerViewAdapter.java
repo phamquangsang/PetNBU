@@ -34,8 +34,7 @@ import com.google.android.gms.common.internal.Preconditions;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.Utils;
 import com.petnbu.petnbu.databinding.ViewFeedBinding;
-import com.petnbu.petnbu.model.Feed;
-import com.petnbu.petnbu.model.FeedEntity;
+import com.petnbu.petnbu.model.FeedUI;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.util.ColorUtils;
 import com.petnbu.petnbu.util.TraceUtils;
@@ -44,10 +43,14 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
+import static com.petnbu.petnbu.model.LocalStatus.STATUS_DONE;
+import static com.petnbu.petnbu.model.LocalStatus.STATUS_ERROR;
+import static com.petnbu.petnbu.model.LocalStatus.STATUS_UPLOADING;
+
 public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecyclerViewAdapter.ViewHolder> {
 
     private RequestManager mRequestManager;
-    private List<Feed> mFeeds;
+    private List<FeedUI> mFeeds;
     private ArrayMap<String, Integer> lastSelectedPhotoPositions = new ArrayMap<>();
 
     private int maxPhotoHeight;
@@ -55,7 +58,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
     private final OnItemClickListener mOnItemClickListener;
     private int mDataVersion;
 
-    public FeedsRecyclerViewAdapter(Context context, List<Feed> feeds, OnItemClickListener onItemClickListener) {
+    public FeedsRecyclerViewAdapter(Context context, List<FeedUI> feeds, OnItemClickListener onItemClickListener) {
         Preconditions.checkNotNull(context);
         mFeeds = feeds;
         minPhotoHeight = Utils.goldenRatio(Utils.getDeviceWidth(context), true);
@@ -85,14 +88,15 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
     }
 
     @SuppressLint("StaticFieldLeak")
-    public void setFeeds(List<Feed> feeds) {
+    public void setFeeds(List<FeedUI> feeds) {
         mDataVersion++;
         final int startVersion = mDataVersion;
         new AsyncTask<Void, Void, DiffUtil.DiffResult>() {
             @Override
-            protected DiffUtil.DiffResult  doInBackground(Void... voids) {
+            protected DiffUtil.DiffResult doInBackground(Void... voids) {
                 return DiffUtil.calculateDiff(new FeedsDiffCallback(mFeeds, feeds));
             }
+
             @Override
             protected void onPostExecute(DiffUtil.DiffResult diffResult) {
                 if (startVersion != mDataVersion) {
@@ -108,10 +112,10 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
     protected class ViewHolder extends RecyclerView.ViewHolder {
 
         private ViewFeedBinding mBinding;
-        private Feed mFeed;
+        private FeedUI mFeed;
         private final View.OnClickListener profileClickListener = v -> {
             if (mOnItemClickListener != null && getAdapterPosition() != RecyclerView.NO_POSITION) {
-                mOnItemClickListener.onProfileClicked(mFeeds.get(getAdapterPosition()).getFeedUser().getUserId());
+                mOnItemClickListener.onProfileClicked(mFeeds.get(getAdapterPosition()).ownerId);
             }
         };
 
@@ -123,34 +127,34 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
             mBinding.tvName.setOnClickListener(profileClickListener);
             mBinding.imgLike.setOnClickListener(v -> {
                 if (mOnItemClickListener != null && getAdapterPosition() != RecyclerView.NO_POSITION) {
-                    mOnItemClickListener.onLikeClicked(mFeeds.get(getAdapterPosition()).getFeedId());
+                    mOnItemClickListener.onLikeClicked(mFeeds.get(getAdapterPosition()).feedId);
                 }
             });
             mBinding.imgComment.setOnClickListener(v -> {
                 if (mOnItemClickListener != null && getAdapterPosition() != RecyclerView.NO_POSITION) {
-                    mOnItemClickListener.onCommentClicked(mFeeds.get(getAdapterPosition()).getFeedId());
+                    mOnItemClickListener.onCommentClicked(mFeeds.get(getAdapterPosition()).feedId);
                 }
             });
             mBinding.tvViewComments.setOnClickListener(v -> {
                 if (mOnItemClickListener != null && getAdapterPosition() != RecyclerView.NO_POSITION) {
-                    mOnItemClickListener.onCommentClicked(mFeeds.get(getAdapterPosition()).getFeedId());
+                    mOnItemClickListener.onCommentClicked(mFeeds.get(getAdapterPosition()).feedId);
                 }
             });
             mBinding.imgOptions.setOnClickListener(v -> {
-                if(mOnItemClickListener != null && getAdapterPosition() != RecyclerView.NO_POSITION) {
+                if (mOnItemClickListener != null && getAdapterPosition() != RecyclerView.NO_POSITION) {
                     mOnItemClickListener.onOptionClicked(v, mFeeds.get(getAdapterPosition()));
                 }
             });
         }
 
-        public void bindData(Feed feed) {
+        public void bindData(FeedUI feed) {
             mFeed = feed;
             displayUserInfo();
             displayTime();
             displayPhotos();
             displayText();
 
-            if (feed.getStatus() == FeedEntity.STATUS_UPLOADING) {
+            if (feed.status == STATUS_UPLOADING) {
                 mBinding.layoutRoot.setShouldInterceptEvents(true);
                 mBinding.layoutDisable.setVisibility(View.VISIBLE);
                 mBinding.spinKit.setVisibility(View.VISIBLE);
@@ -162,7 +166,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
                 mBinding.tvViewComments.setVisibility(View.GONE);
                 mBinding.imgOptions.setVisibility(View.GONE);
 
-                if(TextUtils.isEmpty(feed.getContent())) {
+                if (TextUtils.isEmpty(feed.feedContent)) {
                     mBinding.tvContent.setVisibility(View.GONE);
                 } else {
                     mBinding.tvContent.setVisibility(View.VISIBLE);
@@ -170,7 +174,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
             } else {
                 mBinding.layoutRoot.setShouldInterceptEvents(false);
 
-                if (feed.getStatus() == FeedEntity.STATUS_ERROR) {
+                if (feed.status == STATUS_ERROR) {
                     mBinding.layoutError.setVisibility(View.VISIBLE);
                     mBinding.spinKit.setVisibility(View.GONE);
                     mBinding.imgLike.setVisibility(View.GONE);
@@ -186,7 +190,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
                     mBinding.tvViewComments.setVisibility(View.VISIBLE);
                     mBinding.imgOptions.setVisibility(View.VISIBLE);
                 }
-                if(TextUtils.isEmpty(feed.getContent())) {
+                if (TextUtils.isEmpty(feed.feedContent)) {
                     mBinding.tvContent.setVisibility(View.GONE);
                 } else {
                     mBinding.tvContent.setVisibility(View.VISIBLE);
@@ -195,10 +199,10 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
         }
 
         private void displayUserInfo() {
-            mBinding.tvName.setText(mFeed.getFeedUser().getName());
-            if(mFeed.getFeedUser().getAvatar() != null) {
-                String avatarUrl = !TextUtils.isEmpty(mFeed.getFeedUser().getAvatar().getThumbnailUrl())
-                        ? mFeed.getFeedUser().getAvatar().getThumbnailUrl() : mFeed.getFeedUser().getAvatar().getOriginUrl();
+            mBinding.tvName.setText(mFeed.name);
+            if (mFeed.avatar != null) {
+                String avatarUrl = !TextUtils.isEmpty(mFeed.avatar.getThumbnailUrl())
+                        ? mFeed.avatar.getThumbnailUrl() : mFeed.avatar.getOriginUrl();
                 mRequestManager.asBitmap()
                         .load(avatarUrl)
                         .apply(RequestOptions.centerCropTransform())
@@ -219,37 +223,37 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
         }
 
         private void displayTime() {
-            if(mFeed.getTimeCreated() != null){
-                mBinding.tvDate.setText(DateUtils.getRelativeTimeSpanString(mFeed.getTimeCreated().getTime(),
+            if (mFeed.timeCreated != null) {
+                mBinding.tvDate.setText(DateUtils.getRelativeTimeSpanString(mFeed.timeCreated.getTime(),
                         Calendar.getInstance().getTimeInMillis(), 0L, DateUtils.FORMAT_ABBREV_ALL));
             }
         }
 
         private void displayPhotos() {
-            if (mFeed.getPhotos() != null && !mFeed.getPhotos().isEmpty()) {
-                constraintHeightForPhoto(mFeed.getPhotos().get(0).getWidth(), mFeed.getPhotos().get(0).getHeight());
+            if (mFeed.photos != null && !mFeed.photos.isEmpty()) {
+                constraintHeightForPhoto(mFeed.photos.get(0).getWidth(), mFeed.photos.get(0).getHeight());
 
-                if(mBinding.vpPhotos.getAdapter() != null) {
+                if (mBinding.vpPhotos.getAdapter() != null) {
                     PhotosPagerAdapter pagerAdapter = (PhotosPagerAdapter) mBinding.vpPhotos.getAdapter();
                     pagerAdapter.setData(mFeed);
 
                 } else {
                     mBinding.vpPhotos.setAdapter(new PhotosPagerAdapter(mFeed, mRequestManager, () -> {
-                        if (mOnItemClickListener != null && mFeed.getStatus() == FeedEntity.STATUS_DONE) {
-                            mOnItemClickListener.onPhotoClicked(mFeed.getPhotos().get(mBinding.vpPhotos.getCurrentItem()));
+                        if (mOnItemClickListener != null && mFeed.status == STATUS_DONE) {
+                            mOnItemClickListener.onPhotoClicked(mFeed.photos.get(mBinding.vpPhotos.getCurrentItem()));
                         }
                     }));
                 }
                 int currentPos = 0;
-                Integer value = lastSelectedPhotoPositions.get(mFeed.getFeedId());
+                Integer value = lastSelectedPhotoPositions.get(mFeed.feedId);
                 if (value != null) {
                     currentPos = value.intValue();
                 }
                 mBinding.vpPhotos.setCurrentItem(currentPos);
 
-                if (mFeed.getPhotos().size() > 1) {
+                if (mFeed.photos.size() > 1) {
                     mBinding.tvPhotosCount.setVisibility(View.VISIBLE);
-                    mBinding.tvPhotosCount.setText(String.format(Locale.getDefault(), "%d/%d", currentPos + 1, mFeed.getPhotos().size()));
+                    mBinding.tvPhotosCount.setText(String.format(Locale.getDefault(), "%d/%d", currentPos + 1, mFeed.photos.size()));
                 } else {
                     mBinding.tvPhotosCount.setVisibility(View.GONE);
                 }
@@ -261,8 +265,8 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
 
                     @Override
                     public void onPageSelected(int position) {
-                        mBinding.tvPhotosCount.setText(String.format(Locale.getDefault(), "%d/%d", position + 1, mFeed.getPhotos().size()));
-                        lastSelectedPhotoPositions.put(mFeed.getFeedId(), position);
+                        mBinding.tvPhotosCount.setText(String.format(Locale.getDefault(), "%d/%d", position + 1, mFeed.photos.size()));
+                        lastSelectedPhotoPositions.put(mFeed.feedId, position);
                     }
 
                     @Override
@@ -282,21 +286,30 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
         }
 
         private void displayText() {
-            SpannableStringBuilder builder = new SpannableStringBuilder(mFeed.getFeedUser().getName() + "");
+            SpannableStringBuilder builder = new SpannableStringBuilder(mFeed.name + "");
             builder.setSpan(new StyleSpan(Typeface.BOLD), 0, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             builder.setSpan(new ForegroundColorSpan(Color.BLACK), 0, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             builder.append("  ");
-            builder.append(mFeed.getContent());
+            builder.append(mFeed.feedContent);
+            if (mFeed.commentContent != null) {
+                builder.append("\n");
+                String commentUserName = mFeed.commentOwnerName;
+                builder.append(commentUserName);
+                builder.setSpan(new StyleSpan(Typeface.BOLD), builder.length() - commentUserName.length()
+                        , builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                builder.append(": ");
+                builder.append(mFeed.commentContent);
+            }
             mBinding.tvContent.setText(builder);
         }
     }
 
     private static class FeedsDiffCallback extends DiffUtil.Callback {
 
-        private final List<Feed> oldData;
-        private final List<Feed> newData;
+        private final List<FeedUI> oldData;
+        private final List<FeedUI> newData;
 
-        private FeedsDiffCallback(List<Feed> oldData, List<Feed> newData) {
+        private FeedsDiffCallback(List<FeedUI> oldData, List<FeedUI> newData) {
             this.oldData = oldData;
             this.newData = newData;
         }
@@ -313,7 +326,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
 
         @Override
         public boolean areItemsTheSame(int oldPos, int newPos) {
-            return oldData.get(oldPos).getFeedId().equals(newData.get(newPos).getFeedId());
+            return oldData.get(oldPos).feedId.equals(newData.get(newPos).feedId);
         }
 
         @Override
@@ -332,6 +345,6 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
 
         void onCommentClicked(String feedId);
 
-        void onOptionClicked(View view, Feed feed);
+        void onOptionClicked(View view, FeedUI feed);
     }
 }

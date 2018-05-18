@@ -4,27 +4,24 @@ import android.databinding.DataBindingUtil;
 import android.support.annotation.NonNull;
 import android.support.v4.view.PagerAdapter;
 import android.text.TextUtils;
-import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.bumptech.glide.RequestManager;
-import com.bumptech.glide.load.DecodeFormat;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.android.gms.common.internal.Preconditions;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.databinding.ViewFeedPhotosBinding;
-import com.petnbu.petnbu.model.Feed;
-import com.petnbu.petnbu.model.Photo;
+import com.petnbu.petnbu.model.FeedUI;
 import com.petnbu.petnbu.util.ImageUtils;
 
 public class PhotosPagerAdapter extends PagerAdapter {
 
-    private Feed mFeed;
+    private FeedUI mFeed;
     private RequestManager mRequestManager;
     private OnItemClickListener mOnItemClickListener;
 
-    public PhotosPagerAdapter(Feed feed, RequestManager requestManager, OnItemClickListener onItemClickListener) {
+    public PhotosPagerAdapter(FeedUI feed, RequestManager requestManager, OnItemClickListener onItemClickListener) {
         Preconditions.checkNotNull(feed);
         Preconditions.checkNotNull(requestManager);
 
@@ -72,7 +69,7 @@ public class PhotosPagerAdapter extends PagerAdapter {
         mRequestManager.clear((View) object);
     }
 
-    public void setData(Feed feed) {
+    public void setData(FeedUI feed) {
         mFeed = feed;
         notifyDataSetChanged();
     }

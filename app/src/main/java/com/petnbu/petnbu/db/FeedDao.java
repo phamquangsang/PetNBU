@@ -11,8 +11,11 @@ import android.arch.persistence.room.Update;
 
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedEntity;
+import com.petnbu.petnbu.model.FeedUI;
+import com.petnbu.petnbu.model.LocalStatus;
 import com.petnbu.petnbu.model.Paging;
 import com.petnbu.petnbu.model.Photo;
+import com.petnbu.petnbu.util.TraceUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,21 +23,25 @@ import java.util.List;
 @Dao
 public abstract class FeedDao {
 
-    public void insertFromFeed(Feed feed){
+    public void insertFromFeed(Feed feed) {
         FeedEntity feedEntity = new FeedEntity(feed.getFeedId(), feed.getFeedUser().getUserId(),
-                feed.getPhotos(), feed.getCommentCount(), feed.getLikeCount(), feed.getContent(),
+                feed.getPhotos(), feed.getCommentCount(), feed.getLatestComment() == null ? null : feed.getLatestComment().getId()
+                , feed.getLikeCount(), feed.getContent(),
                 feed.getTimeCreated(), feed.getTimeUpdated(), feed.getStatus(), feed.isLikeInProgress());
         insert(feedEntity);
     }
 
-    public void insertFromFeedList(List<Feed> listFeed){
+    public void insertFromFeedList(List<Feed> listFeed) {
+        TraceUtils.begin("insertFromFeedList");
         List<FeedEntity> entities = new ArrayList<>(listFeed.size());
-        for (Feed feed : listFeed){
+        for (Feed feed : listFeed) {
             entities.add(new FeedEntity(feed.getFeedId(), feed.getFeedUser().getUserId(),
-                    feed.getPhotos(), feed.getCommentCount(), feed.getLikeCount(), feed.getContent(),
+                    feed.getPhotos(), feed.getCommentCount(), feed.getLatestComment() == null ? null : feed.getLatestComment().getId(),
+                    feed.getLikeCount(), feed.getContent(),
                     feed.getTimeCreated(), feed.getTimeUpdated(), feed.getStatus(), feed.isLikeInProgress()));
 
         }
+        TraceUtils.end();
         insert(entities);
     }
 
@@ -66,22 +73,40 @@ public abstract class FeedDao {
     @Delete
     public abstract void deleteFeed(FeedEntity feed);
 
-    @Query("DELETE FROM feeds Where feedId = :feedId")
+    @Query("DELETE FROM feeds WHERE feedId = :feedId")
     public abstract void deleteFeedById(String feedId);
 
 
     @Query("SELECT feedId, name, userId, avatar, photos, commentCount, likeCount, content, feeds.timeCreated, feeds.timeUpdated, status, likeInProgress " +
-            "FROM feeds, users WHERE feedId IN (:ids) ORDER BY feeds.timeCreated DESC")
+            "FROM feeds, users WHERE feedId IN (:ids) AND feeds.fromUserId = users.userId ORDER BY feeds.timeCreated DESC")
     public abstract LiveData<List<Feed>> loadFeeds(List<String> ids);
 
-    @Query("SELECT feedId, name, userId, avatar, photos, commentCount, likeCount, content, feeds.timeCreated, feeds.timeUpdated, status, likeInProgress " +
-            "FROM feeds, users WHERE feeds.fromUserId = users.userId AND (feedId IN (:ids) OR status == 1) ORDER BY feeds.timeCreated DESC")
-    public abstract LiveData<List<Feed>> loadFeedsIncludeUploadingPost(List<String> ids);
+    @Query("SELECT feedId, feeds.fromUserId as ownerId,feedUsers.name, feedUsers.avatar, feeds.timeCreated, " +
+            "feeds.likeCount, feeds.commentCount, feeds.content AS feedContent, feeds.status, feeds.photos, " +
+            "commentUsers.userId as commentOwnerId ,commentUsers.name AS commentOwnerName, " +
+            "commentUsers.avatar AS commentUserAvatar, comments.content AS commentContent  " +
+            "FROM feeds " +
+            "LEFT JOIN users AS feedUsers ON feeds.fromUserId = feedUsers.userId " +
+            "LEFT JOIN comments ON feeds.latestCommentId = comments.id " +
+            "LEFT JOIN users AS commentUsers ON comments.ownerId = commentUsers.userId " +
+            "WHERE (feedId IN (:ids) OR status == 1) ORDER BY feeds.timeCreated DESC")
+    public abstract LiveData<List<FeedUI>> loadFeedsIncludeUploadingPost(List<String> ids);
 
     @Query("SELECT feedId, name, userId, avatar, photos, commentCount, likeCount, content, feeds.timeCreated, feeds.timeUpdated, status, likeInProgress  " +
-            "FROM feeds, users WHERE feeds.fromUserId = users.userId AND feedId = :feedId")
+            "FROM feeds, users " +
+            "WHERE feeds.fromUserId = users.userId AND feedId = :feedId")
     public abstract LiveData<Feed> loadFeedById(String feedId);
 
+    @Query("SELECT feedId, feeds.fromUserId as ownerId,feedUsers.name, feedUsers.avatar, feeds.timeCreated, " +
+            "feeds.likeCount, feeds.commentCount, feeds.content AS feedContent, feeds.status, feeds.photos, " +
+            "commentUsers.userId as commentOwnerId ,commentUsers.name AS commentOwnerName, " +
+            "commentUsers.avatar AS commentUserAvatar, comments.content AS commentContent  " +
+            "FROM feeds " +
+            "LEFT JOIN users AS feedUsers ON feeds.fromUserId = feedUsers.userId " +
+            "LEFT JOIN comments ON feeds.latestCommentId = comments.id " +
+            "LEFT JOIN users AS commentUsers ON comments.ownerId = commentUsers.userId " +
+            "WHERE feeds.feedId = :feedId")
+    public abstract FeedUI getFeedUI(String feedId);
 
     @Query("SELECT * FROM feeds WHERE feedId = :feedId")
     public abstract FeedEntity findFeedEntityById(String feedId);
@@ -89,18 +114,17 @@ public abstract class FeedDao {
     @Query("DELETE FROM feeds")
     public abstract void deleteAll();
 
-    @Query("DELETE FROM feeds where status != :status")
-    public abstract void deleteAllExcludeStatus(@FeedEntity.LOCAL_STATUS int status);
+    @Query("DELETE FROM feeds WHERE status != :status")
+    public abstract void deleteAllExcludeStatus(@LocalStatus.LOCAL_STATUS int status);
 
-    @Query("DELETE FROM feeds WHERE feedId in (:ids) AND status != 1")
+    @Query("DELETE FROM feeds WHERE feedId IN (:ids) AND status != 1")
     public abstract void deleteFeeds(List<String> ids);
 
-    @Query("Select * from paging where pagingId = :id")
+    @Query("SELECT * FROM paging WHERE pagingId = :id")
     abstract public LiveData<Paging> loadFeedPaging(String id);
 
-    @Query("Select * from paging where pagingId = :id")
+    @Query("SELECT * FROM paging WHERE pagingId = :id")
     abstract public Paging findFeedPaging(String id);
-
 
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -109,7 +133,7 @@ public abstract class FeedDao {
     @Update(onConflict = OnConflictStrategy.REPLACE)
     abstract public void update(Paging paging);
 
-    @Query("DELETE FROM paging where pagingId = :pagingId")
+    @Query("DELETE FROM paging WHERE pagingId = :pagingId")
     abstract public void deleteFeedPaging(String pagingId);
 
 }

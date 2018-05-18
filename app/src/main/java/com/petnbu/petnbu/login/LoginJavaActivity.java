@@ -203,7 +203,7 @@ public class LoginJavaActivity extends AppCompatActivity implements View.OnClick
                     if (userApiResponse.isSucceed && userApiResponse.body != null){
                         UserEntity userEntity = userApiResponse.body;
                         //user existed -> go to Main screen
-                        SharedPrefUtil.saveUserId(getApplicationContext(), userEntity.getUserId());
+                        SharedPrefUtil.saveUserId(userEntity.getUserId());
                         mAppExecutors.diskIO().execute(() -> mUserDao.insert(userEntity));
                         openMainActivity();
                     }else{
@@ -221,7 +221,7 @@ public class LoginJavaActivity extends AppCompatActivity implements View.OnClick
         apiResponse.observe(LoginJavaActivity.this, createUserApiResponse -> {
             if(createUserApiResponse != null){
                 if(createUserApiResponse.isSucceed && createUserApiResponse.body != null){
-                    SharedPrefUtil.saveUserId(getApplicationContext(), createUserApiResponse.body.getUserId());
+                    SharedPrefUtil.saveUserId(createUserApiResponse.body.getUserId());
                     openMainActivity();
                 }else{
                     Snackbar.make(mBinding.getRoot(), "Error: "+ createUserApiResponse.errorMessage, Snackbar.LENGTH_LONG).show();

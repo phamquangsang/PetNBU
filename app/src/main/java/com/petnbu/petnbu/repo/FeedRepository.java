@@ -11,6 +11,7 @@ import com.petnbu.petnbu.AppExecutors;
 import com.petnbu.petnbu.SharedPrefUtil;
 import com.petnbu.petnbu.api.ApiResponse;
 import com.petnbu.petnbu.api.WebService;
+import com.petnbu.petnbu.db.CommentDao;
 import com.petnbu.petnbu.db.FeedDao;
 import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.db.UserDao;
@@ -19,6 +20,8 @@ import com.petnbu.petnbu.jobs.CreateEditFeedWorker;
 import com.petnbu.petnbu.jobs.UploadPhotoWorker;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedEntity;
+import com.petnbu.petnbu.model.FeedUI;
+import com.petnbu.petnbu.model.Paging;
 import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Paging;
 import com.petnbu.petnbu.model.Photo;
@@ -42,6 +45,8 @@ import androidx.work.WorkContinuation;
 import androidx.work.WorkManager;
 import timber.log.Timber;
 
+import static com.petnbu.petnbu.model.LocalStatus.STATUS_UPLOADING;
+
 @Singleton
 public class FeedRepository {
 
@@ -53,6 +58,8 @@ public class FeedRepository {
 
     private final UserDao mUserDao;
 
+    private final CommentDao mCommentDao;
+
     private final AppExecutors mAppExecutors;
 
     private final WebService mWebService;
@@ -62,17 +69,18 @@ public class FeedRepository {
     private final RateLimiter<String> mRateLimiter = new RateLimiter<>(10, TimeUnit.MINUTES);
 
     @Inject
-    public FeedRepository(PetDb petDb, FeedDao feedDao, UserDao userDao, AppExecutors appExecutors, WebService webService, Application application) {
+    public FeedRepository(PetDb petDb, FeedDao feedDao, UserDao userDao, CommentDao commentDao, AppExecutors appExecutors, WebService webService, Application application) {
         mPetDb = petDb;
         mFeedDao = feedDao;
         mUserDao = userDao;
+        mCommentDao = commentDao;
         mAppExecutors = appExecutors;
         mWebService = webService;
         mApplication = application;
     }
 
-    public LiveData<Resource<List<Feed>>> loadFeeds(String pagingId) {
-        return new NetworkBoundResource<List<Feed>, List<Feed>>(mAppExecutors) {
+    public LiveData<Resource<List<FeedUI>>> loadFeeds(String pagingId) {
+        return new NetworkBoundResource<List<FeedUI>, List<Feed>>(mAppExecutors) {
             @Override
             protected void saveCallResult(@NonNull List<Feed> items) {
                 List<String> listId = new ArrayList<>(items.size());
@@ -91,22 +99,23 @@ public class FeedRepository {
                     mFeedDao.insertFromFeedList(items);
                     for (Feed item : items) {
                         mUserDao.insert(item.getFeedUser());
+                        mCommentDao.insertFromComment(item.getLatestComment());
                     }
                     mFeedDao.insert(paging);
                 });
             }
 
             @Override
-            protected boolean shouldFetch(@Nullable List<Feed> data) {
+            protected boolean shouldFetch(@Nullable List<FeedUI> data) {
                 return true;
             }
 
             @NonNull
             @Override
-            protected LiveData<List<Feed>> loadFromDb() {
+            protected LiveData<List<FeedUI>> loadFromDb() {
                 return Transformations.switchMap(mFeedDao.loadFeedPaging(Paging.GLOBAL_FEEDS_PAGING_ID), input -> {
                     if (input == null) {
-                        MutableLiveData<List<Feed>> data = new MutableLiveData<>();
+                        MutableLiveData<List<FeedUI>> data = new MutableLiveData<>();
                         data.postValue(null);
                         return data;
                     } else {
@@ -139,6 +148,8 @@ public class FeedRepository {
             @Override
             protected void saveCallResult(@NonNull Feed item) {
                 mFeedDao.insertFromFeed(item);
+                mUserDao.insert(item.getFeedUser());
+                mCommentDao.insertFromComment(item.getLatestComment());
             }
 
             @Override
@@ -165,8 +176,8 @@ public class FeedRepository {
         }.asLiveData();
     }
 
-    public LiveData<Resource<List<Feed>>> loadUserFeeds(String userId) {
-        return new NetworkBoundResource<List<Feed>, List<Feed>>(mAppExecutors) {
+    public LiveData<Resource<List<FeedUI>>> loadUserFeeds(String userId) {
+        return new NetworkBoundResource<List<FeedUI>, List<Feed>>(mAppExecutors) {
             @Override
             protected void saveCallResult(@NonNull List<Feed> items) {
                 if(items.isEmpty()){
@@ -184,22 +195,23 @@ public class FeedRepository {
                     mFeedDao.insertFromFeedList(items);
                     for (Feed item : items) {
                         mUserDao.insert(item.getFeedUser());
+                        mCommentDao.insertFromComment(item.getLatestComment());
                     }
                     mFeedDao.insert(paging);
                 });
             }
 
             @Override
-            protected boolean shouldFetch(@Nullable List<Feed> data) {
+            protected boolean shouldFetch(@Nullable List<FeedUI> data) {
                 return data == null || data.isEmpty() || mRateLimiter.shouldFetch(userId);
             }
 
             @NonNull
             @Override
-            protected LiveData<List<Feed>> loadFromDb() {
+            protected LiveData<List<FeedUI>> loadFromDb() {
                 return Transformations.switchMap(mFeedDao.loadFeedPaging(userId), input -> {
                     if (input == null) {
-                        MutableLiveData<List<Feed>> data = new MutableLiveData<>();
+                        MutableLiveData<List<FeedUI>> data = new MutableLiveData<>();
                         data.postValue(null);
                         return data;
                     } else {
@@ -248,7 +260,7 @@ public class FeedRepository {
             mPetDb.runInTransaction(() -> {
                 UserEntity userEntity = mUserDao.findUserById(SharedPrefUtil.getUserId(mApplication));
                 FeedUser feedUser = new FeedUser(userEntity.getUserId(), userEntity.getAvatar(), userEntity.getName());
-                feed.setStatus(FeedEntity.STATUS_UPLOADING);
+                feed.setStatus(STATUS_UPLOADING);
                 feed.setFeedUser(feedUser);
                 feed.setTimeCreated(new Date());
                 feed.setTimeUpdated(new Date());
@@ -263,7 +275,7 @@ public class FeedRepository {
         mAppExecutors.diskIO().execute(() -> {
             mPetDb.runInTransaction(() -> {
                 FeedEntity feedEntity = mFeedDao.findFeedEntityById(feed.getFeedId());
-                feedEntity.setStatus(FeedEntity.STATUS_UPLOADING);
+                feedEntity.setStatus(STATUS_UPLOADING);
                 feedEntity.setTimeUpdated(new Date());
                 feedEntity.setContent(feed.getContent());
                 feedEntity.setPhotos(feed.getPhotos());
@@ -329,6 +341,7 @@ public class FeedRepository {
                     mFeedDao.insertFromFeedList(items);
                     for (Feed feedItem : items) {
                         mUserDao.insert(feedItem.getFeedUser());
+                        mCommentDao.insertFromComment(feedItem.getLatestComment());
                     }
                     mFeedDao.insert(paging);
                 });

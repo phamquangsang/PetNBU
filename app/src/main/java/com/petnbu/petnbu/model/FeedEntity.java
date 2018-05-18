@@ -7,6 +7,7 @@ import android.arch.persistence.room.PrimaryKey;
 import android.arch.persistence.room.TypeConverters;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.google.firebase.firestore.Exclude;
 import com.petnbu.petnbu.db.PetTypeConverters;
@@ -21,14 +22,6 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 @TypeConverters(PetTypeConverters.class)
 public class FeedEntity {
 
-    @Retention(SOURCE)
-    @IntDef(value = {STATUS_NEW, STATUS_UPLOADING, STATUS_ERROR, STATUS_DONE})
-    public @interface LOCAL_STATUS{}
-
-    public static final int STATUS_NEW = 0;
-    public static final int STATUS_UPLOADING = 1;
-    public static final int STATUS_ERROR = 2;
-    public static final int STATUS_DONE = 3;
 
     @PrimaryKey
     @NonNull
@@ -37,12 +30,14 @@ public class FeedEntity {
     private String fromUserId;
     private List<Photo> photos;
     private int commentCount;
+    @Nullable
+    private String latestCommentId;
     private int likeCount;
     private String content;
     private Date timeCreated;
     private Date timeUpdated;
 
-    @FeedEntity.LOCAL_STATUS
+    @LocalStatus.LOCAL_STATUS
     private int status;
 
     private boolean likeInProgress;
@@ -51,11 +46,13 @@ public class FeedEntity {
     }
 
     @Ignore
-    public FeedEntity(@NonNull String feedId, String fromUserId, List<Photo> photos, int commentCount, int likeCount, String content, Date timeCreated, Date timeUpdated, int status, boolean likeInProgress) {
+    public FeedEntity(@NonNull String feedId, String fromUserId, List<Photo> photos, int commentCount,
+                      @Nullable String latestCommentId, int likeCount, String content, Date timeCreated, Date timeUpdated, int status, boolean likeInProgress) {
         this.feedId = feedId;
         this.fromUserId = fromUserId;
         this.photos = photos;
         this.commentCount = commentCount;
+        this.latestCommentId = latestCommentId;
         this.likeCount = likeCount;
         this.content = content;
         this.timeCreated = timeCreated;
@@ -128,6 +125,15 @@ public class FeedEntity {
         this.content = content;
     }
 
+    @Nullable
+    public String getLatestCommentId() {
+        return latestCommentId;
+    }
+
+    public void setLatestCommentId(@Nullable String latestCommentId) {
+        this.latestCommentId = latestCommentId;
+    }
+
     @Exclude
     public boolean isLikeInProgress() {
         return likeInProgress;
@@ -137,13 +143,13 @@ public class FeedEntity {
         this.likeInProgress = likeInProgress;
     }
 
-    @FeedEntity.LOCAL_STATUS
+    @LocalStatus.LOCAL_STATUS
     @Exclude
     public int getStatus() {
         return status;
     }
 
-    public void setStatus(@FeedEntity.LOCAL_STATUS int status) {
+    public void setStatus(@LocalStatus.LOCAL_STATUS int status) {
         this.status = status;
     }
 

@@ -3,6 +3,7 @@ package com.petnbu.petnbu.feed;
 
 import android.app.Activity;
 import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
@@ -24,6 +25,7 @@ import com.petnbu.petnbu.Utils;
 import com.petnbu.petnbu.databinding.FragmentFeedsBinding;
 import com.petnbu.petnbu.feed.comment.CommentsActivity;
 import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.FeedUI;
 import com.petnbu.petnbu.model.Paging;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.Resource;
@@ -114,13 +116,13 @@ public class FeedsFragment extends Fragment {
             }
 
             @Override
-            public void onOptionClicked(View view, Feed feed) {
-                if(feed.getFeedUser().getUserId().equals(mUserId)) {
+            public void onOptionClicked(View view, FeedUI feed) {
+                if(feed.ownerId.equals(mUserId)) {
                     PopupMenu popupMenu = new PopupMenu(view.getContext(), view);
                     popupMenu.getMenu().add("Edit");
                     popupMenu.setOnMenuItemClickListener(item -> {
                         if ("Edit".equals(item.getTitle())) {
-                            startActivity(CreateFeedActivity.newIntent(getActivity(), feed.getFeedId()));
+                            startActivity(CreateFeedActivity.newIntent(getActivity(), feed.feedId));
                         }
                         return true;
                     });
@@ -163,9 +165,13 @@ public class FeedsFragment extends Fragment {
         mBinding.pullToRefresh.setOnRefreshListener(() ->
         {
             LiveData<Resource<List<Feed>>> refreshing = mFeedsViewModel.refresh();
-            refreshing.observe(FeedsFragment.this, listResource -> {
-                if (listResource != null && listResource.status != Status.LOADING) {
-                    mBinding.pullToRefresh.setRefreshing(false);
+            refreshing.observe(FeedsFragment.this, new Observer<Resource<List<Feed>>>() {
+                @Override
+                public void onChanged(@Nullable Resource<List<Feed>> listResource) {
+                    if (listResource != null && listResource.status != Status.LOADING) {
+                        mBinding.pullToRefresh.setRefreshing(false);
+                        refreshing.removeObserver(this);
+                    }
                 }
             });
         });

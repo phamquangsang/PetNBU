@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 
 import com.petnbu.petnbu.PetApplication;
 import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.FeedUI;
 import com.petnbu.petnbu.model.Resource;
 import com.petnbu.petnbu.model.UserEntity;
 import com.petnbu.petnbu.repo.FeedRepository;
@@ -26,7 +27,7 @@ public class UserProfileViewModel extends ViewModel {
     @Inject
     UserRepository mUserRepository;
 
-    private LiveData<Resource<List<Feed>>> mFeedsLiveData;
+    private LiveData<Resource<List<FeedUI>>> mFeedsLiveData;
 
     private LoadMoreHandler loadMoreHandler;
 
@@ -35,7 +36,7 @@ public class UserProfileViewModel extends ViewModel {
         loadMoreHandler = new LoadMoreHandler(mFeedRepository);
     }
 
-    public LiveData<Resource<List<Feed>>> getFeeds(String pagingId) {
+    public LiveData<Resource<List<FeedUI>>> getFeeds(String pagingId) {
         mFeedsLiveData = mFeedRepository.loadUserFeeds(pagingId);
         return mFeedsLiveData;
     }

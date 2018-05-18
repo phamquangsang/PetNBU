@@ -1,6 +1,7 @@
 package com.petnbu.petnbu;
 
 import android.app.Application;
+import android.os.StrictMode;
 
 import com.petnbu.petnbu.di.AppModule;
 import com.petnbu.petnbu.di.DaggerAppComponent;
@@ -26,7 +27,12 @@ public class PetApplication  extends Application{
         super.onCreate();
         if (BuildConfig.DEBUG) {
             Timber.plant(new Timber.DebugTree());
+            StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
+                    .detectNetwork().detectDiskReads().detectDiskWrites()
+                    .penaltyLog()
+                    .penaltyDeath().build());
         }
         sAppComponent = DaggerAppComponent.builder().appModule(new AppModule(this)).build();
+
     }
 }
