@@ -31,6 +31,10 @@ import androidx.work.Data;
 import androidx.work.Worker;
 import timber.log.Timber;
 
+import static com.petnbu.petnbu.model.LocalStatus.STATUS_DONE;
+import static com.petnbu.petnbu.model.LocalStatus.STATUS_ERROR;
+import static com.petnbu.petnbu.model.LocalStatus.STATUS_UPLOADING;
+
 public class CreateEditFeedWorker extends Worker {
 
     private static final String KEY_FEED_ID = "key-feed-id";
@@ -78,7 +82,7 @@ public class CreateEditFeedWorker extends Worker {
                         , feedEntity.getLikeCount(), feedEntity.getContent(), feedEntity.getTimeCreated()
                         , feedEntity.getTimeUpdated(), feedEntity.getStatus());
 
-                if (feed.getStatus() == FeedEntity.STATUS_UPLOADING) {
+                if (feed.getStatus() == STATUS_UPLOADING) {
                     feed.setTimeUpdated(new Date());
 
                     Gson gson = new Gson();
@@ -151,7 +155,7 @@ public class CreateEditFeedWorker extends Worker {
 
                         mPetDb.runInTransaction(() -> {
                             mFeedDao.updateFeedId(temporaryFeedId, newFeed.getFeedId());
-                            newFeed.setStatus(FeedEntity.STATUS_DONE);
+                            newFeed.setStatus(STATUS_DONE);
 
                             if (currentPaging != null) {
                                 mFeedDao.update(currentPaging);
@@ -184,7 +188,7 @@ public class CreateEditFeedWorker extends Worker {
                 if (feedApiResponse != null && feedApiResponse.isSucceed && feedApiResponse.body != null) {
                     Timber.i("update feed succeed %s", feedApiResponse.body.toString());
                     Feed newFeed = feedApiResponse.body;
-                    newFeed.setStatus(FeedEntity.STATUS_DONE);
+                    newFeed.setStatus(STATUS_DONE);
 
                     mAppExecutors.diskIO().execute(() -> {
                         mFeedDao.update(newFeed.toEntity());
@@ -201,7 +205,7 @@ public class CreateEditFeedWorker extends Worker {
     }
 
     private void updateLocalFeedError(Feed feed) {
-        feed.setStatus(FeedEntity.STATUS_ERROR);
+        feed.setStatus(STATUS_ERROR);
         mAppExecutors.diskIO().execute(() -> mFeedDao.update(feed.toEntity()));
     }
 }
