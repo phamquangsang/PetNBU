@@ -10,14 +10,8 @@ import com.petnbu.petnbu.databinding.FragmentFeedProfileItemBinding;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedUI;
 import com.petnbu.petnbu.ui.common.DataBoundListAdapter;
-import com.petnbu.petnbu.userprofile.dummy.DummyContent.DummyItem;
 import com.petnbu.petnbu.util.Objects;
 
-/**
- * {@link RecyclerView.Adapter} that can display a {@link DummyItem} and makes a call to the
- * specified {@link UserProfileFragment.OnProfileFragmentInteractionListener}.
- * TODO: Replace the implementation with code for your data type.
- */
 public class ProfileFeedAdapter extends DataBoundListAdapter<FeedUI, FragmentFeedProfileItemBinding> {
 
     private final UserProfileFragment.OnProfileFragmentInteractionListener mListener;
