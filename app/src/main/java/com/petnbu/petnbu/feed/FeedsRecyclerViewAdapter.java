@@ -165,12 +165,6 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
                 mBinding.tvLikesCount.setVisibility(View.GONE);
                 mBinding.tvViewComments.setVisibility(View.GONE);
                 mBinding.imgOptions.setVisibility(View.GONE);
-
-                if (TextUtils.isEmpty(feed.feedContent)) {
-                    mBinding.tvContent.setVisibility(View.GONE);
-                } else {
-                    mBinding.tvContent.setVisibility(View.VISIBLE);
-                }
             } else {
                 mBinding.layoutRoot.setShouldInterceptEvents(false);
 
@@ -189,11 +183,6 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
                     mBinding.tvLikesCount.setVisibility(View.VISIBLE);
                     mBinding.tvViewComments.setVisibility(View.VISIBLE);
                     mBinding.imgOptions.setVisibility(View.VISIBLE);
-                }
-                if (TextUtils.isEmpty(feed.feedContent)) {
-                    mBinding.tvContent.setVisibility(View.GONE);
-                } else {
-                    mBinding.tvContent.setVisibility(View.VISIBLE);
                 }
             }
         }
@@ -286,20 +275,26 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
         }
 
         private void displayText() {
-            SpannableStringBuilder builder = new SpannableStringBuilder(mFeed.name + "");
-            builder.setSpan(new StyleSpan(Typeface.BOLD), 0, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            builder.setSpan(new ForegroundColorSpan(Color.BLACK), 0, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            builder.append("  ");
-            builder.append(mFeed.feedContent);
-            if (mFeed.commentContent != null) {
-                builder.append("\n");
+            SpannableStringBuilder builder = new SpannableStringBuilder();
+            if(!TextUtils.isEmpty(mFeed.feedContent)) {
+                builder.append(mFeed.name);
+                builder.setSpan(new StyleSpan(Typeface.BOLD), 0, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                builder.setSpan(new ForegroundColorSpan(Color.BLACK), 0, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                builder.append("  ");
+                builder.append(mFeed.feedContent);
+            }
+            if(!TextUtils.isEmpty(mFeed.commentContent)) {
+                if(!TextUtils.isEmpty(builder)) {
+                    builder.append("\n");
+                }
                 String commentUserName = mFeed.commentOwnerName;
                 builder.append(commentUserName);
                 builder.setSpan(new StyleSpan(Typeface.BOLD), builder.length() - commentUserName.length()
                         , builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                builder.append(": ");
+                builder.append("  ");
                 builder.append(mFeed.commentContent);
             }
+            mBinding.tvContent.setVisibility(TextUtils.isEmpty(builder) ? View.GONE : View.VISIBLE);
             mBinding.tvContent.setText(builder);
         }
     }

@@ -15,6 +15,9 @@ import com.petnbu.petnbu.db.CommentDao;
 import com.petnbu.petnbu.db.FeedDao;
 import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.db.UserDao;
+import com.petnbu.petnbu.jobs.CompressPhotoWorker;
+import com.petnbu.petnbu.jobs.CreateCommentWorker;
+import com.petnbu.petnbu.jobs.UploadPhotoWorker;
 import com.petnbu.petnbu.model.Comment;
 import com.petnbu.petnbu.model.CommentUI;
 import com.petnbu.petnbu.model.FeedUser;
@@ -34,6 +37,11 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import timber.log.Timber;
+import androidx.work.Constraints;
+import androidx.work.NetworkType;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkContinuation;
+import androidx.work.WorkManager;
 
 @Singleton
 public class CommentRepository {
@@ -65,35 +73,33 @@ public class CommentRepository {
         mApplication = application;
     }
 
-    public void createNewFeedComment(Comment comment, String feedId) {
+    public void createNewFeedComment(Comment comment) {
         mAppExecutors.diskIO().execute(() -> {
             mPetDb.runInTransaction(() -> {
                 UserEntity userEntity = mUserDao.findUserById(SharedPrefUtil.getUserId(mApplication));
                 FeedUser feedUser = new FeedUser(userEntity.getUserId(), userEntity.getAvatar(), userEntity.getName());
                 comment.setFeedUser(feedUser);
-                comment.setParentFeedId(feedId);
                 comment.setLocalStatus(LocalStatus.STATUS_UPLOADING);
                 comment.setTimeCreated(new Date());
                 comment.setTimeUpdated(new Date());
                 comment.setId(IdUtil.generateID("comment"));
                 mCommentDao.insertFromComment(comment);
             });
-            //todo
-//            scheduleSaveFeedJob(feedResponse, false);
+            scheduleSaveCommentWorker(comment);
         });
     }
 
-    public LiveData<Resource<List<CommentUI>>> getFeedComments(String feedId, long after, int limit){
+    public LiveData<Resource<List<CommentUI>>> getFeedComments(String feedId, long after, int limit) {
 
-        return new NetworkBoundResource<List<CommentUI>, List<Comment>>(mAppExecutors){
+        return new NetworkBoundResource<List<CommentUI>, List<Comment>>(mAppExecutors) {
             @Override
             protected void saveCallResult(@NonNull List<Comment> items) {
                 List<String> listId = new ArrayList<>(items.size());
                 String pagingId = Paging.feedCommentsPagingId(feedId);
                 Paging paging;
-                if(items.isEmpty()){
+                if (items.isEmpty()) {
                     paging = new Paging(pagingId, listId, true, null);
-                }else{
+                } else {
                     for (Comment item : items) {
                         listId.add(item.getId());
                     }
@@ -147,5 +153,39 @@ public class CommentRepository {
                 return mWebService.getFeedComments(feedId, after, limit);
             }
         }.asLiveData();
+
+    }
+
+    private void scheduleSaveCommentWorker(Comment comment) {
+        Constraints uploadConstraints = new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.METERED)
+                .build();
+        WorkContinuation photoWorkContinuation = null;
+        if(comment.getPhoto() != null) {
+            OneTimeWorkRequest compressionWork =
+                    new OneTimeWorkRequest.Builder(CompressPhotoWorker.class)
+                            .setInputData(CompressPhotoWorker.data(comment.getPhoto()))
+                            .build();
+            OneTimeWorkRequest uploadWork =
+                    new OneTimeWorkRequest.Builder(UploadPhotoWorker.class)
+                            .setConstraints(uploadConstraints)
+                            .build();
+            photoWorkContinuation = WorkManager.getInstance()
+                    .beginWith(compressionWork)
+                    .then(uploadWork);
+        }
+
+        OneTimeWorkRequest createCommentWork =
+                new OneTimeWorkRequest.Builder(CreateCommentWorker.class)
+                        .setInputData(CreateCommentWorker.data(comment))
+                        .setConstraints(uploadConstraints)
+                        .build();
+        if(photoWorkContinuation != null) {
+            photoWorkContinuation
+                    .then(createCommentWork)
+                    .enqueue();
+        } else {
+            WorkManager.getInstance().enqueue(createCommentWork);
+        }
     }
 }

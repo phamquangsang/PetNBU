@@ -35,6 +35,9 @@ public class CommentsViewModel extends ViewModel {
     FeedRepository mFeedRepository;
 
     @Inject
+    CommentRepository mCommentRepository;
+
+    @Inject
     UserRepository mUserRepository;
 
     @Inject
@@ -116,7 +119,11 @@ public class CommentsViewModel extends ViewModel {
     }
 
     public void sendComment(String feedId, String content, Photo photo) {
-
+        Comment comment = new Comment();
+        comment.setParentFeedId(feedId);
+        comment.setContent(content);
+        comment.setPhoto(photo);
+        mCommentRepository.createNewFeedComment(comment);
     }
 
     public void sendCommentByComment(String commendId, String content, Photo photo) {

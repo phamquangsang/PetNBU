@@ -9,6 +9,7 @@ import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.feed.CreateEditFeedViewModel;
 import com.petnbu.petnbu.feed.FeedsViewModel;
 import com.petnbu.petnbu.feed.comment.CommentsViewModel;
+import com.petnbu.petnbu.jobs.CreateCommentWorker;
 import com.petnbu.petnbu.jobs.CreateEditFeedWorker;
 import com.petnbu.petnbu.login.LoginJavaActivity;
 import com.petnbu.petnbu.repo.FeedRepository;
@@ -35,6 +36,8 @@ public interface AppComponent {
 
     void inject(CommentsViewModel commentsViewModel);
 
+    void inject(CreateCommentWorker createCommentWorker);
+
     PetDb getPetDb();
 
     FeedRepository getFeedRepo();
@@ -48,6 +51,4 @@ public interface AppComponent {
     SharedPreferences getSharedPref();
 
     Gson getGson();
-
-
 }
