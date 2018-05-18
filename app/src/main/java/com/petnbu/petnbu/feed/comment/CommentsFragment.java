@@ -16,6 +16,7 @@ import com.bumptech.glide.RequestManager;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.databinding.FragmentCommentsBinding;
 import com.petnbu.petnbu.model.Photo;
+import com.petnbu.petnbu.model.Status;
 
 public class CommentsFragment extends Fragment {
 
@@ -58,9 +59,15 @@ public class CommentsFragment extends Fragment {
         mBinding.setViewModel(mCommentsViewModel);
 
         mCommentsViewModel.loadComments(mFeedId).observe(this, commentsResource -> {
-            if(commentsResource.data != null) {
-                mAdapter.setComments(commentsResource.data);
+            if(commentsResource != null){
+                if(commentsResource.data != null) {
+                    mAdapter.setComments(commentsResource.data);
+                }
+                if(commentsResource.status != Status.LOADING){
+                    //todo show hide progress bar
+                }
             }
+
         });
 
         mBinding.rvComments.setLayoutManager(new LinearLayoutManager(getActivity()));
