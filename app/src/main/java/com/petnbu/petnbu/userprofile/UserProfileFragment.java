@@ -17,6 +17,7 @@ import com.bumptech.glide.Glide;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.databinding.FragmentFeedProfileListBinding;
 import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.FeedUI;
 import com.petnbu.petnbu.model.UserEntity;
 
 import timber.log.Timber;
@@ -156,6 +157,6 @@ public class UserProfileFragment extends Fragment {
      */
     public interface OnProfileFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onListFragmentInteractionListener(Feed item);
+        void onListFragmentInteractionListener(FeedUI item);
     }
 }

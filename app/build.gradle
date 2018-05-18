@@ -27,6 +27,12 @@ android {
         vectorDrawables.useSupportLibrary = true
 
         multiDexEnabled true //important
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = ["room.schemaLocation": "$projectDir/schemas".toString()]
+            }
+        }
     }
     buildTypes {
         debug {
@@ -92,7 +98,7 @@ dependencies {
     testImplementation 'android.arch.core:core-testing:1.1.1'
     // Test helpers for Room
     // Gson
-    implementation 'com.google.code.gson:gson:2.8.2'
+    implementation 'com.google.code.gson:gson:2.8.4'
     //Glide
     implementation 'com.github.bumptech.glide:glide:4.7.1'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.7.1'

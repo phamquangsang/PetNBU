@@ -1,6 +1,9 @@
 package com.petnbu.petnbu.di;
 
+import android.content.SharedPreferences;
+
 import com.firebase.jobdispatcher.FirebaseJobDispatcher;
+import com.google.gson.Gson;
 import com.petnbu.petnbu.AppExecutors;
 import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.feed.CreateEditFeedViewModel;
@@ -41,6 +44,10 @@ public interface AppComponent {
     AppExecutors getAppExecutor();
 
     FirebaseJobDispatcher getJobDispatcher();
+
+    SharedPreferences getSharedPref();
+
+    Gson getGson();
 
 
 }

@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
-        <variable name="feed" type="com.petnbu.petnbu.model.Feed"/>
+        <variable name="feed" type="com.petnbu.petnbu.model.FeedUI"/>
     </data>
 
     <android.support.constraint.ConstraintLayout

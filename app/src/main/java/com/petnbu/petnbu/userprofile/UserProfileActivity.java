@@ -9,6 +9,7 @@ import android.os.Bundle;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.databinding.ActivityUserProfileBinding;
 import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.FeedUI;
 
 public class UserProfileActivity extends AppCompatActivity implements UserProfileFragment.OnProfileFragmentInteractionListener{
 
@@ -34,7 +35,7 @@ public class UserProfileActivity extends AppCompatActivity implements UserProfil
 
 
     @Override
-    public void onListFragmentInteractionListener(Feed item) {
+    public void onListFragmentInteractionListener(FeedUI item) {
 
     }
 }

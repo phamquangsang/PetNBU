@@ -16,17 +16,18 @@ import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.Utils;
 import com.petnbu.petnbu.databinding.ViewFeedPhotosBinding;
 import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.FeedUI;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.util.ImageUtils;
 
 public class PhotosPagerAdapter extends PagerAdapter {
 
-    private Feed mFeed;
+    private FeedUI mFeed;
     private RequestManager mRequestManager;
     private OnItemClickListener mOnItemClickListener;
     private int mDeviceWidth;
 
-    public PhotosPagerAdapter(Context context, Feed feed, RequestManager requestManager, OnItemClickListener onItemClickListener) {
+    public PhotosPagerAdapter(Context context, FeedUI feed, RequestManager requestManager, OnItemClickListener onItemClickListener) {
         Preconditions.checkNotNull(context);
         Preconditions.checkNotNull(feed);
         Preconditions.checkNotNull(requestManager);
@@ -57,9 +58,9 @@ public class PhotosPagerAdapter extends PagerAdapter {
     public Object instantiateItem(@NonNull ViewGroup container, int position) {
         ViewFeedPhotosBinding viewFeedPhotosBinding = DataBindingUtil.bind(View.inflate(container.getContext(),
                 R.layout.view_feed_photos, null));
-        String photoUrl = getPhotoUrl(mFeed.getPhotos().get(position));
+        String photoUrl = getPhotoUrl(mFeed.photos.get(position));
         mRequestManager
-                .load(!TextUtils.isEmpty(photoUrl) ? photoUrl : mFeed.getPhotos().get(position).getOriginUrl())
+                .load(!TextUtils.isEmpty(photoUrl) ? photoUrl : mFeed.photos.get(position).getOriginUrl())
                 .apply(RequestOptions.centerInsideTransform())
                 .into(viewFeedPhotosBinding.imgContent);
         viewFeedPhotosBinding.imgContent.setOnClickListener(onPhotoClickedListener);
@@ -83,7 +84,7 @@ public class PhotosPagerAdapter extends PagerAdapter {
         mRequestManager.clear((View) object);
     }
 
-    public void setData(Feed feed) {
+    public void setData(FeedUI feed) {
         mFeed = feed;
         notifyDataSetChanged();
     }

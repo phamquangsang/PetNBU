@@ -198,8 +198,6 @@ public final class Utils {
             return options;
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
         } finally {
             if (inputStream != null) {
                 try {

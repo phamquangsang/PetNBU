@@ -40,6 +40,8 @@ import javax.inject.Inject;
 
 import timber.log.Timber;
 
+import static com.petnbu.petnbu.model.LocalStatus.*;
+
 public class CreateEditFeedJob extends JobService {
 
     private static String EXTRA_FEED_ID = "extra-feed-id";
@@ -100,7 +102,7 @@ public class CreateEditFeedJob extends JobService {
                     , feedEntity.getLikeCount(), feedEntity.getContent(), feedEntity.getTimeCreated()
                     , feedEntity.getTimeUpdated(), feedEntity.getStatus());
 
-            if (mFeed.getStatus() != FeedEntity.STATUS_UPLOADING) {
+            if (mFeed.getStatus() != STATUS_UPLOADING) {
                 jobFinished(params, false);
                 Timber.i("status is not STATUS_UPLOADING");
                 return;
@@ -274,7 +276,7 @@ public class CreateEditFeedJob extends JobService {
 
                             mPetDb.runInTransaction(() -> {
                                 mFeedDao.updateFeedId(temporaryFeedId, newFeed.getFeedId());
-                                newFeed.setStatus(FeedEntity.STATUS_DONE);
+                                newFeed.setStatus(STATUS_DONE);
 
                                 if (currentPaging != null) {
                                     mFeedDao.update(currentPaging);
@@ -307,7 +309,7 @@ public class CreateEditFeedJob extends JobService {
                         Timber.i("upload mFeed succeed %s", feedApiResponse.body.toString());
 
                         Feed newFeed = feedApiResponse.body;
-                        newFeed.setStatus(FeedEntity.STATUS_DONE);
+                        newFeed.setStatus(STATUS_DONE);
 
                         mAppExecutors.diskIO().execute(() -> {
                             mFeedDao.update(newFeed.toEntity());
@@ -325,7 +327,7 @@ public class CreateEditFeedJob extends JobService {
     }
 
     private void updateLocalFeedError(Feed feed) {
-        feed.setStatus(FeedEntity.STATUS_ERROR);
+        feed.setStatus(STATUS_ERROR);
         mAppExecutors.diskIO().execute(() -> {
             mFeedDao.update(feed.toEntity());
             jobFinished(mParams, true);

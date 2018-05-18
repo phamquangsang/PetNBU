@@ -67,6 +67,7 @@ public class FetchNextPageGlobalFeed implements Runnable {
                                     for (Feed item :
                                             listApiResponse.body) {
                                         mPetDb.userDao().insert(item.getFeedUser());
+                                        mPetDb.commentDao().insertFromComment(item.getLatestComment());
                                     }
                                     mPetDb.feedDao().insert(newPaging);
                                     mPetDb.setTransactionSuccessful();

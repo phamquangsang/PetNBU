@@ -1,5 +1,9 @@
 package com.petnbu.petnbu.model;
 
+import android.arch.persistence.room.Embedded;
+import android.arch.persistence.room.Ignore;
+import android.support.annotation.NonNull;
+
 import com.google.firebase.firestore.Exclude;
 import com.google.firebase.firestore.ServerTimestamp;
 
@@ -8,7 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Comment {
-
+    @NonNull
     private String id;
     private FeedUser feedUser;
     private String content;
@@ -20,6 +24,7 @@ public class Comment {
     private String parentFeedId;
 
     @Exclude
+    @LocalStatus.LOCAL_STATUS
     private int localStatus;
 
     @ServerTimestamp private Date timeCreated;
@@ -28,7 +33,22 @@ public class Comment {
     public Comment() {
     }
 
-
+    public Comment(@NonNull String id, FeedUser feedUser, String content, Photo photo, int likeCount,
+                   int commentCount, Comment latestComment, String parentCommentId, String parentFeedId,
+                   int localStatus, Date timeCreated, Date timeUpdated) {
+        this.id = id;
+        this.feedUser = feedUser;
+        this.content = content;
+        this.photo = photo;
+        this.likeCount = likeCount;
+        this.commentCount = commentCount;
+        this.latestComment = latestComment;
+        this.parentCommentId = parentCommentId;
+        this.parentFeedId = parentFeedId;
+        this.localStatus = localStatus;
+        this.timeCreated = timeCreated;
+        this.timeUpdated = timeUpdated;
+    }
 
     public String getId() {
         return id;
@@ -114,6 +134,16 @@ public class Comment {
         return parentFeedId;
     }
 
+    @Exclude
+    @LocalStatus.LOCAL_STATUS
+    public int getLocalStatus() {
+        return localStatus;
+    }
+
+    public void setLocalStatus(@LocalStatus.LOCAL_STATUS int localStatus) {
+        this.localStatus = localStatus;
+    }
+
     public void setParentFeedId(String parentFeedId) {
         this.parentFeedId = parentFeedId;
     }
@@ -127,6 +157,7 @@ public class Comment {
 
         if (likeCount != comment.likeCount) return false;
         if (commentCount != comment.commentCount) return false;
+        if (localStatus != comment.localStatus) return false;
         if (!id.equals(comment.id)) return false;
         if (feedUser != null ? !feedUser.equals(comment.feedUser) : comment.feedUser != null)
             return false;
@@ -155,6 +186,7 @@ public class Comment {
         result = 31 * result + (latestComment != null ? latestComment.hashCode() : 0);
         result = 31 * result + (parentCommentId != null ? parentCommentId.hashCode() : 0);
         result = 31 * result + (parentFeedId != null ? parentFeedId.hashCode() : 0);
+        result = 31 * result + localStatus;
         result = 31 * result + (timeCreated != null ? timeCreated.hashCode() : 0);
         result = 31 * result + (timeUpdated != null ? timeUpdated.hashCode() : 0);
         return result;
@@ -190,5 +222,10 @@ public class Comment {
         map.put("timeCreated", timeCreated);
         map.put("timeUpdated", timeUpdated);
         return map;
+    }
+
+    public CommentEntity toEntity(){
+        return new CommentEntity(id, feedUser.getUserId(), content, photo, likeCount, commentCount,
+                parentCommentId, parentFeedId, localStatus, timeCreated, timeUpdated);
     }
 }

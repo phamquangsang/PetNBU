@@ -1,26 +1,30 @@
 package com.petnbu.petnbu.db;
 
 import android.arch.persistence.room.TypeConverter;
+import android.arch.persistence.room.TypeConverters;
 import android.text.TextUtils;
 
 import com.google.android.gms.common.util.ArrayUtils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.petnbu.petnbu.PetApplication;
+import com.petnbu.petnbu.model.Comment;
+import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.FeedEntity;
 import com.petnbu.petnbu.model.Photo;
 
 import java.util.Date;
 import java.util.List;
 
 public class PetTypeConverters {
+    public static Gson gson = PetApplication.getAppComponent().getGson();
     @TypeConverter
     public static String listPhotosToJson(List<Photo> photos){
-        Gson gson = new Gson();
         return gson.toJson(photos);
     }
 
     @TypeConverter
     public static List<Photo> jsonToListPhoto(String photosJson){
-        Gson gson = new Gson();
         return gson.fromJson(photosJson, new TypeToken<List<Photo>>(){}.getType());
     }
 
@@ -32,7 +36,6 @@ public class PetTypeConverters {
 
     @TypeConverter
     public static Photo jsonToPhoto(String photoJson){
-        Gson gson = new Gson();
         return gson.fromJson(photoJson, Photo.class);
     }
 
