@@ -31,6 +31,7 @@ public class CommentsActivity extends AppCompatActivity {
     private ActivityCommentsBinding mBinding;
     private CommentsViewModel mCommentsViewModel;
     private CommentsFragment mCommentsFragment;
+    private String mFeedId;
 
     public static Intent newIntent(Context context, String feedId) {
         Intent intent = new Intent(context, CommentsActivity.class);
@@ -52,11 +53,11 @@ public class CommentsActivity extends AppCompatActivity {
 
         mCommentsViewModel = ViewModelProviders.of(this).get(CommentsViewModel.class);
         mCommentsViewModel.loadUserInfo().observe(this, this::checkToDisplayUserInfo);
-        mCommentsViewModel.openRepliesEvent.observe(this, this::openRepliesUI);
+        mCommentsViewModel.openRepliesEvent.observe(this, this::showRepliesForComment);
 
-        String feedId = getIntent() != null ? getIntent().getStringExtra(EXTRA_FEED_ID) : "";
-        if(!TextUtils.isEmpty(feedId)) {
-            mCommentsFragment = CommentsFragment.newInstance(feedId);
+        mFeedId = getIntent() != null ? getIntent().getStringExtra(EXTRA_FEED_ID) : "";
+        if(!TextUtils.isEmpty(mFeedId)) {
+            mCommentsFragment = CommentsFragment.newInstance(mFeedId);
             getSupportFragmentManager()
                     .beginTransaction()
                     .add(R.id.fragmentContainer, mCommentsFragment, CommentsFragment.class.getSimpleName())
@@ -119,9 +120,10 @@ public class CommentsActivity extends AppCompatActivity {
 
     private void doPost() {
         String content = mBinding.edText.getText().toString().trim();
+        mCommentsViewModel.sendComment(mFeedId, content, null);
     }
 
-    private void openRepliesUI(String commentId) {
+    private void showRepliesForComment(String commentId) {
         getSupportFragmentManager()
                 .beginTransaction()
                 .hide(mCommentsFragment)

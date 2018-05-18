@@ -16,11 +16,11 @@ import com.petnbu.petnbu.api.FakeWebService;
 import com.petnbu.petnbu.api.WebService;
 import com.petnbu.petnbu.model.Comment;
 import com.petnbu.petnbu.model.Feed;
-import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.Resource;
 import com.petnbu.petnbu.model.Status;
 import com.petnbu.petnbu.model.UserEntity;
+import com.petnbu.petnbu.repo.CommentRepository;
 import com.petnbu.petnbu.repo.FeedRepository;
 import com.petnbu.petnbu.repo.UserRepository;
 
@@ -32,6 +32,9 @@ public class CommentsViewModel extends ViewModel {
 
     @Inject
     FeedRepository mFeedRepository;
+
+    @Inject
+    CommentRepository mCommentRepository;
 
     @Inject
     UserRepository mUserRepository;
@@ -105,7 +108,11 @@ public class CommentsViewModel extends ViewModel {
     }
 
     public void sendComment(String feedId, String content, Photo photo) {
-
+        Comment comment = new Comment();
+        comment.setParentFeedId(feedId);
+        comment.setContent(content);
+        comment.setPhoto(photo);
+        mCommentRepository.createNewFeedComment(comment);
     }
 
     public void sendCommentByComment(String commendId, String content, Photo photo) {

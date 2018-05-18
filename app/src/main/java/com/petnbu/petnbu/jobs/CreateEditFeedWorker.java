@@ -167,12 +167,12 @@ public class CreateEditFeedWorker extends Worker {
                         });
                         countDownLatch.countDown();
                     });
-                    apiResponse.removeObserver(this);
                 } else {
                     Timber.e("create feed error %s", feedApiResponse.errorMessage);
                     updateLocalFeedError(feed);
                     countDownLatch.countDown();
                 }
+                apiResponse.removeObserver(this);
             }
         });
         countDownLatch.await();
