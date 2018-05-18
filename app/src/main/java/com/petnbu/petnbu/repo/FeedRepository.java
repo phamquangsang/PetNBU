@@ -7,12 +7,7 @@ import android.arch.lifecycle.Transformations;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.firebase.jobdispatcher.Constraint;
-import com.firebase.jobdispatcher.FirebaseJobDispatcher;
-import com.firebase.jobdispatcher.Job;
-import com.firebase.jobdispatcher.Trigger;
 import com.petnbu.petnbu.AppExecutors;
-import com.petnbu.petnbu.PetApplication;
 import com.petnbu.petnbu.SharedPrefUtil;
 import com.petnbu.petnbu.api.ApiResponse;
 import com.petnbu.petnbu.api.WebService;
@@ -20,12 +15,16 @@ import com.petnbu.petnbu.db.CommentDao;
 import com.petnbu.petnbu.db.FeedDao;
 import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.db.UserDao;
-import com.petnbu.petnbu.jobs.CreateEditFeedJob;
+import com.petnbu.petnbu.jobs.CompressPhotoWorker;
+import com.petnbu.petnbu.jobs.CreateEditFeedWorker;
+import com.petnbu.petnbu.jobs.UploadPhotoWorker;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedEntity;
 import com.petnbu.petnbu.model.FeedUI;
 import com.petnbu.petnbu.model.Paging;
 import com.petnbu.petnbu.model.FeedUser;
+import com.petnbu.petnbu.model.Paging;
+import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.Resource;
 import com.petnbu.petnbu.model.UserEntity;
 import com.petnbu.petnbu.util.IdUtil;
@@ -39,6 +38,11 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import androidx.work.Constraints;
+import androidx.work.NetworkType;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkContinuation;
+import androidx.work.WorkManager;
 import timber.log.Timber;
 
 import static com.petnbu.petnbu.model.LocalStatus.STATUS_UPLOADING;
@@ -263,7 +267,7 @@ public class FeedRepository {
                 feed.setFeedId(IdUtil.generateID("feed"));
                 mFeedDao.insertFromFeed(feed);
             });
-            scheduleSaveFeedJob(feed, false);
+            scheduleSaveFeedWorker(feed, false);
         });
     }
 
@@ -277,20 +281,49 @@ public class FeedRepository {
                 feedEntity.setPhotos(feed.getPhotos());
                 mFeedDao.update(feedEntity);
             });
-            scheduleSaveFeedJob(feed, true);
+            scheduleSaveFeedWorker(feed, true);
         });
     }
 
-    private void scheduleSaveFeedJob(Feed feed, boolean isUpdating) {
-        FirebaseJobDispatcher jobDispatcher = PetApplication.getAppComponent().getJobDispatcher();
-        Job job = jobDispatcher.newJobBuilder()
-                .setService(CreateEditFeedJob.class)
-                .setExtras(CreateEditFeedJob.extras(feed.getFeedId(), isUpdating))
-                .setTag(feed.getFeedId())
-                .setConstraints(Constraint.ON_ANY_NETWORK)
-                .setTrigger(Trigger.executionWindow(0, 0))
+    private void scheduleSaveFeedWorker(Feed feed, boolean isUpdating) {
+        ArrayList<WorkContinuation> workContinuations = new ArrayList<>(feed.getPhotos().size());
+        // Constraints that defines when the task should run
+        Constraints uploadConstraints = new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.METERED)
                 .build();
-        jobDispatcher.mustSchedule(job);
+
+        for (Photo photo : feed.getPhotos()) {
+            OneTimeWorkRequest compressionWork =
+                    new OneTimeWorkRequest.Builder(CompressPhotoWorker.class)
+                            .setInputData(CompressPhotoWorker.data(photo))
+                            .build();
+            OneTimeWorkRequest uploadWork =
+                    new OneTimeWorkRequest.Builder(UploadPhotoWorker.class)
+                            .setConstraints(uploadConstraints)
+                            .build();
+            WorkContinuation continuation = WorkManager.getInstance()
+                    .beginWith(compressionWork)
+                    .then(uploadWork);
+            workContinuations.add(continuation);
+        }
+        if(!workContinuations.isEmpty()) {
+            OneTimeWorkRequest createFeedWork =
+                    new OneTimeWorkRequest.Builder(CreateEditFeedWorker.class)
+                            .setConstraints(uploadConstraints)
+                            .setInputData(CreateEditFeedWorker.data(feed, isUpdating))
+                            .build();
+
+            if (workContinuations.size() > 1) {
+                WorkContinuation
+                        .combine(workContinuations)
+                        .then(createFeedWork)
+                        .enqueue();
+            } else {
+                workContinuations.get(0)
+                        .then(createFeedWork)
+                        .enqueue();
+            }
+        }
     }
 
     public LiveData<Resource<List<Feed>>> refresh() {

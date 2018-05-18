@@ -32,25 +32,15 @@
         <activity
             android:name=".login.LoginJavaActivity"
             android:label="@string/title_activity_login_java"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
+            android:theme="@style/AppTheme.NoActionBar"/>
         <activity
             android:name=".feed.CreateFeedActivity"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme"
             android:windowSoftInputMode="adjustPan"/>
-
-        <service
-            android:name=".jobs.CreateEditFeedJob"
-            android:exported="false"
-            android:permission="android.permission.BIND_JOB_SERVICE">
-            <intent-filter>
-                <action android:name="com.firebase.jobdispatcher.ACTION_EXECUTE"/>
-            </intent-filter>
-        </service>
-        <activity android:name=".userprofile.UserProfileActivity"
-                  android:theme="@style/AppTheme.NoActionBar">
-        </activity>
+        <activity
+            android:name=".userprofile.UserProfileActivity"
+            android:theme="@style/AppTheme.NoActionBar"/>
         <activity
             android:name=".feed.comment.CommentsActivity"
             android:screenOrientation="portrait"

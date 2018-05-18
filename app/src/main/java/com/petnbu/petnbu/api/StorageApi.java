@@ -3,7 +3,6 @@ package com.petnbu.petnbu.api;
 
 import android.graphics.Bitmap;
 import android.net.Uri;
-import android.support.v4.util.ArrayMap;
 import android.util.Log;
 
 import com.google.firebase.storage.FirebaseStorage;
@@ -92,111 +91,7 @@ public class StorageApi {
         public abstract void onFailed(Exception e);
     }
 
-    public static abstract class OnUploadingFile<T> {
-
-        AtomicInteger mTotalFileCount;
-        List<T> mData;
-        ArrayMap<String, String> mResult;
-        OnResultListener mOnResultListener = new OnResultListener() {
-            @Override
-            public void onSuccess(String fileName, UploadTask.TaskSnapshot taskSnapshot) {
-                mTotalFileCount.decrementAndGet();
-                mResult.put(fileName, taskSnapshot.getDownloadUrl().toString());
-                if (mTotalFileCount.get() == 0) {
-                    onCompleted(mResult);
-                }
-            }
-
-            @Override
-            public void onFailure(String fileName, Exception e) {
-                mTotalFileCount.decrementAndGet();
-                onFailed(e);
-            }
-        };
-
-        public OnUploadingFile(List<T> data) {
-            mTotalFileCount = new AtomicInteger(data.size());
-            mData = data;
-            mResult = new ArrayMap<>();
-        }
-
-        public void start() {
-            for (T data : mData) {
-                UploadRequest uploadRequest = getUploadRequest(data);
-                if(uploadRequest.mFileUri != null) {
-                    updateImage(uploadRequest.mFileUri, uploadRequest.mFileUri.getLastPathSegment(), mOnResultListener);
-                } else if(uploadRequest.mBitmap != null) {
-                    updateBitmap(uploadRequest.mBitmap, uploadRequest.mResourceName, mOnResultListener);
-                }
-            }
-        }
-
-        public abstract void onCompleted(ArrayMap<String, String> result);
-
-        public abstract void onFailed(Exception e);
-
-        public abstract UploadRequest getUploadRequest(T t);
-    }
-
-    public static abstract class OnUploadingMultiSizeBitmap<T> extends OnUploadingFile<T> {
-
-        private int[] mSizeTypes;
-
-        public OnUploadingMultiSizeBitmap(List<T> data, int[] sizeTypes) {
-            super(data);
-            mSizeTypes = sizeTypes;
-            mTotalFileCount = new AtomicInteger(data.size() * (sizeTypes.length + 1)); // +1 for origin size
-        }
-
-        @Override
-        public void start() {
-            for (T t : mData) {
-                UploadRequest uploadRequest = getUploadRequest(t);
-                if(uploadRequest != null && uploadRequest.mBitmap != null) {
-                    updateBitmap(uploadRequest.mBitmap, uploadRequest.mResourceName, mOnResultListener);
-                    for (int sizeType : mSizeTypes) {
-                        UploadRequest resizedBitmapRequest = getResizedBitmapRequest(t, uploadRequest.mResourceName, uploadRequest.mBitmap, sizeType);
-                        updateBitmap(resizedBitmapRequest.mBitmap, resizedBitmapRequest.mResourceName, mOnResultListener);
-                    }
-                }
-            }
-        }
-
-        public abstract UploadRequest getResizedBitmapRequest(T t, String srcName, Bitmap bitmap, int sizeType);
-    }
-
-    public static class UploadRequest {
-
-        private Uri mFileUri;
-        private Bitmap mBitmap;
-        private String mResourceName;
-
-        public Uri getFileUri() {
-            return mFileUri;
-        }
-
-        public void setFileUri(Uri fileUri) {
-            mFileUri = fileUri;
-        }
-
-        public Bitmap getBitmap() {
-            return mBitmap;
-        }
-
-        public void setBitmap(Bitmap bitmap) {
-            mBitmap = bitmap;
-        }
-
-        public String getResourceName() {
-            return mResourceName;
-        }
-
-        public void setResourceName(String resourceName) {
-            mResourceName = resourceName;
-        }
-    }
-
-    interface OnResultListener {
+    public interface OnResultListener {
 
         void onSuccess(String fileName, UploadTask.TaskSnapshot taskSnapshot);
 
