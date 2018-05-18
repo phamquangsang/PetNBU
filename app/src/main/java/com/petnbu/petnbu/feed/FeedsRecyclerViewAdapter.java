@@ -234,7 +234,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
                     pagerAdapter.setData(mFeed);
 
                 } else {
-                    mBinding.vpPhotos.setAdapter(new PhotosPagerAdapter(itemView.getContext(), mFeed, mRequestManager, () -> {
+                    mBinding.vpPhotos.setAdapter(new PhotosPagerAdapter(mFeed, mRequestManager, () -> {
                         if (mOnItemClickListener != null && mFeed.getStatus() == FeedEntity.STATUS_DONE) {
                             mOnItemClickListener.onPhotoClicked(mFeed.getPhotos().get(mBinding.vpPhotos.getCurrentItem()));
                         }

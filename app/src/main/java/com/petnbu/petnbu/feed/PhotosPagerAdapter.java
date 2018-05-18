@@ -1,10 +1,10 @@
 package com.petnbu.petnbu.feed;
 
-import android.content.Context;
 import android.databinding.DataBindingUtil;
 import android.support.annotation.NonNull;
 import android.support.v4.view.PagerAdapter;
 import android.text.TextUtils;
+import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -13,7 +13,6 @@ import com.bumptech.glide.load.DecodeFormat;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.android.gms.common.internal.Preconditions;
 import com.petnbu.petnbu.R;
-import com.petnbu.petnbu.Utils;
 import com.petnbu.petnbu.databinding.ViewFeedPhotosBinding;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.Photo;
@@ -24,17 +23,14 @@ public class PhotosPagerAdapter extends PagerAdapter {
     private Feed mFeed;
     private RequestManager mRequestManager;
     private OnItemClickListener mOnItemClickListener;
-    private int mDeviceWidth;
 
-    public PhotosPagerAdapter(Context context, Feed feed, RequestManager requestManager, OnItemClickListener onItemClickListener) {
-        Preconditions.checkNotNull(context);
+    public PhotosPagerAdapter(Feed feed, RequestManager requestManager, OnItemClickListener onItemClickListener) {
         Preconditions.checkNotNull(feed);
         Preconditions.checkNotNull(requestManager);
 
         mFeed = feed;
         mRequestManager = requestManager;
         mOnItemClickListener = onItemClickListener;
-        mDeviceWidth = Utils.getDeviceWidth(context);
     }
 
     @Override
@@ -57,24 +53,17 @@ public class PhotosPagerAdapter extends PagerAdapter {
     public Object instantiateItem(@NonNull ViewGroup container, int position) {
         ViewFeedPhotosBinding viewFeedPhotosBinding = DataBindingUtil.bind(View.inflate(container.getContext(),
                 R.layout.view_feed_photos, null));
-        String photoUrl = getPhotoUrl(mFeed.getPhotos().get(position));
-        mRequestManager
-                .load(!TextUtils.isEmpty(photoUrl) ? photoUrl : mFeed.getPhotos().get(position).getOriginUrl())
-                .apply(RequestOptions.centerInsideTransform())
-                .into(viewFeedPhotosBinding.imgContent);
+        ImageUtils.SizeDeterminer sizeDeterminer = new ImageUtils.SizeDeterminer(viewFeedPhotosBinding.imgContent);
+        sizeDeterminer.getSize((width, height) -> {
+            String photoUrl = ImageUtils.getPhotoUrl(mFeed.getPhotos().get(position), width);
+            mRequestManager
+                    .load(!TextUtils.isEmpty(photoUrl) ? photoUrl : mFeed.getPhotos().get(position).getOriginUrl())
+                    .apply(RequestOptions.centerInsideTransform())
+                    .into(viewFeedPhotosBinding.imgContent);
+        });
         viewFeedPhotosBinding.imgContent.setOnClickListener(onPhotoClickedListener);
         container.addView(viewFeedPhotosBinding.getRoot());
         return viewFeedPhotosBinding.getRoot();
-    }
-
-    private String getPhotoUrl(Photo photo) {
-        switch (ImageUtils.getResolutionType(mDeviceWidth)) {
-            case -1: return photo.getOriginUrl();
-            case ImageUtils.FHD: return photo.getLargeUrl();
-            case ImageUtils.HD: return photo.getMediumUrl();
-            case ImageUtils.qHD: return photo.getSmallUrl();
-            default: return null;
-        }
     }
 
     @Override
