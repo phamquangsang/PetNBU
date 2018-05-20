@@ -20,10 +20,12 @@ import com.google.firebase.firestore.Transaction;
 import com.google.firebase.firestore.WriteBatch;
 import com.petnbu.petnbu.model.Comment;
 import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.UserEntity;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -82,13 +84,25 @@ public class FirebaseService implements WebService {
                     "to update Feed. It is required feedId, feedUser, feedUserId must not null!"));
             return result;
         }
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("content", feed.getContent());
+
+        Map<String, Object> photosUpdate = new HashMap<>();
+        List<Photo> photos = feed.getPhotos();
+        for (int i = 0; i < photos.size(); i++) {
+            Photo photo = photos.get(i);
+            photosUpdate.put(String.valueOf(i), photo.toMap());
+        }
+        updates.put("photos", photosUpdate);
+
         WriteBatch batch = mDb.batch();
         DocumentReference doc = mDb.collection(GLOBAL_FEEDS).document(feed.getFeedId());
         feed.setTimeUpdated(null);
-        batch.set(doc, feed);
+        batch.update(doc, updates);
         DocumentReference userFeed =
                 mDb.document(String.format("users/%s/feeds/%s", feed.getFeedUser().getUserId(), feed.getFeedId()));
-        batch.set(userFeed, feed);
+        batch.update(userFeed, updates);
         batch.commit()
                 .addOnSuccessListener(aVoid -> {
                     feed.setTimeUpdated(new Date());
@@ -303,21 +317,33 @@ public class FirebaseService implements WebService {
             @Override
             public Comment apply(@NonNull Transaction transaction) throws FirebaseFirestoreException {
                 DocumentReference feedRef = mDb.collection(GLOBAL_FEEDS).document(feedId);
-                DocumentSnapshot feed = transaction.get(feedRef);
-                if (!feed.exists()) {
+                DocumentSnapshot feedSnapShot = transaction.get(feedRef);
+                if (!feedSnapShot.exists()) {
                     result.setValue(new ApiResponse<>(null, false, "the feedID " + feedId + " does not found "));
                     return null;
                 }
+                Feed feed = feedSnapShot.toObject(Feed.class);
 
-                Double newCommentCount = feed.getDouble("commentCount") + 1;
+                Double newCommentCount = (double) (feed.getCommentCount() + 1);
                 DocumentReference commentRef = mDb.collection("comments").document();
                 comment.setId(commentRef.getId());
 
-                transaction.update(feedRef, "commentCount", newCommentCount);
                 Map<String, Object> commentMap = comment.toMap();
                 commentMap.put("timeCreated", FieldValue.serverTimestamp());
                 commentMap.put("timeUpdated", FieldValue.serverTimestamp());
-                transaction.update(feedRef, "latestComment", commentMap);
+
+
+
+                //update commentCount
+                Map<String, Object> commentCountUpdates = new HashMap<>();
+                commentCountUpdates.put("commentCount", newCommentCount);
+                updateFeedTransaction(transaction, feed, commentCountUpdates);
+
+                //update Feed latestComment
+                Map<String, Object> latestCommentUpdates = new HashMap<>();
+                latestCommentUpdates.put("latestComment", commentMap);
+                updateFeedTransaction(transaction, feed, latestCommentUpdates);
+
 
                 transaction.set(commentRef, commentMap);
 
@@ -345,7 +371,74 @@ public class FirebaseService implements WebService {
 
     @Override
     public LiveData<ApiResponse<Comment>> createReplyComment(Comment comment, String parentCommentId) {
-        return null;
+        MutableLiveData<ApiResponse<Comment>> result = new MutableLiveData<>();
+        final String oldId = comment.getId();
+        mDb.runTransaction(new Transaction.Function<Comment>() {
+            @Nullable
+            @Override
+            public Comment apply(@NonNull Transaction transaction) throws FirebaseFirestoreException {
+                DocumentReference parentCommentRef = mDb.document(String.format("comments/%s", parentCommentId));
+                DocumentSnapshot parentCommentSnap = transaction.get(parentCommentRef);
+                if (!parentCommentSnap.exists()) {
+                    result.setValue(new ApiResponse<>(null, false, "the parentComment " + parentCommentId + " does not found "));
+                    return null;
+                }
+
+                Comment parentComment = parentCommentSnap.toObject(Comment.class);
+
+                Double newCommentCount = (double) (parentComment.getCommentCount() + 1);
+                DocumentReference commentRef = mDb.collection("comments").document();
+                comment.setId(commentRef.getId());
+                Map<String, Object> commentMap = comment.toMap();
+                commentMap.put("timeCreated", FieldValue.serverTimestamp());
+                commentMap.put("timeUpdated", FieldValue.serverTimestamp());
+
+
+                Map<String, Object> updatesCount = new HashMap<>();
+                updatesCount.put("commentCount", newCommentCount);
+
+                Map<String, Object> latestCommentUpdate = new HashMap<>();
+                latestCommentUpdate.put("latestComment", commentMap);
+
+
+                DocumentReference feedContainerRef = mDb.document("global_feeds/" + parentComment.getParentFeedId());
+                Feed feedContainer = transaction.get(feedContainerRef).toObject(Feed.class);
+
+                //update feed comment count
+                updateFeedTransaction(transaction, feedContainer, updatesCount);
+                //update parent's comment count
+                updateCommentTransaction(transaction, parentComment, updatesCount);
+                updateCommentTransaction(transaction, parentComment, latestCommentUpdate);
+
+
+                String userCommentPath = String.format("users/%s/comments/%s",
+                        comment.getFeedUser().getUserId(), commentRef.getId());
+                DocumentReference userCommentRef = mDb.document(userCommentPath);
+                transaction.set(userCommentRef, commentMap);
+
+
+                String feedSubCommentPath = String.format("global_feeds/%s/comments/%s/subComments/%s",
+                        feedContainer.getFeedId(), parentCommentId, comment.getId());
+                DocumentReference feedCommentRef = mDb.document(feedSubCommentPath);
+                transaction.set(feedCommentRef, commentMap);
+
+                String userFeedSubCommentPath = String.format("users/%s/feeds/%s/comments/%s/subComments/%s",
+                        feedContainer.getFeedUser().getUserId(), feedContainer.getFeedId(), parentCommentId, comment.getId());
+                DocumentReference userFeedSubCommentRef = mDb.document(userFeedSubCommentPath);
+                transaction.set(userFeedSubCommentRef, commentMap);
+
+                return comment;
+            }
+        }).addOnSuccessListener(new OnSuccessListener<Comment>() {
+            @Override
+            public void onSuccess(Comment comment) {
+                result.setValue(new ApiResponse<>(comment, true, null));
+            }
+        }).addOnFailureListener(e -> {
+            comment.setId(oldId);
+            result.setValue(new ApiResponse<>(comment, false, e.getMessage()));
+        });
+        return result;
     }
 
     @Override
@@ -378,31 +471,24 @@ public class FirebaseService implements WebService {
         MutableLiveData<ApiResponse<List<Comment>>> result = new MutableLiveData<>();
         mDb.document(String.format("global_feeds/%s/comments/%s", feedId, commentId))
                 .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(DocumentSnapshot documentSnapshot) {
+                if (!documentSnapshot.exists()) {
+                    result.setValue(new ApiResponse<>(null, false, "comment not found"));
+                    return;
+                }
+                String feedCommentsPath = String.format("global_feeds/%s/comments", feedId);
+                CollectionReference ref = mDb.collection(feedCommentsPath);
+                ref.orderBy("timeCreated", Query.Direction.DESCENDING).startAfter(documentSnapshot).limit(limit)
+                        .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                     @Override
-                    public void onSuccess(DocumentSnapshot documentSnapshot) {
-                        if(!documentSnapshot.exists()){
-                            result.setValue(new ApiResponse<>(null, false, "comment not found"));
-                            return;
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        Timber.i("getFeedComments succeed");
+                        List<Comment> comments = new ArrayList<>();
+                        for (DocumentSnapshot cmtSnapShot : queryDocumentSnapshots) {
+                            comments.add(cmtSnapShot.toObject(Comment.class));
                         }
-                        String feedCommentsPath = String.format("global_feeds/%s/comments", feedId);
-                        CollectionReference ref = mDb.collection(feedCommentsPath);
-                        ref.orderBy("timeCreated", Query.Direction.DESCENDING).startAfter(documentSnapshot).limit(limit)
-                                .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                            @Override
-                            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                                Timber.i("getFeedComments succeed");
-                                List<Comment> comments = new ArrayList<>();
-                                for (DocumentSnapshot cmtSnapShot : queryDocumentSnapshots) {
-                                    comments.add(cmtSnapShot.toObject(Comment.class));
-                                }
-                                result.setValue(new ApiResponse<>(comments, true, null));
-                            }
-                        }).addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                result.setValue(new ApiResponse<>(null, false, e.getMessage()));
-                            }
-                        });
+                        result.setValue(new ApiResponse<>(comments, true, null));
                     }
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
@@ -410,6 +496,13 @@ public class FirebaseService implements WebService {
                         result.setValue(new ApiResponse<>(null, false, e.getMessage()));
                     }
                 });
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                result.setValue(new ApiResponse<>(null, false, e.getMessage()));
+            }
+        });
 
         return result;
     }
@@ -417,5 +510,19 @@ public class FirebaseService implements WebService {
     @Override
     public LiveData<ApiResponse<List<Comment>>> getCommentsByComment(String commentId) {
         return null;
+    }
+
+    private void updateFeedTransaction(Transaction transaction, Feed feed, Map<String, Object> update) throws FirebaseFirestoreException {
+        DocumentReference feedRef = mDb.document(String.format("global_feeds/%s", feed.getFeedId()));
+        DocumentReference userFeed = mDb.document(String.format("users/%s/feeds/%s", feed.getFeedUser().getUserId(), feed.getFeedId()));
+        transaction.update(feedRef, update);
+        transaction.update(userFeed, update);
+    }
+
+    private void updateCommentTransaction(Transaction transaction, Comment comment, Map<String, Object> update) throws FirebaseFirestoreException {
+        DocumentReference commentRef = mDb.document(String.format("comments/%s", comment.getId()));
+        DocumentReference userComentRef = mDb.document(String.format("users/%s/comments/%s", comment.getFeedUser().getUserId(), comment.getId()));
+        transaction.update(commentRef, update);
+        transaction.update(userComentRef, update);
     }
 }
