@@ -120,6 +120,7 @@ public class CommentsActivity extends AppCompatActivity {
 
     private void doPost() {
         String content = mBinding.edText.getText().toString().trim();
+        mBinding.edText.getText().clear();
         mCommentsViewModel.sendComment(mFeedId, content, null);
     }
 
