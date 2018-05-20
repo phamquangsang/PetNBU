@@ -56,7 +56,7 @@ public abstract class CommentDao {
             "left join comments as subComments on comments.latestCommentId = subComments.id " +
             "left join users as subCommentUser on subComments.ownerId = subCommentUser.userId " +
             "where comments.id in (:ids) " +
-            "order by comments.timeCreated")
+            "order by comments.timeCreated DESC")
     public abstract LiveData<List<CommentUI>> loadCommentsIncludeUploading(List<String> ids);
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
