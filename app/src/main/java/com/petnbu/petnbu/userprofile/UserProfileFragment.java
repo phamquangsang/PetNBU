@@ -112,7 +112,7 @@ public class UserProfileFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         mViewModel = ViewModelProviders.of(getActivity()).get(UserProfileViewModel.class);
-        mViewModel.getFeeds(Paging.userFeedsPagingId(mUserId)).observe(this, feedsResource -> {
+        mViewModel.getFeeds(mUserId, Paging.userFeedsPagingId(mUserId)).observe(this, feedsResource -> {
             Timber.i("onChanged %s :", feedsResource == null ? "null" : feedsResource.toString());
             if (feedsResource != null && feedsResource.data != null) {
                 mAdapter.replace(feedsResource.data);

@@ -92,8 +92,8 @@ public abstract class FeedDao {
             "LEFT JOIN users AS feedUsers ON feeds.fromUserId = feedUsers.userId " +
             "LEFT JOIN comments ON feeds.latestCommentId = comments.id " +
             "LEFT JOIN users AS commentUsers ON comments.ownerId = commentUsers.userId " +
-            "WHERE (feedId IN (:ids) OR status == 1) ORDER BY feeds.timeCreated DESC")
-    public abstract LiveData<List<FeedUI>> loadFeedsIncludeUploadingPost(List<String> ids);
+            "WHERE feedId IN (:ids) ORDER BY feeds.timeCreated DESC")
+    public abstract LiveData<List<FeedUI>> loadFeedsIds(List<String> ids);
 
     @Query("SELECT feedId, name, userId, avatar, photos, commentCount, likeCount, content, feeds.timeCreated, feeds.timeUpdated, status, likeInProgress  " +
             "FROM feeds, users " +

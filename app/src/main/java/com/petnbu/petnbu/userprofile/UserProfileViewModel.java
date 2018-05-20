@@ -36,8 +36,8 @@ public class UserProfileViewModel extends ViewModel {
         loadMoreHandler = new LoadMoreHandler(mFeedRepository);
     }
 
-    public LiveData<Resource<List<FeedUI>>> getFeeds(String pagingId) {
-        mFeedsLiveData = mFeedRepository.loadUserFeeds(pagingId);
+    public LiveData<Resource<List<FeedUI>>> getFeeds(String userId, String pagingId) {
+        mFeedsLiveData = mFeedRepository.loadUserFeeds(userId, pagingId);
         return mFeedsLiveData;
     }
 

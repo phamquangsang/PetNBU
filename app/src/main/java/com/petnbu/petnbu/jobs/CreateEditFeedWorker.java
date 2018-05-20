@@ -143,24 +143,19 @@ public class CreateEditFeedWorker extends Worker {
                     mAppExecutors.diskIO().execute(() -> {
                         Timber.i("update feedId from %s to %s", temporaryFeedId, newFeed.getFeedId());
 
-                        Paging currentPaging = mFeedDao.findFeedPaging(Paging.GLOBAL_FEEDS_PAGING_ID);
-                        if (currentPaging != null) {
-                            currentPaging.getIds().add(0, newFeed.getFeedId());
-                        }
-
-                        Paging userPaging = mFeedDao.findFeedPaging(newFeed.getFeedUser().getUserId());
-                        if (userPaging != null) {
-                            userPaging.getIds().add(0, newFeed.getFeedId());
-                        }
-
                         mPetDb.runInTransaction(() -> {
                             mFeedDao.updateFeedId(temporaryFeedId, newFeed.getFeedId());
                             newFeed.setStatus(STATUS_DONE);
 
+                            Paging currentPaging = mFeedDao.findFeedPaging(Paging.GLOBAL_FEEDS_PAGING_ID);
                             if (currentPaging != null) {
+                                currentPaging.replaceId(temporaryFeedId, newFeed.getFeedId());
                                 mFeedDao.update(currentPaging);
                             }
+
+                            Paging userPaging = mFeedDao.findFeedPaging(newFeed.getFeedUser().getUserId());
                             if (userPaging != null) {
+                                userPaging.replaceId(temporaryFeedId, newFeed.getFeedId());
                                 mFeedDao.update(userPaging);
                             }
                             mFeedDao.update(newFeed.toEntity());
