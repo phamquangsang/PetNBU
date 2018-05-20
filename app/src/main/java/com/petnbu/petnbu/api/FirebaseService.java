@@ -85,16 +85,15 @@ public class FirebaseService implements WebService {
             return result;
         }
 
+        List<Map<String, Object>> photosMap = new ArrayList<>();
+        for (Photo photo :
+                feed.getPhotos()) {
+            photosMap.add(photo.toMap());
+        }
+
         Map<String, Object> updates = new HashMap<>();
         updates.put("content", feed.getContent());
-
-        Map<String, Object> photosUpdate = new HashMap<>();
-        List<Photo> photos = feed.getPhotos();
-        for (int i = 0; i < photos.size(); i++) {
-            Photo photo = photos.get(i);
-            photosUpdate.put(String.valueOf(i), photo.toMap());
-        }
-        updates.put("photos", photosUpdate);
+        updates.put("photos", photosMap);
 
         WriteBatch batch = mDb.batch();
         DocumentReference doc = mDb.collection(GLOBAL_FEEDS).document(feed.getFeedId());
@@ -124,6 +123,7 @@ public class FirebaseService implements WebService {
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<Feed> feedRespons = new ArrayList<>(limit);
                     for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
+                        Timber.i(doc.toString());
                         feedRespons.add(doc.toObject(Feed.class));
                     }
                     Timber.i("onSuccess: loaded %d feed(s)", queryDocumentSnapshots.getDocuments().size());
