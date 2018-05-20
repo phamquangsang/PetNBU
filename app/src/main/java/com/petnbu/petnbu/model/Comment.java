@@ -225,6 +225,7 @@ public class Comment {
         map.put("commentCount", commentCount);
         map.put("latestComment", latestComment != null ? latestComment.toMap() : null);
         map.put("parentCommentId", parentCommentId);
+        map.put("parentFeedId", parentFeedId);
         map.put("timeCreated", timeCreated);
         map.put("timeUpdated", timeUpdated);
         return map;
