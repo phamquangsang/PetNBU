@@ -295,11 +295,6 @@ public class FirebaseService implements WebService {
                 .addOnFailureListener(e -> callback.onFailed(e));
     }
 
-    @Override
-    public LiveData<ApiResponse<List<Comment>>> getCommentsPaging(String feedId, String commentId) {
-        return null;
-    }
-
     public LiveData<ApiResponse<Comment>> createFeedComment(Comment comment, String feedId) {
         MutableLiveData<ApiResponse<Comment>> result = new MutableLiveData<>();
         final String oldId = comment.getId();
@@ -358,7 +353,7 @@ public class FirebaseService implements WebService {
         MutableLiveData<ApiResponse<List<Comment>>> result = new MutableLiveData<>();
         String feedCommentsPath = String.format("global_feeds/%s/comments", feedId);
         CollectionReference ref = mDb.collection(feedCommentsPath);
-        ref.orderBy("timeCreated").startAfter(after).limit(limit)
+        ref.orderBy("timeCreated", Query.Direction.DESCENDING).startAfter(new Date(after)).limit(limit)
                 .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
@@ -375,6 +370,47 @@ public class FirebaseService implements WebService {
                 result.setValue(new ApiResponse<>(null, false, e.getMessage()));
             }
         });
+        return result;
+    }
+
+    @Override
+    public LiveData<ApiResponse<List<Comment>>> getCommentsPaging(String feedId, String commentId, int limit) {
+        MutableLiveData<ApiResponse<List<Comment>>> result = new MutableLiveData<>();
+        mDb.document(String.format("global_feeds/%s/comments/%s", feedId, commentId))
+                .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        if(!documentSnapshot.exists()){
+                            result.setValue(new ApiResponse<>(null, false, "comment not found"));
+                            return;
+                        }
+                        String feedCommentsPath = String.format("global_feeds/%s/comments", feedId);
+                        CollectionReference ref = mDb.collection(feedCommentsPath);
+                        ref.orderBy("timeCreated", Query.Direction.DESCENDING).startAfter(documentSnapshot).limit(limit)
+                                .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                            @Override
+                            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                                Timber.i("getFeedComments succeed");
+                                List<Comment> comments = new ArrayList<>();
+                                for (DocumentSnapshot cmtSnapShot : queryDocumentSnapshots) {
+                                    comments.add(cmtSnapShot.toObject(Comment.class));
+                                }
+                                result.setValue(new ApiResponse<>(comments, true, null));
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                result.setValue(new ApiResponse<>(null, false, e.getMessage()));
+                            }
+                        });
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        result.setValue(new ApiResponse<>(null, false, e.getMessage()));
+                    }
+                });
+
         return result;
     }
 

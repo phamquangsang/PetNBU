@@ -35,6 +35,7 @@ import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.Utils;
 import com.petnbu.petnbu.databinding.ViewCommentBinding;
 import com.petnbu.petnbu.model.Comment;
+import com.petnbu.petnbu.model.CommentUI;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.util.ColorUtils;
 
@@ -44,13 +45,13 @@ import java.util.List;
 
 public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<RepliesRecyclerViewAdapter.ViewHolder> {
 
-    private List<Comment> mComments;
+    private List<CommentUI> mComments;
     private RequestManager mRequestManager;
     private RepliesRecyclerViewAdapter.OnItemClickListener mOnItemClickListener;
     private String mCommentId;
     private int mDataVersion;
 
-    public RepliesRecyclerViewAdapter(List<Comment> comments, String commentId, RequestManager requestManager,
+    public RepliesRecyclerViewAdapter(List<CommentUI> comments, String commentId, RequestManager requestManager,
                                       OnItemClickListener onItemClickListener) {
         mComments = comments != null ? comments : new ArrayList<>();
         mRequestManager = requestManager;
@@ -75,7 +76,7 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<RepliesRecy
         return mComments.size();
     }
 
-    public void setComments(List<Comment> comments) {
+    public void setComments(List<CommentUI> comments) {
         mDataVersion++;
         final int startVersion = mDataVersion;
         new AsyncTask<Void, Void, DiffUtil.DiffResult>() {
@@ -95,16 +96,16 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<RepliesRecy
         }.execute();
     }
 
-    protected class ViewHolder extends BaseBindingViewHolder<ViewCommentBinding, Comment> {
+    protected class ViewHolder extends BaseBindingViewHolder<ViewCommentBinding, CommentUI> {
 
-        private Comment mComment;
+        private CommentUI mComment;
 
         public ViewHolder(View itemView) {
             super(itemView);
         }
 
         @Override
-        public void bindData(Comment item) {
+        public void bindData(CommentUI item) {
             mComment = item;
             displayUserInfo();
             displayContent();
@@ -113,7 +114,7 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<RepliesRecy
 
         private void displayUserInfo() {
             mRequestManager.asBitmap()
-                    .load(mComment.getFeedUser().getAvatar().getOriginUrl())
+                    .load(mComment.getOwner().getAvatar().getOriginUrl())
                     .apply(RequestOptions.centerCropTransform())
                     .into(new BitmapImageViewTarget(mBinding.imgProfile) {
                         @Override
@@ -131,7 +132,7 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<RepliesRecy
         }
 
         private void displayContent() {
-            SpannableStringBuilder builder = new SpannableStringBuilder(mComment.getFeedUser().getName() + "");
+            SpannableStringBuilder builder = new SpannableStringBuilder(mComment.getOwner().getName() + "");
             int start = 0;
             builder.setSpan(new StyleSpan(Typeface.BOLD), start, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             builder.setSpan(new ForegroundColorSpan(Color.BLACK), start, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -156,7 +157,7 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<RepliesRecy
         }
 
         private void displayReplies() {
-            if(mComment.getLatestComment() != null) {
+            if(mComment.getLatestCommentId() != null) {
                 mBinding.tvLatestComment.setVisibility(View.VISIBLE);
                 mBinding.tvPreviousReplies.setVisibility(View.VISIBLE);
 
@@ -168,19 +169,19 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<RepliesRecy
                 mBinding.tvLatestComment.setCompoundDrawables(leftDrawable, null, null, null);
                 mBinding.tvLatestComment.setCompoundDrawablePadding((int) Utils.convertDpToPixel(context, 8));
 
-                SpannableStringBuilder builder = new SpannableStringBuilder(mComment.getLatestComment().getFeedUser().getName() + "");
+                SpannableStringBuilder builder = new SpannableStringBuilder(mComment.getLatestCommentOwnerName() + "");
                 int start = 0;
                 builder.setSpan(new StyleSpan(Typeface.BOLD), start, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                 builder.setSpan(new ForegroundColorSpan(Color.BLACK), start, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                 builder.append("  ");
 
                 start = builder.length();
-                builder.append(mComment.getLatestComment().getContent());
+                builder.append(mComment.getLatestCommentContent());
                 builder.setSpan(new ForegroundColorSpan(ColorUtils.modifyAlpha(Color.BLACK, 0.8f)), start, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                 mBinding.tvLatestComment.setText(builder);
                 mBinding.tvPreviousReplies.setText(context.getString(R.string.feed_view_previous_replies, mComment.getCommentCount() - 1));
 
-                mRequestManager.asBitmap().load(mComment.getLatestComment().getFeedUser().getAvatar().getOriginUrl())
+                mRequestManager.asBitmap().load(mComment.getLatestCommentOwnerAvatar().getOriginUrl())
                         .apply(RequestOptions.overrideOf(imageSize, imageSize))
                         .listener(new RequestListener<Bitmap>() {
                             @Override
@@ -207,10 +208,10 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<RepliesRecy
 
     private static class CommentsDiffCallback extends DiffUtil.Callback {
 
-        private final List<Comment> oldData;
-        private final List<Comment> newData;
+        private final List<CommentUI> oldData;
+        private final List<CommentUI> newData;
 
-        private CommentsDiffCallback(List<Comment> oldData, List<Comment> newData) {
+        private CommentsDiffCallback(List<CommentUI> oldData, List<CommentUI> newData) {
             this.oldData = oldData;
             this.newData = newData;
         }

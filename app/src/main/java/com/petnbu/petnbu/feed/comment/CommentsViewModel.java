@@ -2,11 +2,12 @@ package com.petnbu.petnbu.feed.comment;
 
 import android.app.Application;
 import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.MediatorLiveData;
 import android.arch.lifecycle.MutableLiveData;
+import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.Transformations;
 import android.arch.lifecycle.ViewModel;
 import android.databinding.ObservableBoolean;
+import android.support.annotation.Nullable;
 
 import com.petnbu.petnbu.PetApplication;
 import com.petnbu.petnbu.SharedPrefUtil;
@@ -14,13 +15,14 @@ import com.petnbu.petnbu.SingleLiveEvent;
 import com.petnbu.petnbu.api.WebService;
 import com.petnbu.petnbu.model.Comment;
 import com.petnbu.petnbu.model.CommentUI;
-import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.Paging;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.Resource;
 import com.petnbu.petnbu.model.Status;
 import com.petnbu.petnbu.model.UserEntity;
 import com.petnbu.petnbu.repo.CommentRepository;
 import com.petnbu.petnbu.repo.FeedRepository;
+import com.petnbu.petnbu.repo.LoadMoreState;
 import com.petnbu.petnbu.repo.UserRepository;
 
 import java.util.Date;
@@ -28,9 +30,10 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import timber.log.Timber;
+
 public class CommentsViewModel extends ViewModel {
 
-    private static final int COMMENT_PAGING_LIMIT = 10;
     @Inject
     FeedRepository mFeedRepository;
 
@@ -49,13 +52,18 @@ public class CommentsViewModel extends ViewModel {
     @Inject
     Application mApplication;
 
-    private final MutableLiveData<Resource<List<Comment>>> mCommentsLiveData = new MutableLiveData<>();
+    private LoadMoreHandler loadMoreHandler;
+
+    private LiveData<Resource<List<CommentUI>>> mCommentsLiveData = new MutableLiveData<>();
+
     public final ObservableBoolean showLoading = new ObservableBoolean(false);
+
     public final SingleLiveEvent<String> openRepliesEvent = new SingleLiveEvent<>();
 
 
     public CommentsViewModel() {
         PetApplication.getAppComponent().inject(this);
+        loadMoreHandler = new LoadMoreHandler(mCommentRepository);
     }
 
     public LiveData<UserEntity> loadUserInfo() {
@@ -73,17 +81,22 @@ public class CommentsViewModel extends ViewModel {
     }
 
     public LiveData<Resource<List<CommentUI>>> loadComments(String feedId) {
-        return mCommentRepo.getFeedCommentsIncludeFeedContentHeader(feedId, new Date().getTime(), COMMENT_PAGING_LIMIT);
+        mCommentsLiveData = mCommentRepo.getFeedCommentsIncludeFeedContentHeader(feedId, new Date().getTime(), CommentRepository.COMMENT_PER_PAGE);
+        return mCommentsLiveData;
     }
 
 
-    public LiveData<Resource<List<Comment>>> loadSubComments(String commentId) {
+    public LiveData<Resource<List<CommentUI>>> loadSubComments(String commentId) {
         showLoading.set(true);
         return Transformations.switchMap(mWebService.getCommentsByComment(commentId), input -> {
             showLoading.set(false);
-            mCommentsLiveData.setValue(Resource.success(input.body));
+//            mCommentsLiveData.setValue(Resource.success(input.body));
             return mCommentsLiveData;
         });
+    }
+
+    public LiveData<LoadMoreState> getLoadMoreState() {
+        return loadMoreHandler.getLoadMoreState();
     }
 
     public void sendComment(String feedId, String content, Photo photo) {
@@ -96,5 +109,80 @@ public class CommentsViewModel extends ViewModel {
 
     public void sendCommentByComment(String commendId, String content, Photo photo) {
 
+    }
+
+    public void loadNextPage(String feedId) {
+        Timber.i("loadNextPage :");
+        if (mCommentsLiveData.getValue() != null) {
+            loadMoreHandler.loadNextPage(feedId, Paging.feedCommentsPagingId(feedId));
+        }
+    }
+
+    static class LoadMoreHandler implements Observer<Resource<Boolean>> {
+
+        private final CommentRepository commentRepo;
+
+        private MutableLiveData<LoadMoreState> loadMoreState = new MutableLiveData<>();
+
+        private LiveData<Resource<Boolean>> nextPageLiveData;
+
+        private boolean hasMore = true;
+
+        public LoadMoreHandler(CommentRepository feedRepository) {
+            commentRepo = feedRepository;
+            loadMoreState.setValue(new LoadMoreState(false, null));
+        }
+
+        public void loadNextPage(String feedId, String pagingId) {
+            if (!hasMore || loadMoreState.getValue() == null || loadMoreState.getValue().isRunning()) {
+                Timber.i("hasMore = %s", hasMore);
+                return;
+            }
+            Timber.i("loadNextPage");
+            unregister();
+            nextPageLiveData = commentRepo.fetchNextPage(feedId, pagingId);
+            loadMoreState.setValue(new LoadMoreState(true, null));
+            nextPageLiveData.observeForever(this);
+
+        }
+
+        @Override
+        public void onChanged(@Nullable Resource<Boolean> result) {
+            if (result == null) {
+                reset();
+            } else {
+                Timber.i(result.toString());
+                switch (result.status) {
+                    case SUCCESS:
+                        hasMore = Boolean.TRUE.equals(result.data);
+                        unregister();
+                        loadMoreState.setValue(new LoadMoreState(false, null));
+                        break;
+                    case ERROR:
+                        hasMore = true;
+                        unregister();
+                        loadMoreState.setValue(new LoadMoreState(false,
+                                result.message));
+                        break;
+                }
+            }
+        }
+
+        private void unregister() {
+            if (nextPageLiveData != null) {
+                nextPageLiveData.removeObserver(this);
+                nextPageLiveData = null;
+            }
+        }
+
+        private void reset() {
+            unregister();
+            hasMore = true;
+            loadMoreState.setValue(new LoadMoreState(false, null));
+        }
+
+        public MutableLiveData<LoadMoreState> getLoadMoreState() {
+            return loadMoreState;
+        }
     }
 }

@@ -34,7 +34,7 @@ public interface WebService {
 
     LiveData<ApiResponse<List<Comment>>> getFeedComments(String feedId, long after, int limit);
 
-    LiveData<ApiResponse<List<Comment>>> getCommentsPaging(String feedId, String commentId);
+    LiveData<ApiResponse<List<Comment>>> getCommentsPaging(String feedId, String commentId, int limit);
 
     LiveData<ApiResponse<Comment>> createFeedComment(Comment comment, String feedId);
 

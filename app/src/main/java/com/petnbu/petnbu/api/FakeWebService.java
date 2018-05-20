@@ -388,7 +388,7 @@ public class FakeWebService implements WebService {
     }
 
     @Override
-    public LiveData<ApiResponse<List<Comment>>> getCommentsPaging(String feedId, String commentId) {
+    public LiveData<ApiResponse<List<Comment>>> getCommentsPaging(String feedId, String commentId, int limit) {
         return null;
     }
 

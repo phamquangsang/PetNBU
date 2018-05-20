@@ -49,6 +49,8 @@ import androidx.work.WorkManager;
 @Singleton
 public class CommentRepository {
 
+    public static final int COMMENT_PER_PAGE = 10;
+
     private final PetDb mPetDb;
 
     private final FeedDao mFeedDao;
@@ -215,7 +217,7 @@ public class CommentRepository {
                         return data;
                     } else {
                         Timber.i("loadFeedsFromDb paging: %s", input.toString());
-                        return mCommentDao.loadCommentsIncludeUploading(input.getIds());
+                        return mCommentDao.loadComments(input.getIds());
                     }
                 });
             }
@@ -227,6 +229,12 @@ public class CommentRepository {
             }
         }.asLiveData();
 
+    }
+
+    public LiveData<Resource<Boolean>> fetchNextPage(String feedId, String pagingId) {
+        FetchNextPageFeedComment fetchNextPageTask = new FetchNextPageFeedComment(feedId, pagingId, mWebService, mPetDb, mAppExecutors);
+        mAppExecutors.networkIO().execute(fetchNextPageTask);
+        return fetchNextPageTask.getLiveData();
     }
 
     private void scheduleSaveCommentWorker(Comment comment) {

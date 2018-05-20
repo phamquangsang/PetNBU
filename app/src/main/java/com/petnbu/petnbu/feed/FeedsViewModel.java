@@ -13,6 +13,7 @@ import com.petnbu.petnbu.model.Paging;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.Resource;
 import com.petnbu.petnbu.repo.FeedRepository;
+import com.petnbu.petnbu.repo.LoadMoreState;
 import com.petnbu.petnbu.repo.UserRepository;
 
 import java.util.List;
@@ -66,41 +67,6 @@ public class FeedsViewModel extends ViewModel {
         return mFeedRepository.refresh();
     }
 
-    static class LoadMoreState {
-        private final boolean running;
-        private final String errorMessage;
-        private boolean handledError = false;
-
-        LoadMoreState(boolean running, String errorMessage) {
-            this.running = running;
-            this.errorMessage = errorMessage;
-        }
-
-        boolean isRunning() {
-            return running;
-        }
-
-        String getErrorMessage() {
-            return errorMessage;
-        }
-
-        String getErrorMessageIfNotHandled() {
-            if (handledError) {
-                return null;
-            }
-            handledError = true;
-            return errorMessage;
-        }
-
-        @Override
-        public String toString() {
-            return "LoadMoreState{" +
-                    "running=" + running +
-                    ", errorMessage='" + errorMessage + '\'' +
-                    ", handledError=" + handledError +
-                    '}';
-        }
-    }
 
     static class LoadMoreHandler implements Observer<Resource<Boolean>> {
 
@@ -118,7 +84,7 @@ public class FeedsViewModel extends ViewModel {
         }
 
         public void loadNextPage(String pagingId) {
-            if (!hasMore || loadMoreState.getValue() == null || loadMoreState.getValue().running) {
+            if (!hasMore || loadMoreState.getValue() == null || loadMoreState.getValue().isRunning()) {
                 Timber.i("hasMore = %s", hasMore);
                 return;
             }
