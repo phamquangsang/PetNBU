@@ -21,7 +21,7 @@ public class WebServiceModule {
     FirebaseFirestore provideFirebaseFirestore(){
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
-                .setPersistenceEnabled(false)
+                .setPersistenceEnabled(true)
                 .build();
         db.setFirestoreSettings(settings);
 

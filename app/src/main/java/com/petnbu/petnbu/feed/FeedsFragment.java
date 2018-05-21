@@ -65,13 +65,19 @@ public class FeedsFragment extends Fragment {
             mUserId = SharedPrefUtil.getUserId(getActivity());
             mFeedsViewModel = ViewModelProviders.of(getActivity()).get(FeedsViewModel.class);
             mFeedsViewModel.getFeeds(Paging.GLOBAL_FEEDS_PAGING_ID).observe(this, feeds -> {
-                if (feeds != null && feeds.data != null) {
+                Timber.i("feeds: %s", feeds);
+                if (feeds != null) {
                     if (feeds.status == Status.LOADING) {
                         mBinding.pullToRefresh.setRefreshing(true);
                     } else {
                         mBinding.pullToRefresh.setRefreshing(false);
                     }
-                    mAdapter.setFeeds(feeds.data);
+                    if(feeds.status == Status.ERROR){
+                        Snackbar.make(mBinding.getRoot(), feeds.message, Snackbar.LENGTH_LONG).show();
+                    }
+                    if(feeds.data != null){
+                        mAdapter.setFeeds(feeds.data);
+                    }
                 }
             });
 

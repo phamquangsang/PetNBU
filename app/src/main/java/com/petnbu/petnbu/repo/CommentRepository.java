@@ -169,19 +169,17 @@ public class CommentRepository {
         return new NetworkBoundResource<List<CommentUI>, List<Comment>>(mAppExecutors) {
             @Override
             protected void saveCallResult(@NonNull List<Comment> items) {
+                if(items.isEmpty()){
+                    return;
+                }
                 List<String> listId = new ArrayList<>(items.size());
                 String pagingId = Paging.feedCommentsPagingId(feedId);
-                Paging paging;
-                if (items.isEmpty()) {
-                    paging = new Paging(pagingId, listId, true, null);
-                } else {
-                    for (Comment item : items) {
-                        listId.add(item.getId());
-                    }
-                    paging = new Paging(pagingId,
-                            listId, false,
-                            listId.get(listId.size() - 1));
+                for (Comment item : items) {
+                    listId.add(item.getId());
                 }
+                Paging paging = new Paging(pagingId,
+                        listId, false,
+                        listId.get(listId.size() - 1));
                 mPetDb.runInTransaction(() -> {
                     mCommentDao.insertListComment(items);
                     for (Comment item : items) {

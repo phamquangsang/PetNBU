@@ -82,18 +82,17 @@ public class FeedRepository {
         return new NetworkBoundResource<List<FeedUI>, List<Feed>>(mAppExecutors) {
             @Override
             protected void saveCallResult(@NonNull List<Feed> items) {
+                if(items.isEmpty()){
+                    return;
+                }
                 List<String> listId = new ArrayList<>(items.size());
                 Paging paging;
-                if (items.isEmpty()) {
-                    paging = new Paging(pagingId, listId, true, null);
-                } else {
-                    for (Feed item : items) {
-                        listId.add(item.getFeedId());
-                    }
-                    paging = new Paging(pagingId,
-                            listId, false,
-                            listId.get(listId.size() - 1));
+                for (Feed item : items) {
+                    listId.add(item.getFeedId());
                 }
+                paging = new Paging(pagingId,
+                        listId, false,
+                        listId.get(listId.size() - 1));
                 mPetDb.runInTransaction(() -> {
                     mFeedDao.insertFromFeedList(items);
                     for (Feed item : items) {
@@ -344,13 +343,16 @@ public class FeedRepository {
         return new NetworkBoundResource<List<Feed>, List<Feed>>(mAppExecutors) {
             @Override
             protected void saveCallResult(@NonNull List<Feed> items) {
+                if(items.isEmpty()){
+                    return;
+                }
                 List<String> listId = new ArrayList<>(items.size());
                 for (Feed item : items) {
                     listId.add(item.getFeedId());
                 }
                 Paging paging = new Paging(Paging.GLOBAL_FEEDS_PAGING_ID,
                         listId, false,
-                        listId.get(listId.size() - 1));
+                        listId.get(listId.size()  - 1));
                 mPetDb.runInTransaction(() -> {
                     mFeedDao.insertFromFeedList(items);
                     for (Feed feedItem : items) {
@@ -369,15 +371,9 @@ public class FeedRepository {
             @NonNull
             @Override
             protected LiveData<List<Feed>> loadFromDb() {
-                return Transformations.switchMap(mFeedDao.loadFeedPaging(Paging.GLOBAL_FEEDS_PAGING_ID), input -> {
-                    if (input == null) {
-                        MutableLiveData<List<Feed>> data = new MutableLiveData<>();
-                        data.postValue(null);
-                        return data;
-                    } else {
-                        return mFeedDao.loadFeeds(input.getIds());
-                    }
-                });
+                MutableLiveData<List<Feed>> data = new MutableLiveData<>();
+                data.postValue(null);
+                return data;
             }
 
             @NonNull
