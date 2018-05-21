@@ -56,6 +56,7 @@ public class CommentsViewModel extends ViewModel {
     public final ObservableBoolean showLoading = new ObservableBoolean(false);
 
     private final SingleLiveEvent<String> mOpenRepliesEvent = new SingleLiveEvent<>();
+    private final SingleLiveEvent<String> mOpenUserProfileEvent = new SingleLiveEvent<>();
 
     public CommentsViewModel() {
         PetApplication.getAppComponent().inject(this);
@@ -120,12 +121,20 @@ public class CommentsViewModel extends ViewModel {
         }
     }
 
+    public void openUserProfile(String userId) {
+        mOpenUserProfileEvent.setValue(userId);
+    }
+
     public void openRepliesForComment(String commentId) {
         mOpenRepliesEvent.setValue(commentId);
     }
 
     public LiveData<String> getOpenRepliesEvent() {
         return mOpenRepliesEvent;
+    }
+
+    public LiveData<String> getOpenUserProfileEvent() {
+        return mOpenUserProfileEvent;
     }
 
     private static class LoadMoreHandler implements Observer<Resource<Boolean>> {

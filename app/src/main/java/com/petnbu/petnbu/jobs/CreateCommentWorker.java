@@ -2,10 +2,12 @@ package com.petnbu.petnbu.jobs;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
+import com.google.gson.Gson;
 import com.petnbu.petnbu.AppExecutors;
 import com.petnbu.petnbu.PetApplication;
 import com.petnbu.petnbu.api.ApiResponse;
@@ -17,6 +19,7 @@ import com.petnbu.petnbu.model.Comment;
 import com.petnbu.petnbu.model.CommentEntity;
 import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Paging;
+import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.UserEntity;
 
 import java.util.concurrent.CountDownLatch;
@@ -77,8 +80,29 @@ public class CreateCommentWorker extends Worker {
                         commentEntity.getTimeUpdated());
                 if (comment.getLocalStatus() == STATUS_UPLOADING) {
                     try {
-                        createComment(comment);
-                        workerResult = WorkerResult.SUCCESS;
+                        if(comment.getPhoto() != null) {
+                            Photo commentPhoto = comment.getPhoto();
+                            Photo uploadedPhoto = null;
+                            String key = Uri.parse(commentPhoto.getOriginUrl()).getLastPathSegment();
+                            String jsonPhoto = data.getString(key, "");
+                            if (!TextUtils.isEmpty(jsonPhoto)) {
+                                uploadedPhoto = new Gson().fromJson(jsonPhoto, Photo.class);
+                                commentPhoto.setOriginUrl(uploadedPhoto.getOriginUrl());
+                                commentPhoto.setLargeUrl(uploadedPhoto.getLargeUrl());
+                                commentPhoto.setMediumUrl(uploadedPhoto.getMediumUrl());
+                                commentPhoto.setSmallUrl(uploadedPhoto.getSmallUrl());
+                                commentPhoto.setThumbnailUrl(uploadedPhoto.getThumbnailUrl());
+                            }
+                            if(uploadedPhoto != null) {
+                                createComment(comment);
+                                workerResult = WorkerResult.SUCCESS;
+                            } else {
+                                workerResult = WorkerResult.FAILURE;
+                            }
+                        } else {
+                            createComment(comment);
+                            workerResult = WorkerResult.SUCCESS;
+                        }
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
