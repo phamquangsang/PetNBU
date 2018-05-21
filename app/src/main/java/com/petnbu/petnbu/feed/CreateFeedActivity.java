@@ -1,25 +1,19 @@
 package com.petnbu.petnbu.feed;
 
-import android.Manifest;
 import android.app.ProgressDialog;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.databinding.DataBindingUtil;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -35,6 +29,7 @@ import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.BitmapImageViewTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.github.ybq.android.spinkit.style.FadingCircle;
+import com.petnbu.petnbu.BaseActivity;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.Utils;
 import com.petnbu.petnbu.databinding.ActivityCreateFeedBinding;
@@ -46,13 +41,9 @@ import java.util.ArrayList;
 
 import timber.log.Timber;
 
-public class CreateFeedActivity extends AppCompatActivity {
+public class CreateFeedActivity extends BaseActivity {
 
     public static final String EXTRA_EDIT_FEED_ID = "EDIT_FEED_ID";
-    private static final int REQUEST_READ_EXTERNAL_PERMISSIONS = 8;
-
-    public static final int GALLERY_INTENT_CALLED = 3;
-    public static final int GALLERY_KITKAT_INTENT_CALLED = 2;
 
     private ActivityCreateFeedBinding mBinding;
     private CreateEditFeedViewModel mCreateEditFeedViewModel;
@@ -87,7 +78,7 @@ public class CreateFeedActivity extends AppCompatActivity {
         String feedId = "";
 
         Intent intent = getIntent();
-        if(intent != null && intent.hasExtra(EXTRA_EDIT_FEED_ID)) {
+        if (intent != null && intent.hasExtra(EXTRA_EDIT_FEED_ID)) {
             feedId = getIntent().getStringExtra(EXTRA_EDIT_FEED_ID);
         }
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -95,7 +86,7 @@ public class CreateFeedActivity extends AppCompatActivity {
         mRequestManager = Glide.with(this);
         mCreateEditFeedViewModel = ViewModelProviders.of(this).get(CreateEditFeedViewModel.class);
         mCreateEditFeedViewModel.loadFeed(feedId).observe(this, feed -> {
-            if(feed != null) {
+            if (feed != null) {
                 mSelectedPhotos.addAll(feed.getPhotos());
                 mPhotosAdapter.notifyDataSetChanged();
                 mBinding.edText.setText(feed.getContent());
@@ -132,7 +123,7 @@ public class CreateFeedActivity extends AppCompatActivity {
                 Timber.i("user is null");
             }
         });
-        requestReadExternalPermission();
+        checkToRequestReadExternalPermission();
 
         mBinding.edText.addTextChangedListener(new TextWatcher() {
             @Override
@@ -156,7 +147,7 @@ public class CreateFeedActivity extends AppCompatActivity {
             @Override
             public void onCameraIconClicked() {
                 mCameraClicked = true;
-                requestReadExternalPermission();
+                checkToRequestReadExternalPermission();
             }
 
             @Override
@@ -188,30 +179,13 @@ public class CreateFeedActivity extends AppCompatActivity {
         });
     }
 
-    protected boolean requestReadExternalPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
-                && ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            String[] permissions = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
-            ActivityCompat.requestPermissions(this, permissions, REQUEST_READ_EXTERNAL_PERMISSIONS);
-            return true;
-        } else {
+    private void checkToRequestReadExternalPermission() {
+        if (!requestReadExternalPermission()) {
             if (mCameraClicked) {
-                if (Build.VERSION.SDK_INT < 19) {
-                    Intent intent = new Intent();
-                    intent.setType("image/*");
-                    intent.setAction(Intent.ACTION_GET_CONTENT);
-                    startActivityForResult(intent, GALLERY_INTENT_CALLED);
-                } else {
-                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                    intent.addCategory(Intent.CATEGORY_OPENABLE);
-                    intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-                    intent.setType("image/*");
-                    startActivityForResult(intent, GALLERY_KITKAT_INTENT_CALLED);
-                }
+                openPhotoGallery(true);
                 mCameraClicked = false;
             }
         }
-        return false;
     }
 
     @Override
@@ -245,22 +219,9 @@ public class CreateFeedActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
             case REQUEST_READ_EXTERNAL_PERMISSIONS:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    if (mCameraClicked) {
-                        if (Build.VERSION.SDK_INT < 19) {
-                            Intent intent = new Intent();
-                            intent.setType("*/*");
-                            intent.setAction(Intent.ACTION_GET_CONTENT);
-                            startActivityForResult(intent, GALLERY_INTENT_CALLED);
-                        } else {
-                            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                            intent.addCategory(Intent.CATEGORY_OPENABLE);
-                            intent.setType("*/*");
-                            intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-                            startActivityForResult(intent, GALLERY_KITKAT_INTENT_CALLED);
-                        }
-                        mCameraClicked = false;
-                    }
+                if (mCameraClicked) {
+                    openPhotoGallery(true);
+                    mCameraClicked = false;
                 }
                 break;
             default:
@@ -274,14 +235,10 @@ public class CreateFeedActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 if (data.getData() != null) {
                     Uri uri = data.getData();
-                        requestPersistablePermission(data, uri);
-                    BitmapFactory.Options options = Utils.getBitmapSize(this, uri);
+                    requestPersistablePermission(data, uri);
 
                     Photo photo = new Photo();
-                    Timber.i("decodeUri: %s", uri.toString());
                     photo.setOriginUrl(uri.toString());
-                    photo.setWidth(options.outWidth);
-                    photo.setHeight(options.outHeight);
                     mSelectedPhotos.add(photo);
                     mPhotosAdapter.notifyItemInserted(mSelectedPhotos.size() - 1);
                 } else {
@@ -291,12 +248,9 @@ public class CreateFeedActivity extends AppCompatActivity {
                             ClipData.Item item = clipData.getItemAt(i);
                             Uri uri = item.getUri();
                             requestPersistablePermission(data, uri);
-                            BitmapFactory.Options options = Utils.getBitmapSize(this, uri);
 
                             Photo photo = new Photo();
                             photo.setOriginUrl(uri.toString());
-                            photo.setWidth(options.outWidth);
-                            photo.setHeight(options.outHeight);
                             mSelectedPhotos.add(photo);
                         }
                         mPhotosAdapter.notifyItemRangeInserted(mSelectedPhotos.size() - clipData.getItemCount(),
@@ -307,24 +261,6 @@ public class CreateFeedActivity extends AppCompatActivity {
             checkToEnablePostMenu();
         } else {
             super.onActivityResult(requestCode, resultCode, data);
-        }
-    }
-
-    private void requestPersistablePermission(Intent data, Uri uri) {
-        if (Build.VERSION.SDK_INT >= 19) {
-            final int takeFlags = data.getFlags()
-                    & (Intent.FLAG_GRANT_READ_URI_PERMISSION
-                    | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-
-            try {
-                if (uri != null) {
-                    getContentResolver().takePersistableUriPermission(uri, takeFlags);
-                } else {
-                    //todo notify user something wrong with selected photo
-                }
-            } catch (SecurityException e) {
-                e.printStackTrace();
-            }
         }
     }
 
@@ -354,7 +290,7 @@ public class CreateFeedActivity extends AppCompatActivity {
     }
 
     private void setPlaceHolderLayoutVisibility(boolean placeHolderLayoutVisibility) {
-        if(placeHolderLayoutVisibility) {
+        if (placeHolderLayoutVisibility) {
             mBinding.tvUserName.setVisibility(View.GONE);
             mBinding.tvUserNamePlaceHolder.setVisibility(View.VISIBLE);
 

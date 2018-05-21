@@ -7,7 +7,6 @@
         android:id="@+id/layoutRoot"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?android:attr/selectableItemBackground"
         android:paddingTop="14dp">
 
         <de.hdodenhof.circleimageview.CircleImageView
@@ -41,16 +40,40 @@
             app:layout_goneMarginRight="12dp"
             tools:text="Nhat Pham something"/>
 
+        <ImageView
+            android:id="@+id/imgPhoto"
+            android:layout_width="wrap_content"
+            android:layout_height="150dp"
+            android:layout_marginLeft="12dp"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="8dp"
+            android:maxHeight="150dp"
+            android:scaleType="centerCrop"
+            android:visibility="gone"
+            app:layout_constrainedWidth="true"
+            app:layout_constraintEnd_toStartOf="@+id/layoutLike"
+            app:layout_constraintHorizontal_bias="0"
+            app:layout_constraintLeft_toRightOf="@+id/imgProfile"
+            app:layout_constraintRight_toLeftOf="@+id/layoutLike"
+            app:layout_constraintStart_toEndOf="@+id/imgProfile"
+            app:layout_constraintTop_toBottomOf="@+id/tvContent"
+            app:layout_goneMarginEnd="12dp"
+            app:layout_goneMarginRight="12dp"
+            tools:visibility="visible"/>
+
         <TextView
             android:id="@+id/tvDate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="8dp"
             android:textColor="@android:color/secondary_text_light_nodisable"
             android:textSize="12sp"
-            app:layout_constraintLeft_toLeftOf="@+id/tvContent"
-            app:layout_constraintStart_toStartOf="@+id/tvContent"
-            app:layout_constraintTop_toBottomOf="@+id/tvContent"
+            app:layout_constraintLeft_toLeftOf="@+id/imgPhoto"
+            app:layout_constraintStart_toStartOf="@+id/imgPhoto"
+            app:layout_constraintTop_toBottomOf="@+id/imgPhoto"
+            app:layout_goneMarginLeft="12dp"
+            app:layout_goneMarginStart="12dp"
+            app:layout_goneMarginTop="4dp"
             tools:text="2h"/>
 
         <TextView

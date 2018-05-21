@@ -15,6 +15,7 @@ import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.RecyclerView;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
+import android.text.TextUtils;
 import android.text.format.DateUtils;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
@@ -140,8 +141,16 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
             mBinding.tvReply.setOnClickListener(v -> {
                 if (getAdapterPosition() != RecyclerView.NO_POSITION) {
                     CommentUI commentUI = mComments.get(getAdapterPosition());
-                    if (commentUI.getLocalStatus() == LocalStatus.STATUS_DONE)
-                        mCommentsViewModel.openRepliesForComment(mComments.get(getAdapterPosition()).getId());
+                    if (commentUI.getLocalStatus() != LocalStatus.STATUS_UPLOADING)
+                        mCommentsViewModel.openRepliesForComment(commentUI.getId());
+                }
+            });
+
+            mBinding.imgProfile.setOnClickListener(v -> {
+                if (getAdapterPosition() != RecyclerView.NO_POSITION) {
+                    CommentUI commentUI = mComments.get(getAdapterPosition());
+                    if (commentUI.getLocalStatus() != LocalStatus.STATUS_UPLOADING)
+                        mCommentsViewModel.openUserProfile(commentUI.getOwner().getUserId());
                 }
             });
         }
@@ -185,6 +194,17 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
             builder.append(mComment.getContent());
             builder.setSpan(new ForegroundColorSpan(ColorUtils.modifyAlpha(Color.BLACK, 0.8f)), start, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             mBinding.tvContent.setText(builder);
+
+            if(mComment.getPhoto() != null) {
+                mBinding.imgPhoto.setVisibility(View.VISIBLE);
+                String photoUrl = TextUtils.isEmpty(mComment.getPhoto().getSmallUrl()) ?
+                        mComment.getPhoto().getOriginUrl() : mComment.getPhoto().getSmallUrl();
+                mRequestManager.load(photoUrl)
+                        .apply(RequestOptions.centerInsideTransform())
+                        .into(mBinding.imgPhoto);
+            } else {
+                mBinding.imgPhoto.setVisibility(View.GONE);
+            }
         }
 
         private void displayInfo() {
