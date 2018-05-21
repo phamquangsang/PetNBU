@@ -256,7 +256,7 @@ public class FeedRepository {
     public void createNewFeed(Feed feed) {
         mAppExecutors.diskIO().execute(() -> {
             mPetDb.runInTransaction(() -> {
-                UserEntity userEntity = mUserDao.findUserById(SharedPrefUtil.getUserId(mApplication));
+                UserEntity userEntity = mUserDao.findUserById(SharedPrefUtil.getUserId());
                 FeedUser feedUser = new FeedUser(userEntity.getUserId(), userEntity.getAvatar(), userEntity.getName());
                 feed.setStatus(STATUS_UPLOADING);
                 feed.setFeedUser(feedUser);

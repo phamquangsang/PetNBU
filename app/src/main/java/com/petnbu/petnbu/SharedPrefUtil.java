@@ -12,7 +12,7 @@ public class SharedPrefUtil {
         setting.edit().putString(KEY_LOGGED_USER_ID, userId).apply();
     }
 
-    public static String getUserId(Context context){
+    public static String getUserId(){
         SharedPreferences setting = PetApplication.getAppComponent().getSharedPref();
         return setting.getString(KEY_LOGGED_USER_ID, "");
     }

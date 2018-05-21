@@ -333,7 +333,6 @@ public class FirebaseService implements WebService {
                 commentMap.put("timeUpdated", FieldValue.serverTimestamp());
 
 
-
                 //update commentCount
                 Map<String, Object> commentCountUpdates = new HashMap<>();
                 commentCountUpdates.put("commentCount", newCommentCount);
@@ -347,9 +346,9 @@ public class FirebaseService implements WebService {
 
                 transaction.set(commentRef, commentMap);
 
-                String userCommentPath = String.format("users/%s/comments/%s", comment.getFeedUser().getUserId(), commentRef.getId());
-                DocumentReference userCommentRef = mDb.document(userCommentPath);
-                transaction.set(userCommentRef, commentMap);
+                String userFeedCommentPath = String.format("users/%s/feeds/%s/comments/%s", feed.getFeedUser().getUserId(), feed.getFeedId(), comment.getId());
+                DocumentReference userFeedCommentRef = mDb.document(userFeedCommentPath);
+                transaction.set(userFeedCommentRef, commentMap);
 
                 String feedCommentPath = String.format("global_feeds/%s/comments/%s", feedId, commentRef.getId());
                 DocumentReference feedCommentRef = mDb.document(feedCommentPath);
@@ -370,26 +369,37 @@ public class FirebaseService implements WebService {
     }
 
     @Override
-    public LiveData<ApiResponse<Comment>> createReplyComment(Comment comment, String parentCommentId) {
+    public LiveData<ApiResponse<Comment>> createReplyComment(Comment subComment, String parentCommentId) {
         MutableLiveData<ApiResponse<Comment>> result = new MutableLiveData<>();
-        final String oldId = comment.getId();
+        final String oldId = subComment.getId();
         mDb.runTransaction(new Transaction.Function<Comment>() {
             @Nullable
             @Override
             public Comment apply(@NonNull Transaction transaction) throws FirebaseFirestoreException {
                 DocumentReference parentCommentRef = mDb.document(String.format("comments/%s", parentCommentId));
-                DocumentSnapshot parentCommentSnap = transaction.get(parentCommentRef);
-                if (!parentCommentSnap.exists()) {
+                Comment parentComment = transaction.get(parentCommentRef).toObject(Comment.class);
+                if (parentComment == null) {
                     result.setValue(new ApiResponse<>(null, false, "the parentComment " + parentCommentId + " does not found "));
                     return null;
                 }
+                if(parentComment.getParentFeedId() == null){
+                    result.setValue(new ApiResponse<>(null, false, "this comment missing parent feed id"));
+                    return null;
+                }
 
-                Comment parentComment = parentCommentSnap.toObject(Comment.class);
+                DocumentReference feedContainerRef = mDb.document("global_feeds/" + parentComment.getParentFeedId());
+                DocumentSnapshot feedContainerSnap = transaction.get(feedContainerRef);
+                if(!feedContainerSnap.exists()){
+                    result.setValue(new ApiResponse<>(null, false, "the feed you're trying to comment does not exist"));
+                    return null;
+                }
+                Feed feedContainer = transaction.get(feedContainerRef).toObject(Feed.class);
+
 
                 Double newCommentCount = (double) (parentComment.getCommentCount() + 1);
-                DocumentReference commentRef = mDb.collection("comments").document();
-                comment.setId(commentRef.getId());
-                Map<String, Object> commentMap = comment.toMap();
+                DocumentReference subCommentRef = mDb.collection("subComments").document();
+                subComment.setId(subCommentRef.getId());
+                Map<String, Object> commentMap = subComment.toMap();
                 commentMap.put("timeCreated", FieldValue.serverTimestamp());
                 commentMap.put("timeUpdated", FieldValue.serverTimestamp());
 
@@ -401,33 +411,19 @@ public class FirebaseService implements WebService {
                 latestCommentUpdate.put("latestComment", commentMap);
 
 
-                DocumentReference feedContainerRef = mDb.document("global_feeds/" + parentComment.getParentFeedId());
-                Feed feedContainer = transaction.get(feedContainerRef).toObject(Feed.class);
-
-                //update feed comment count
+//                update feed subComment count
                 updateFeedTransaction(transaction, feedContainer, updatesCount);
-                //update parent's comment count
-                updateCommentTransaction(transaction, parentComment, updatesCount);
-                updateCommentTransaction(transaction, parentComment, latestCommentUpdate);
+//                update parent's subComment count
+                updateCommentTransaction(transaction, feedContainer, parentComment, updatesCount);
+                updateCommentTransaction(transaction, feedContainer, parentComment, latestCommentUpdate);
 
 
-                String userCommentPath = String.format("users/%s/comments/%s",
-                        comment.getFeedUser().getUserId(), commentRef.getId());
-                DocumentReference userCommentRef = mDb.document(userCommentPath);
-                transaction.set(userCommentRef, commentMap);
+                transaction.set(subCommentRef, commentMap);
+                String replyCommentPath = String.format("comments/%s/subComments/%s", parentCommentId, subComment.getId());
+                DocumentReference replyCommentRef = mDb.document(replyCommentPath);
+                transaction.set(replyCommentRef, commentMap);
 
-
-                String feedSubCommentPath = String.format("global_feeds/%s/comments/%s/subComments/%s",
-                        feedContainer.getFeedId(), parentCommentId, comment.getId());
-                DocumentReference feedCommentRef = mDb.document(feedSubCommentPath);
-                transaction.set(feedCommentRef, commentMap);
-
-                String userFeedSubCommentPath = String.format("users/%s/feeds/%s/comments/%s/subComments/%s",
-                        feedContainer.getFeedUser().getUserId(), feedContainer.getFeedId(), parentCommentId, comment.getId());
-                DocumentReference userFeedSubCommentRef = mDb.document(userFeedSubCommentPath);
-                transaction.set(userFeedSubCommentRef, commentMap);
-
-                return comment;
+                return subComment;
             }
         }).addOnSuccessListener(new OnSuccessListener<Comment>() {
             @Override
@@ -435,8 +431,8 @@ public class FirebaseService implements WebService {
                 result.setValue(new ApiResponse<>(comment, true, null));
             }
         }).addOnFailureListener(e -> {
-            comment.setId(oldId);
-            result.setValue(new ApiResponse<>(comment, false, e.getMessage()));
+            subComment.setId(oldId);
+            result.setValue(new ApiResponse<>(subComment, false, e.getMessage()));
         });
         return result;
     }
@@ -519,10 +515,12 @@ public class FirebaseService implements WebService {
         transaction.update(userFeed, update);
     }
 
-    private void updateCommentTransaction(Transaction transaction, Comment comment, Map<String, Object> update) throws FirebaseFirestoreException {
+    private void updateCommentTransaction(Transaction transaction, Feed feedContainer, Comment comment, Map<String, Object> update) throws FirebaseFirestoreException {
         DocumentReference commentRef = mDb.document(String.format("comments/%s", comment.getId()));
-        DocumentReference userComentRef = mDb.document(String.format("users/%s/comments/%s", comment.getFeedUser().getUserId(), comment.getId()));
+        DocumentReference feedCommentRef = mDb.document(String.format("global_feeds/%s/comments/%s", comment.getParentFeedId(), commentRef.getId()));
+        DocumentReference userFeedCommentRef = mDb.document(String.format("users/%s/feeds/%s/comments/%s", feedContainer.getFeedUser().getUserId(), feedContainer.getFeedId(), comment.getId()));
         transaction.update(commentRef, update);
-        transaction.update(userComentRef, update);
+        transaction.update(feedCommentRef, update);
+        transaction.update(userFeedCommentRef, update);
     }
 }

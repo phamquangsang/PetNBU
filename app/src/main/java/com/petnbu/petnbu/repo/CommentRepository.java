@@ -81,7 +81,7 @@ public class CommentRepository {
     public void createNewFeedComment(Comment comment) {
         mAppExecutors.diskIO().execute(() -> {
             mPetDb.runInTransaction(() -> {
-                UserEntity userEntity = mUserDao.findUserById(SharedPrefUtil.getUserId(mApplication));
+                UserEntity userEntity = mUserDao.findUserById(SharedPrefUtil.getUserId());
                 FeedUser feedUser = new FeedUser(userEntity.getUserId(), userEntity.getAvatar(), userEntity.getName());
                 comment.setFeedUser(feedUser);
                 comment.setLocalStatus(LocalStatus.STATUS_UPLOADING);

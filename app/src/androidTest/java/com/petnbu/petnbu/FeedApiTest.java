@@ -18,6 +18,7 @@ import com.petnbu.petnbu.api.WebService;
 import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedEntity;
+import com.petnbu.petnbu.model.FeedUI;
 import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Paging;
 import com.petnbu.petnbu.model.Photo;
@@ -190,10 +191,10 @@ public class FeedApiTest {
         appExecutors.mainThread().execute(new Runnable() {
             @Override
             public void run() {
-                LiveData<Resource<List<Feed>>> resultLive = repository.loadFeeds(Paging.GLOBAL_FEEDS_PAGING_ID);
-                resultLive.observeForever(new Observer<Resource<List<Feed>>>() {
+                LiveData<Resource<List<FeedUI>>> resultLive = repository.loadFeeds(Paging.GLOBAL_FEEDS_PAGING_ID);
+                resultLive.observeForever(new Observer<Resource<List<FeedUI>>>() {
                     @Override
-                    public void onChanged(@Nullable Resource<List<Feed>> listResource) {
+                    public void onChanged(@Nullable Resource<List<FeedUI>> listResource) {
                         if (listResource != null) {
                             Timber.i(listResource.toString());
                             if (listResource.data != null) {
