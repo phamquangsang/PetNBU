@@ -76,10 +76,14 @@ public class CreateFeedActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_create_feed);
-        setUp();
+        initialize();
     }
 
-    private void setUp() {
+    private void initialize() {
+        setSupportActionBar(mBinding.toolBar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
+
         String feedId = "";
 
         Intent intent = getIntent();

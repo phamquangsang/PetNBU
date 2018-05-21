@@ -53,7 +53,7 @@ public class CommentsActivity extends AppCompatActivity {
 
         mCommentsViewModel = ViewModelProviders.of(this).get(CommentsViewModel.class);
         mCommentsViewModel.loadUserInfo().observe(this, this::checkToDisplayUserInfo);
-        mCommentsViewModel.openRepliesEvent.observe(this, this::showRepliesForComment);
+        mCommentsViewModel.getOpenRepliesEvent().observe(this, this::showRepliesForComment);
 
         mFeedId = getIntent() != null ? getIntent().getStringExtra(EXTRA_FEED_ID) : "";
         if(!TextUtils.isEmpty(mFeedId)) {

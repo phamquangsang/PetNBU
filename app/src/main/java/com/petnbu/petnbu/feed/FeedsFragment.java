@@ -141,7 +141,6 @@ public class FeedsFragment extends Fragment {
         mBinding.rvFeeds.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
                 if (dy > 0) {
                     if(mBinding.fabNewPost.isShown()){
                         mBinding.fabNewPost.hide();
@@ -159,6 +158,7 @@ public class FeedsFragment extends Fragment {
                 if (lastPosition == mAdapter.getItemCount() - 1) {
                     mFeedsViewModel.loadNextPage();
                 }
+                super.onScrolled(recyclerView, dx, dy);
             }
         });
 

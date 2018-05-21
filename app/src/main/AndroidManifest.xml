@@ -36,7 +36,7 @@
         <activity
             android:name=".feed.CreateFeedActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme"
+            android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="adjustPan"/>
         <activity
             android:name=".userprofile.UserProfileActivity"
