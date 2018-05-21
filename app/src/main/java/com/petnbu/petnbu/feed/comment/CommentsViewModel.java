@@ -54,12 +54,11 @@ public class CommentsViewModel extends ViewModel {
 
     private LoadMoreHandler loadMoreHandler;
 
-    private LiveData<Resource<List<CommentUI>>> mCommentsLiveData = new MutableLiveData<>();
+    private final MutableLiveData<List<CommentUI>> mCommentsLiveData = new MutableLiveData<>();
 
     public final ObservableBoolean showLoading = new ObservableBoolean(false);
 
-    public final SingleLiveEvent<String> openRepliesEvent = new SingleLiveEvent<>();
-
+    private final SingleLiveEvent<String> mOpenRepliesEvent = new SingleLiveEvent<>();
 
     public CommentsViewModel() {
         PetApplication.getAppComponent().inject(this);
@@ -80,23 +79,29 @@ public class CommentsViewModel extends ViewModel {
         });
     }
 
-    public LiveData<Resource<List<CommentUI>>> loadComments(String feedId) {
-        mCommentsLiveData = mCommentRepo.getFeedCommentsIncludeFeedContentHeader(feedId, new Date().getTime(), CommentRepository.COMMENT_PER_PAGE);
-        return mCommentsLiveData;
+    public LiveData<List<CommentUI>> loadComments(String feedId) {
+        showLoading.set(true);
+        return Transformations.switchMap(mCommentRepo.getFeedCommentsIncludeFeedContentHeader(feedId, new Date().getTime(), CommentRepository.COMMENT_PER_PAGE), commentsResource -> {
+            showLoading.set(false);
+            if (commentsResource != null && commentsResource.data != null) {
+                mCommentsLiveData.setValue(commentsResource.data);
+            }
+            return mCommentsLiveData;
+        });
     }
 
 
-    public LiveData<Resource<List<CommentUI>>> loadSubComments(String commentId) {
+    public LiveData<List<CommentUI>> loadSubComments(String commentId) {
         showLoading.set(true);
         return Transformations.switchMap(mWebService.getCommentsByComment(commentId), input -> {
             showLoading.set(false);
-//            mCommentsLiveData.setValue(Resource.success(input.body));
+//           mCommentsLiveData.setValue(Resource.success(input.body));
             return mCommentsLiveData;
         });
     }
 
     public LiveData<LoadMoreState> getLoadMoreState() {
-        return loadMoreHandler.getLoadMoreState();
+        return loadMoreHandler.loadMoreState;
     }
 
     public void sendComment(String feedId, String content, Photo photo) {
@@ -118,7 +123,15 @@ public class CommentsViewModel extends ViewModel {
         }
     }
 
-    static class LoadMoreHandler implements Observer<Resource<Boolean>> {
+    public void openRepliesForComment(String commentId) {
+        mOpenRepliesEvent.setValue(commentId);
+    }
+
+    public LiveData<String> getOpenRepliesEvent() {
+        return mOpenRepliesEvent;
+    }
+
+    private static class LoadMoreHandler implements Observer<Resource<Boolean>> {
 
         private final CommentRepository commentRepo;
 
@@ -161,8 +174,7 @@ public class CommentsViewModel extends ViewModel {
                     case ERROR:
                         hasMore = true;
                         unregister();
-                        loadMoreState.setValue(new LoadMoreState(false,
-                                result.message));
+                        loadMoreState.setValue(new LoadMoreState(false, result.message));
                         break;
                 }
             }
@@ -179,10 +191,6 @@ public class CommentsViewModel extends ViewModel {
             unregister();
             hasMore = true;
             loadMoreState.setValue(new LoadMoreState(false, null));
-        }
-
-        public MutableLiveData<LoadMoreState> getLoadMoreState() {
-            return loadMoreState;
         }
     }
 }

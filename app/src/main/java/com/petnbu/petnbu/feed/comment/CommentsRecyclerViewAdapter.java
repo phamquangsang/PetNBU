@@ -30,51 +30,84 @@ import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.BitmapImageViewTarget;
 import com.bumptech.glide.request.target.Target;
 import com.bumptech.glide.request.transition.Transition;
+import com.google.android.gms.common.internal.Preconditions;
 import com.petnbu.petnbu.BaseBindingViewHolder;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.Utils;
 import com.petnbu.petnbu.databinding.ViewCommentBinding;
-import com.petnbu.petnbu.model.Comment;
+import com.petnbu.petnbu.databinding.ViewLoadingBinding;
 import com.petnbu.petnbu.model.CommentUI;
-import com.petnbu.petnbu.model.Photo;
+import com.petnbu.petnbu.model.LocalStatus;
 import com.petnbu.petnbu.util.ColorUtils;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<CommentsRecyclerViewAdapter.ViewHolder> {
+public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindingViewHolder> {
+
+    private static final int VIEW_TYPE_COMMENT = 1;
+    private static final int VIEW_TYPE_LOADING = 2;
 
     private List<CommentUI> mComments;
     private RequestManager mRequestManager;
-    private OnItemClickListener mOnItemClickListener;
+    private CommentsViewModel mCommentsViewModel;
     private String mFeedId;
 
     private int mDataVersion;
+    private boolean mAddLoadMore;
 
     public CommentsRecyclerViewAdapter(List<CommentUI> comments, String feedId, RequestManager requestManager,
-                                       OnItemClickListener onItemClickListener) {
+                                       CommentsViewModel commentsViewModel) {
+        Preconditions.checkNotNull(commentsViewModel);
+
         mComments = comments != null ? comments : new ArrayList<>();
+        mCommentsViewModel = commentsViewModel;
         mFeedId = feedId;
         mRequestManager = requestManager;
-        mOnItemClickListener = onItemClickListener;
     }
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.view_comment, parent, false);
-        return new ViewHolder(view);
+    public BaseBindingViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        if (viewType == VIEW_TYPE_LOADING) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.view_loading, parent, false);
+            return new ViewLoadingHolder(view);
+        } else {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.view_comment, parent, false);
+            return new ViewHolder(view);
+        }
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.bindData(mComments.get(position));
+    public void onBindViewHolder(@NonNull BaseBindingViewHolder holder, int position) {
+        if (getItemViewType(position) != VIEW_TYPE_LOADING) {
+            holder.bindData(mComments.get(position));
+        }
     }
 
     @Override
     public int getItemCount() {
-        return mComments.size();
+        return mAddLoadMore ? mComments.size() + 1 : mComments.size();
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        if (mAddLoadMore && position == getItemCount() - 1) {
+            return VIEW_TYPE_LOADING;
+        }
+        return VIEW_TYPE_COMMENT;
+    }
+
+    public void setAddLoadMore(boolean addLoadMore) {
+        if (mAddLoadMore != addLoadMore) {
+            mAddLoadMore = addLoadMore;
+            if (mAddLoadMore) {
+                notifyItemInserted(getItemCount() - 1);
+            } else {
+                notifyItemRemoved(getItemCount());
+            }
+        }
     }
 
     public void setComments(List<CommentUI> comments) {
@@ -82,9 +115,10 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<CommentsRe
         final int startVersion = mDataVersion;
         new AsyncTask<Void, Void, DiffUtil.DiffResult>() {
             @Override
-            protected DiffUtil.DiffResult  doInBackground(Void... voids) {
+            protected DiffUtil.DiffResult doInBackground(Void... voids) {
                 return DiffUtil.calculateDiff(new CommentsDiffCallback(mComments, comments));
             }
+
             @Override
             protected void onPostExecute(DiffUtil.DiffResult diffResult) {
                 if (startVersion != mDataVersion) {
@@ -104,8 +138,10 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<CommentsRe
         public ViewHolder(View itemView) {
             super(itemView);
             mBinding.tvReply.setOnClickListener(v -> {
-                if(mOnItemClickListener != null && getAdapterPosition() != RecyclerView.NO_POSITION) {
-                    mOnItemClickListener.onReplyClicked(mComments.get(getAdapterPosition()).getId());
+                if (getAdapterPosition() != RecyclerView.NO_POSITION) {
+                    CommentUI commentUI = mComments.get(getAdapterPosition());
+                    if (commentUI.getLocalStatus() == LocalStatus.STATUS_DONE)
+                        mCommentsViewModel.openRepliesForComment(mComments.get(getAdapterPosition()).getId());
                 }
             });
         }
@@ -127,7 +163,7 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<CommentsRe
                         @Override
                         public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
                             Context context = mBinding.imgProfile.getContext();
-                            if(ColorUtils.isDark(resource)) {
+                            if (ColorUtils.isDark(resource)) {
                                 mBinding.imgProfile.setBorderWidth(0);
                             } else {
                                 mBinding.imgProfile.setBorderColor(ContextCompat.getColor(context, android.R.color.darker_gray));
@@ -154,7 +190,7 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<CommentsRe
         private void displayInfo() {
             mBinding.tvDate.setText(DateUtils.getRelativeTimeSpanString(mComment.getTimeCreated().getTime(),
                     Calendar.getInstance().getTimeInMillis(), 0L, DateUtils.FORMAT_ABBREV_RELATIVE));
-            if(!mComment.getId().equals(mFeedId)) {
+            if (!mComment.getId().equals(mFeedId)) {
                 mBinding.divider.setVisibility(View.INVISIBLE);
                 mBinding.tvLikesCount.setVisibility(View.VISIBLE);
                 mBinding.tvReply.setVisibility(View.VISIBLE);
@@ -166,16 +202,25 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<CommentsRe
                 } else {
                     mBinding.tvLikesCount.setVisibility(View.GONE);
                 }
+
+                if (mComment.getLocalStatus() == LocalStatus.STATUS_UPLOADING) {
+                    mBinding.layoutLike.setVisibility(View.GONE);
+                    mBinding.progressBar.setVisibility(View.VISIBLE);
+                } else {
+                    mBinding.layoutLike.setVisibility(View.VISIBLE);
+                    mBinding.progressBar.setVisibility(View.GONE);
+                }
             } else {
                 mBinding.tvLikesCount.setVisibility(View.GONE);
                 mBinding.tvReply.setVisibility(View.GONE);
                 mBinding.layoutLike.setVisibility(View.GONE);
                 mBinding.divider.setVisibility(View.VISIBLE);
+                mBinding.progressBar.setVisibility(View.GONE);
             }
         }
 
         private void displayReplies() {
-            if(mComment.getLatestCommentId() != null) {
+            if (mComment.getLatestCommentId() != null) {
                 mBinding.tvLatestComment.setVisibility(View.VISIBLE);
                 mBinding.tvPreviousReplies.setVisibility(View.VISIBLE);
 
@@ -209,7 +254,7 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<CommentsRe
 
                             @Override
                             public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
-                                RoundedBitmapDrawable roundedBitmapDrawable= RoundedBitmapDrawableFactory.create(context.getResources(), resource);
+                                RoundedBitmapDrawable roundedBitmapDrawable = RoundedBitmapDrawableFactory.create(context.getResources(), resource);
                                 roundedBitmapDrawable.setCircular(true);
                                 roundedBitmapDrawable.setAntiAlias(true);
                                 roundedBitmapDrawable.setBounds(0, 0, imageSize, imageSize);
@@ -221,6 +266,17 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<CommentsRe
                 mBinding.tvLatestComment.setVisibility(View.GONE);
                 mBinding.tvPreviousReplies.setVisibility(View.GONE);
             }
+        }
+    }
+
+    protected class ViewLoadingHolder extends BaseBindingViewHolder<ViewLoadingBinding, Void> {
+
+        public ViewLoadingHolder(View itemView) {
+            super(itemView);
+        }
+
+        @Override
+        public void bindData(Void item) {
         }
     }
 
@@ -253,16 +309,5 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<CommentsRe
         public boolean areContentsTheSame(int oldPos, int newPos) {
             return oldData.get(oldPos).equals(newData.get(newPos));
         }
-    }
-
-    public interface OnItemClickListener {
-
-        void onProfileClicked(String userId);
-
-        void onPhotoClicked(Photo photo);
-
-        void onLikeClicked(String commentId);
-
-        void onReplyClicked(String commentId);
     }
 }

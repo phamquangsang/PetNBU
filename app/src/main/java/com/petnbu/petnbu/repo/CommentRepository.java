@@ -237,7 +237,7 @@ public class CommentRepository {
 
     private void scheduleSaveCommentWorker(Comment comment) {
         Constraints uploadConstraints = new Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.METERED)
+                .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build();
         WorkContinuation photoWorkContinuation = null;
         if(comment.getPhoto() != null) {

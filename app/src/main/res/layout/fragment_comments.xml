@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
         xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
-        <import type="android.view.View" />
+
+        <import type="android.view.View"/>
 
         <variable
             name="viewModel"
-            type="com.petnbu.petnbu.feed.comment.CommentsViewModel" />
+            type="com.petnbu.petnbu.feed.comment.CommentsViewModel"/>
     </data>
 
     <FrameLayout
@@ -30,17 +30,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            app:SpinKit_Color="@color/colorPrimary"
-            android:visibility="@{viewModel.showLoading ? View.VISIBLE : View.GONE}"/>
-
-        <ProgressBar
-            android:id="@+id/progressBar"
-            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:indeterminate="true"
-            android:visibility="gone"
-            tools:visibility="visible"/>
+            android:visibility="@{viewModel.showLoading ? View.VISIBLE : View.GONE}"
+            app:SpinKit_Color="@color/colorPrimary"/>
     </FrameLayout>
 </layout>

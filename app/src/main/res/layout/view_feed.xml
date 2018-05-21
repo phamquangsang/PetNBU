@@ -205,7 +205,7 @@
                 android:paddingTop="8dp"
                 android:fontFamily="sans-serif"
                 android:text="View all 141 comments"
-                android:background="?android:attr/selectableItemBackground"
+                android:background="?attr/selectableItemBackground"
                 android:textColor="@android:color/secondary_text_light_nodisable"
                 android:textSize="14sp"
                 app:layout_constraintLeft_toLeftOf="@+id/tvLikesCount"

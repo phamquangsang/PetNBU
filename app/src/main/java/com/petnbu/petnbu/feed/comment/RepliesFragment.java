@@ -14,7 +14,6 @@ import android.view.ViewGroup;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestManager;
 import com.petnbu.petnbu.R;
-import com.petnbu.petnbu.databinding.FragmentCommentsBinding;
 import com.petnbu.petnbu.databinding.FragmentRepliesCommentsBinding;
 import com.petnbu.petnbu.model.Photo;
 
@@ -58,10 +57,8 @@ public class RepliesFragment extends Fragment {
         mCommentsViewModel = ViewModelProviders.of(getActivity()).get(CommentsViewModel.class);
         mBinding.setViewModel(mCommentsViewModel);
 
-        mCommentsViewModel.loadSubComments(mCommentId).observe(this, commentsResource -> {
-            if(commentsResource.data != null) {
-                mAdapter.setComments(commentsResource.data);
-            }
+        mCommentsViewModel.loadSubComments(mCommentId).observe(this, comments -> {
+            mAdapter.setComments(comments);
         });
 
         mBinding.rvComments.setLayoutManager(new LinearLayoutManager(getActivity()));

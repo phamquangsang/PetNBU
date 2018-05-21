@@ -1,12 +1,10 @@
 package com.petnbu.petnbu.feed.comment;
 
-import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -18,11 +16,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestManager;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.databinding.FragmentCommentsBinding;
-import com.petnbu.petnbu.model.Photo;
-import com.petnbu.petnbu.model.Status;
-import com.petnbu.petnbu.repo.LoadMoreState;
-
-import timber.log.Timber;
+import com.petnbu.petnbu.util.SnackbarUtils;
 
 public class CommentsFragment extends Fragment {
 
@@ -64,58 +58,20 @@ public class CommentsFragment extends Fragment {
         mCommentsViewModel = ViewModelProviders.of(getActivity()).get(CommentsViewModel.class);
         mBinding.setViewModel(mCommentsViewModel);
 
-        mCommentsViewModel.loadComments(mFeedId).observe(this, commentsResource -> {
-            if (commentsResource != null) {
-                if (commentsResource.data != null) {
-                    mAdapter.setComments(commentsResource.data);
-                }
-                if (commentsResource.status != Status.LOADING) {
-                    //todo show hide progress bar
-                }
-            }
+        mCommentsViewModel.loadComments(mFeedId).observe(this, comments -> mAdapter.setComments(comments));
+        mCommentsViewModel.getLoadMoreState().observe(this, loadMoreState -> {
+            if (loadMoreState != null) {
+                mAdapter.setAddLoadMore(loadMoreState.isRunning());
 
-        });
-
-        mCommentsViewModel.getLoadMoreState().observe(this, new Observer<LoadMoreState>() {
-            @Override
-            public void onChanged(@Nullable LoadMoreState loadMoreState) {
-                if (loadMoreState != null) {
-                    Timber.i("loadMore: %s", loadMoreState);
-                    if (loadMoreState.isRunning()) {
-                        //todo show progress bar
-                    } else {
-                        //todo hide progress bar;
-                    }
-                    String errorMessage = loadMoreState.getErrorMessageIfNotHandled();
-                    if (errorMessage != null) {
-                        Snackbar.make(mBinding.layoutRoot, errorMessage, Snackbar.LENGTH_LONG).show();
-                    }
+                String errorMessage = loadMoreState.getErrorMessageIfNotHandled();
+                if (errorMessage != null) {
+                    SnackbarUtils.showSnackbar(mBinding.layoutRoot, errorMessage);
                 }
             }
         });
 
         mBinding.rvComments.setLayoutManager(new LinearLayoutManager(getActivity()));
-        mAdapter = new CommentsRecyclerViewAdapter(null, mFeedId, mRequestManager, new CommentsRecyclerViewAdapter.OnItemClickListener() {
-            @Override
-            public void onProfileClicked(String userId) {
-
-            }
-
-            @Override
-            public void onPhotoClicked(Photo photo) {
-
-            }
-
-            @Override
-            public void onLikeClicked(String commentId) {
-
-            }
-
-            @Override
-            public void onReplyClicked(String commentId) {
-                mCommentsViewModel.openRepliesEvent.setValue(commentId);
-            }
-        });
+        mAdapter = new CommentsRecyclerViewAdapter(null, mFeedId, mRequestManager, mCommentsViewModel);
         mBinding.rvComments.setAdapter(mAdapter);
         mBinding.rvComments.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
