@@ -102,7 +102,7 @@ public class FeedRepository {
 
             @Override
             protected boolean shouldFetch(@Nullable List<FeedUI> data) {
-                return true;
+                return data == null || data.isEmpty() || mRateLimiter.shouldFetch(pagingId);
             }
 
             @NonNull

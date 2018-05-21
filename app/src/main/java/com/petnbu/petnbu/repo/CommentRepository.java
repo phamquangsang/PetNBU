@@ -196,7 +196,7 @@ public class CommentRepository {
 
             @Override
             protected boolean shouldFetch(@Nullable List<CommentUI> data) {
-                return true;
+                return data == null || data.isEmpty() || mRateLimiter.shouldFetch(Paging.feedCommentsPagingId(feedId));
             }
 
             @Override
