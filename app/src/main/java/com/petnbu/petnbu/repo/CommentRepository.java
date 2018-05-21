@@ -90,7 +90,13 @@ public class CommentRepository {
                 comment.setId(IdUtil.generateID("comment"));
                 mCommentDao.insertFromComment(comment);
                 Paging feedCommentPaging = mFeedDao.findFeedPaging(Paging.feedCommentsPagingId(comment.getParentFeedId()));
-                feedCommentPaging.getIds().add(0, comment.getId());
+                if(feedCommentPaging!=null){
+                    feedCommentPaging.getIds().add(0, comment.getId());
+                }else{
+                    List<String> ids = new ArrayList<>();
+                    ids.add(comment.getId());
+                    feedCommentPaging = new Paging(Paging.feedCommentsPagingId(comment.getParentFeedId()), ids, true, null);
+                }
                 mFeedDao.update(feedCommentPaging);
             });
             scheduleSaveCommentWorker(comment);
@@ -169,9 +175,7 @@ public class CommentRepository {
         return new NetworkBoundResource<List<CommentUI>, List<Comment>>(mAppExecutors) {
             @Override
             protected void saveCallResult(@NonNull List<Comment> items) {
-                if(items.isEmpty()){
-                    return;
-                }
+
                 List<String> listId = new ArrayList<>(items.size());
                 String pagingId = Paging.feedCommentsPagingId(feedId);
                 for (Comment item : items) {
@@ -179,7 +183,7 @@ public class CommentRepository {
                 }
                 Paging paging = new Paging(pagingId,
                         listId, false,
-                        listId.get(listId.size() - 1));
+                        listId.isEmpty() ? null : listId.get(listId.size() - 1));
                 mPetDb.runInTransaction(() -> {
                     mCommentDao.insertListComment(items);
                     for (Comment item : items) {
@@ -202,7 +206,7 @@ public class CommentRepository {
 
             @Override
             protected boolean shouldDeleteOldData(List<Comment> body) {
-                return true;
+                return false;
             }
 
             @NonNull

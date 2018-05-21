@@ -82,17 +82,14 @@ public class FeedRepository {
         return new NetworkBoundResource<List<FeedUI>, List<Feed>>(mAppExecutors) {
             @Override
             protected void saveCallResult(@NonNull List<Feed> items) {
-                if(items.isEmpty()){
-                    return;
-                }
                 List<String> listId = new ArrayList<>(items.size());
                 Paging paging;
                 for (Feed item : items) {
                     listId.add(item.getFeedId());
                 }
                 paging = new Paging(pagingId,
-                        listId, false,
-                        listId.get(listId.size() - 1));
+                        listId, listId.isEmpty(),
+                        listId.isEmpty() ? null : listId.get(listId.size() - 1));
                 mPetDb.runInTransaction(() -> {
                     mFeedDao.insertFromFeedList(items);
                     for (Feed item : items) {
@@ -178,16 +175,13 @@ public class FeedRepository {
         return new NetworkBoundResource<List<FeedUI>, List<Feed>>(mAppExecutors) {
             @Override
             protected void saveCallResult(@NonNull List<Feed> items) {
-                if (items.isEmpty()) {
-                    return;
-                }
                 List<String> listId = new ArrayList<>(items.size());
                 for (Feed item : items) {
                     listId.add(item.getFeedId());
                 }
                 Paging paging = new Paging(pagingId,
-                        listId, false,
-                        listId.get(listId.size() - 1));
+                        listId, listId.isEmpty(),
+                        listId.isEmpty() ? null : listId.get(listId.size() - 1));
 
                 mPetDb.runInTransaction(() -> {
                     mFeedDao.insertFromFeedList(items);
@@ -343,16 +337,13 @@ public class FeedRepository {
         return new NetworkBoundResource<List<Feed>, List<Feed>>(mAppExecutors) {
             @Override
             protected void saveCallResult(@NonNull List<Feed> items) {
-                if(items.isEmpty()){
-                    return;
-                }
                 List<String> listId = new ArrayList<>(items.size());
                 for (Feed item : items) {
                     listId.add(item.getFeedId());
                 }
                 Paging paging = new Paging(Paging.GLOBAL_FEEDS_PAGING_ID,
-                        listId, false,
-                        listId.get(listId.size()  - 1));
+                        listId, listId.isEmpty(),
+                        listId.isEmpty() ? null : listId.get(listId.size() - 1));
                 mPetDb.runInTransaction(() -> {
                     mFeedDao.insertFromFeedList(items);
                     for (Feed feedItem : items) {

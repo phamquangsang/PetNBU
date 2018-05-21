@@ -76,6 +76,11 @@ public class Paging {
     }
 
     public  void replaceId(String oldId, String newId){
+        if(ids.size() == 1){
+            ids.set(0, newId);
+            this.oldestId = newId;
+            return;
+        }
         for (int i = 0; i < ids.size(); i++) {
             String id = ids.get(i);
             if (id.equals(oldId)) {

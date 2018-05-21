@@ -36,12 +36,8 @@ public class FetchNextPageUserFeed implements Runnable{
     @Override
     public void run() {
         Paging currentPaging = mPetDb.feedDao().findFeedPaging(mPagingId);
-        if (currentPaging == null) {
-            mLiveData.postValue(null);
-            return;
-        }
 
-        if (currentPaging.isEnded()) {
+        if (currentPaging == null || currentPaging.isEnded() || currentPaging.getOldestId() == null) {
             mLiveData.postValue(new Resource<>(Status.SUCCESS, true, null));
             return;
         }

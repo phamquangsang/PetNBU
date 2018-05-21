@@ -44,9 +44,6 @@ public class CommentsViewModel extends ViewModel {
     UserRepository mUserRepository;
 
     @Inject
-    CommentRepository mCommentRepo;
-
-    @Inject
     WebService mWebService;
 
     @Inject
@@ -81,7 +78,7 @@ public class CommentsViewModel extends ViewModel {
 
     public LiveData<List<CommentUI>> loadComments(String feedId) {
         showLoading.set(true);
-        return Transformations.switchMap(mCommentRepo.getFeedCommentsIncludeFeedContentHeader(feedId, new Date().getTime(), CommentRepository.COMMENT_PER_PAGE), commentsResource -> {
+        return Transformations.switchMap(mCommentRepository.getFeedCommentsIncludeFeedContentHeader(feedId, new Date().getTime(), CommentRepository.COMMENT_PER_PAGE), commentsResource -> {
             showLoading.set(false);
             if (commentsResource != null && commentsResource.data != null) {
                 mCommentsLiveData.setValue(commentsResource.data);
