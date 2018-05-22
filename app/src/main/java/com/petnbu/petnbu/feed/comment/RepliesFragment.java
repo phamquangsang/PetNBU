@@ -8,6 +8,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -87,5 +88,19 @@ public class RepliesFragment extends Fragment {
             }
         }, mCommentsViewModel);
         mBinding.rvComments.setAdapter(mAdapter);
+        mBinding.rvComments.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                LinearLayoutManager layoutManager = (LinearLayoutManager)
+                        recyclerView.getLayoutManager();
+                int lastPosition = layoutManager
+                        .findLastVisibleItemPosition();
+                if (lastPosition >= mAdapter.getItemCount() - 2) {
+                    mCommentsViewModel.loadSubCommentsNextPage(mCommentId);
+                }
+            }
+        });
     }
 }
