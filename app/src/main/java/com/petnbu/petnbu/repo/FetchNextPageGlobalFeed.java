@@ -38,11 +38,11 @@ public class FetchNextPageGlobalFeed implements Runnable {
         Paging currentPaging = mPetDb.feedDao().findFeedPaging(mPagingId);
 
         if (currentPaging == null || currentPaging.isEnded() || currentPaging.getOldestId() == null) {
-            mLiveData.postValue(new Resource<>(Status.SUCCESS, true, null));
+            mLiveData.postValue(new Resource<>(Status.SUCCESS, false, null));
             return;
         }
 
-        mLiveData.postValue(new Resource<>(Status.LOADING, null, null));
+        mLiveData.postValue(new Resource<>(Status.LOADING, false, null));
         LiveData<ApiResponse<List<Feed>>> result = mWebService.getGlobalFeeds(currentPaging.getOldestId(), FeedRepository.FEEDS_PER_PAGE);
         result.observeForever(new Observer<ApiResponse<List<Feed>>>() {
             @Override
@@ -79,7 +79,7 @@ public class FetchNextPageGlobalFeed implements Runnable {
                             mLiveData.postValue(new Resource<>(Status.SUCCESS, false, null));
                         }
                     } else {
-                        mLiveData.postValue(new Resource<>(Status.ERROR, null, listApiResponse.errorMessage));
+                        mLiveData.postValue(new Resource<>(Status.ERROR, true, listApiResponse.errorMessage));
                     }
                 }
             }

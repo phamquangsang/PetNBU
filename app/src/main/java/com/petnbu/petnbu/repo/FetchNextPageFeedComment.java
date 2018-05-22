@@ -40,7 +40,7 @@ public class FetchNextPageFeedComment implements Runnable{
         Paging currentPaging = mPetDb.feedDao().findFeedPaging(mPagingId);
 
         if (currentPaging == null || currentPaging.isEnded() || currentPaging.getOldestId() == null) {
-            mLiveData.postValue(new Resource<>(Status.SUCCESS, true, null));
+            mLiveData.postValue(new Resource<>(Status.SUCCESS, false, null));
             return;
         }
 
@@ -81,7 +81,7 @@ public class FetchNextPageFeedComment implements Runnable{
                             mLiveData.postValue(new Resource<>(Status.SUCCESS, false, null));
                         }
                     } else {
-                        mLiveData.postValue(new Resource<>(Status.ERROR, null, listApiResponse.errorMessage));
+                        mLiveData.postValue(new Resource<>(Status.ERROR, true, listApiResponse.errorMessage));
                     }
                 }
             }
