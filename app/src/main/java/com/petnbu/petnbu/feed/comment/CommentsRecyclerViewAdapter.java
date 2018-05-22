@@ -23,7 +23,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
@@ -33,8 +32,10 @@ import com.bumptech.glide.request.target.Target;
 import com.bumptech.glide.request.transition.Transition;
 import com.google.android.gms.common.internal.Preconditions;
 import com.petnbu.petnbu.BaseBindingViewHolder;
+import com.petnbu.petnbu.GlideApp;
+import com.petnbu.petnbu.GlideRequests;
 import com.petnbu.petnbu.R;
-import com.petnbu.petnbu.Utils;
+import com.petnbu.petnbu.util.Utils;
 import com.petnbu.petnbu.databinding.ViewCommentBinding;
 import com.petnbu.petnbu.databinding.ViewLoadingBinding;
 import com.petnbu.petnbu.model.CommentUI;
@@ -51,21 +52,21 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
     private static final int VIEW_TYPE_LOADING = 2;
 
     private List<CommentUI> mComments;
-    private RequestManager mRequestManager;
     private CommentsViewModel mCommentsViewModel;
     private String mFeedId;
+    private GlideRequests mGlideRequests;
 
     private int mDataVersion;
     private boolean mAddLoadMore;
 
-    public CommentsRecyclerViewAdapter(List<CommentUI> comments, String feedId, RequestManager requestManager,
+    public CommentsRecyclerViewAdapter(Context context, List<CommentUI> comments, String feedId,
                                        CommentsViewModel commentsViewModel) {
         Preconditions.checkNotNull(commentsViewModel);
 
         mComments = comments != null ? comments : new ArrayList<>();
         mCommentsViewModel = commentsViewModel;
         mFeedId = feedId;
-        mRequestManager = requestManager;
+        mGlideRequests = GlideApp.with(context);
     }
 
     @NonNull
@@ -89,26 +90,34 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
 
     @Override
     public int getItemCount() {
-        return mAddLoadMore ? mComments.size() + 1 : mComments.size();
+        return getDataItemCount() + (mAddLoadMore ? 1 : 0);
+    }
+
+    private int getDataItemCount() {
+        return mComments.size();
     }
 
     @Override
     public int getItemViewType(int position) {
-        if (mAddLoadMore && position == getItemCount() - 1) {
-            return VIEW_TYPE_LOADING;
+        if (position < getDataItemCount() && getDataItemCount() > 0) {
+            return VIEW_TYPE_COMMENT;
         }
-        return VIEW_TYPE_COMMENT;
+        return VIEW_TYPE_LOADING;
     }
 
     public void setAddLoadMore(boolean addLoadMore) {
         if (mAddLoadMore != addLoadMore) {
             mAddLoadMore = addLoadMore;
             if (mAddLoadMore) {
-                notifyItemInserted(getItemCount() - 1);
+                notifyItemInserted(getLoadingMoreItemPosition());
             } else {
-                notifyItemRemoved(getItemCount());
+                notifyItemRemoved(getLoadingMoreItemPosition());
             }
         }
+    }
+
+    private int getLoadingMoreItemPosition() {
+        return mAddLoadMore ? getItemCount() - 1 : RecyclerView.NO_POSITION;
     }
 
     public void setComments(List<CommentUI> comments) {
@@ -165,9 +174,9 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
         }
 
         private void displayUserInfo() {
-            mRequestManager.asBitmap()
+            mGlideRequests.asBitmap()
                     .load(mComment.getOwner().getAvatar().getOriginUrl())
-                    .apply(RequestOptions.centerCropTransform())
+                    .centerInside()
                     .into(new BitmapImageViewTarget(mBinding.imgProfile) {
                         @Override
                         public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
@@ -199,7 +208,7 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
                 mBinding.imgPhoto.setVisibility(View.VISIBLE);
                 String photoUrl = TextUtils.isEmpty(mComment.getPhoto().getSmallUrl()) ?
                         mComment.getPhoto().getOriginUrl() : mComment.getPhoto().getSmallUrl();
-                mRequestManager.load(photoUrl)
+                mGlideRequests.load(photoUrl)
                         .apply(RequestOptions.centerInsideTransform())
                         .into(mBinding.imgPhoto);
             } else {
@@ -264,7 +273,8 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
                 mBinding.tvLatestComment.setText(builder);
                 mBinding.tvPreviousReplies.setText(context.getString(R.string.feed_view_previous_replies, mComment.getCommentCount() - 1));
 
-                mRequestManager.asBitmap().load(mComment.getLatestCommentOwnerAvatar().getOriginUrl())
+                mGlideRequests.asBitmap()
+                        .load(mComment.getLatestCommentOwnerAvatar().getOriginUrl())
                         .apply(RequestOptions.overrideOf(imageSize, imageSize))
                         .listener(new RequestListener<Bitmap>() {
                             @Override

@@ -8,6 +8,7 @@ import android.arch.lifecycle.ViewModel;
 import android.support.annotation.Nullable;
 
 import com.petnbu.petnbu.PetApplication;
+import com.petnbu.petnbu.SingleLiveEvent;
 import com.petnbu.petnbu.model.FeedUI;
 import com.petnbu.petnbu.model.Paging;
 import com.petnbu.petnbu.model.Feed;
@@ -32,6 +33,9 @@ public class FeedsViewModel extends ViewModel {
 
     @Inject
     Application mApplication;
+
+    private final SingleLiveEvent<String> mOpenUserProfileEvent = new SingleLiveEvent<>();
+    private final SingleLiveEvent<String> mOpenCommentsEvent = new SingleLiveEvent<>();
 
     private LiveData<Resource<List<FeedUI>>> mFeedsLiveData;
 
@@ -67,6 +71,21 @@ public class FeedsViewModel extends ViewModel {
         return mFeedRepository.refresh();
     }
 
+    public void openUserProfile(String userId) {
+        mOpenUserProfileEvent.setValue(userId);
+    }
+
+    public LiveData<String> getOpenUserProfileEvent() {
+        return mOpenUserProfileEvent;
+    }
+
+    public void openComments(String feedId) {
+        mOpenCommentsEvent.setValue(feedId);
+    }
+
+    public LiveData<String> getOpenCommentsEvent() {
+        return mOpenCommentsEvent;
+    }
 
     static class LoadMoreHandler implements Observer<Resource<Boolean>> {
 

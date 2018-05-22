@@ -26,7 +26,6 @@ public class CommentsFragment extends Fragment {
     private CommentsViewModel mCommentsViewModel;
 
     private CommentsRecyclerViewAdapter mAdapter;
-    private RequestManager mRequestManager;
     private String mFeedId;
 
     public static CommentsFragment newInstance(String feedId) {
@@ -54,7 +53,6 @@ public class CommentsFragment extends Fragment {
     }
 
     private void initialize() {
-        mRequestManager = Glide.with(this);
         mCommentsViewModel = ViewModelProviders.of(getActivity()).get(CommentsViewModel.class);
         mBinding.setViewModel(mCommentsViewModel);
 
@@ -71,7 +69,7 @@ public class CommentsFragment extends Fragment {
         });
 
         mBinding.rvComments.setLayoutManager(new LinearLayoutManager(getActivity()));
-        mAdapter = new CommentsRecyclerViewAdapter(null, mFeedId, mRequestManager, mCommentsViewModel);
+        mAdapter = new CommentsRecyclerViewAdapter(getActivity(),null, mFeedId, mCommentsViewModel);
         mBinding.rvComments.setAdapter(mAdapter);
         mBinding.rvComments.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override

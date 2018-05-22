@@ -162,7 +162,6 @@ public class CommentsViewModel extends ViewModel {
             nextPageLiveData = commentRepo.fetchNextPage(feedId, pagingId);
             loadMoreState.setValue(new LoadMoreState(true, null));
             nextPageLiveData.observeForever(this);
-
         }
 
         @Override

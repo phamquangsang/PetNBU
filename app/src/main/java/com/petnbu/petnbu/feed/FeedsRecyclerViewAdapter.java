@@ -25,14 +25,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.BitmapImageViewTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.google.android.gms.common.internal.Preconditions;
+import com.petnbu.petnbu.GlideApp;
+import com.petnbu.petnbu.GlideRequests;
 import com.petnbu.petnbu.R;
-import com.petnbu.petnbu.Utils;
+import com.petnbu.petnbu.util.Utils;
 import com.petnbu.petnbu.databinding.ViewFeedBinding;
 import com.petnbu.petnbu.model.FeedUI;
 import com.petnbu.petnbu.model.Photo;
@@ -49,21 +49,25 @@ import static com.petnbu.petnbu.model.LocalStatus.STATUS_UPLOADING;
 
 public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecyclerViewAdapter.ViewHolder> {
 
-    private RequestManager mRequestManager;
+    private GlideRequests mGlideRequests;
     private List<FeedUI> mFeeds;
     private ArrayMap<String, Integer> lastSelectedPhotoPositions = new ArrayMap<>();
+    private FeedsViewModel mFeedsViewModel;
 
     private int maxPhotoHeight;
     private final int minPhotoHeight;
     private final OnItemClickListener mOnItemClickListener;
     private int mDataVersion;
 
-    public FeedsRecyclerViewAdapter(Context context, List<FeedUI> feeds, OnItemClickListener onItemClickListener) {
+    public FeedsRecyclerViewAdapter(Context context, List<FeedUI> feeds, OnItemClickListener onItemClickListener,
+                                    FeedsViewModel feedsViewModel) {
         Preconditions.checkNotNull(context);
+        Preconditions.checkNotNull(feedsViewModel);
         mFeeds = feeds;
         minPhotoHeight = Utils.goldenRatio(Utils.getDeviceWidth(context), true);
-        mRequestManager = Glide.with(context);
+        mGlideRequests = GlideApp.with(context);
         mOnItemClickListener = onItemClickListener;
+        mFeedsViewModel = feedsViewModel;
     }
 
     @NonNull
@@ -114,8 +118,8 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
         private ViewFeedBinding mBinding;
         private FeedUI mFeed;
         private final View.OnClickListener profileClickListener = v -> {
-            if (mOnItemClickListener != null && getAdapterPosition() != RecyclerView.NO_POSITION) {
-                mOnItemClickListener.onProfileClicked(mFeeds.get(getAdapterPosition()).ownerId);
+            if (getAdapterPosition() != RecyclerView.NO_POSITION) {
+                mFeedsViewModel.openUserProfile(mFeeds.get(getAdapterPosition()).ownerId);
             }
         };
 
@@ -131,13 +135,13 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
                 }
             });
             mBinding.imgComment.setOnClickListener(v -> {
-                if (mOnItemClickListener != null && getAdapterPosition() != RecyclerView.NO_POSITION) {
-                    mOnItemClickListener.onCommentClicked(mFeeds.get(getAdapterPosition()).feedId);
+                if (getAdapterPosition() != RecyclerView.NO_POSITION) {
+                    mFeedsViewModel.openComments(mFeeds.get(getAdapterPosition()).feedId);
                 }
             });
             mBinding.tvViewComments.setOnClickListener(v -> {
-                if (mOnItemClickListener != null && getAdapterPosition() != RecyclerView.NO_POSITION) {
-                    mOnItemClickListener.onCommentClicked(mFeeds.get(getAdapterPosition()).feedId);
+                if (getAdapterPosition() != RecyclerView.NO_POSITION) {
+                    mFeedsViewModel.openComments(mFeeds.get(getAdapterPosition()).feedId);
                 }
             });
             mBinding.imgOptions.setOnClickListener(v -> {
@@ -192,7 +196,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
             if (mFeed.avatar != null) {
                 String avatarUrl = !TextUtils.isEmpty(mFeed.avatar.getThumbnailUrl())
                         ? mFeed.avatar.getThumbnailUrl() : mFeed.avatar.getOriginUrl();
-                mRequestManager.asBitmap()
+                mGlideRequests.asBitmap()
                         .load(avatarUrl)
                         .apply(RequestOptions.centerCropTransform())
                         .into(new BitmapImageViewTarget(mBinding.imgProfile) {
@@ -227,7 +231,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
                     pagerAdapter.setData(mFeed);
 
                 } else {
-                    mBinding.vpPhotos.setAdapter(new PhotosPagerAdapter(mFeed, mRequestManager, () -> {
+                    mBinding.vpPhotos.setAdapter(new PhotosPagerAdapter(mFeed, mGlideRequests, () -> {
                         if (mOnItemClickListener != null && mFeed.status == STATUS_DONE) {
                             mOnItemClickListener.onPhotoClicked(mFeed.photos.get(mBinding.vpPhotos.getCurrentItem()));
                         }
@@ -332,13 +336,9 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
 
     public interface OnItemClickListener {
 
-        void onProfileClicked(String userId);
-
         void onPhotoClicked(Photo photo);
 
         void onLikeClicked(String feedId);
-
-        void onCommentClicked(String feedId);
 
         void onOptionClicked(View view, FeedUI feed);
     }

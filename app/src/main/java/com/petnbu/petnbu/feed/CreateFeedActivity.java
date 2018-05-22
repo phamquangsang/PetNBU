@@ -31,7 +31,7 @@ import com.bumptech.glide.request.transition.Transition;
 import com.github.ybq.android.spinkit.style.FadingCircle;
 import com.petnbu.petnbu.BaseActivity;
 import com.petnbu.petnbu.R;
-import com.petnbu.petnbu.Utils;
+import com.petnbu.petnbu.util.Utils;
 import com.petnbu.petnbu.databinding.ActivityCreateFeedBinding;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.util.ColorUtils;

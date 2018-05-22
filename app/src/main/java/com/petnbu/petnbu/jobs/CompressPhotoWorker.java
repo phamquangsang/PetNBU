@@ -8,7 +8,7 @@ import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.webkit.URLUtil;
 
-import com.petnbu.petnbu.Utils;
+import com.petnbu.petnbu.util.Utils;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.util.ImageUtils;
 

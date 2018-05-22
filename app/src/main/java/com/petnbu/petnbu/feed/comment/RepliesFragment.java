@@ -1,5 +1,6 @@
 package com.petnbu.petnbu.feed.comment;
 
+import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
@@ -62,11 +63,8 @@ public class RepliesFragment extends Fragment {
         });
 
         mBinding.rvComments.setLayoutManager(new LinearLayoutManager(getActivity()));
-        mAdapter = new RepliesRecyclerViewAdapter(null, mCommentId, mRequestManager, new RepliesRecyclerViewAdapter.OnItemClickListener() {
-            @Override
-            public void onProfileClicked(String userId) {
-
-            }
+        mAdapter = new RepliesRecyclerViewAdapter(getActivity(), null, mCommentId,
+                new RepliesRecyclerViewAdapter.OnItemClickListener() {
 
             @Override
             public void onPhotoClicked(Photo photo) {
@@ -77,12 +75,7 @@ public class RepliesFragment extends Fragment {
             public void onLikeClicked(String commentId) {
 
             }
-
-            @Override
-            public void onReplyClicked(String commentId) {
-
-            }
-        });
+        }, mCommentsViewModel);
         mBinding.rvComments.setAdapter(mAdapter);
     }
 }

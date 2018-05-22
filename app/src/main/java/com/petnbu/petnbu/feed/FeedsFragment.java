@@ -21,7 +21,7 @@ import android.view.ViewGroup;
 
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.SharedPrefUtil;
-import com.petnbu.petnbu.Utils;
+import com.petnbu.petnbu.util.Utils;
 import com.petnbu.petnbu.databinding.FragmentFeedsBinding;
 import com.petnbu.petnbu.feed.comment.CommentsActivity;
 import com.petnbu.petnbu.model.Feed;
@@ -95,14 +95,11 @@ public class FeedsFragment extends Fragment {
                     }
                 }
             });
+            mFeedsViewModel.getOpenUserProfileEvent().observe(this, this::showUserProfile);
+            mFeedsViewModel.getOpenCommentsEvent().observe(this, this::showCommentsByFeed);
         }
 
-        mAdapter = new FeedsRecyclerViewAdapter(getContext(), new ArrayList<>(), new FeedsRecyclerViewAdapter.OnItemClickListener() {
-            @Override
-            public void onProfileClicked(String userId) {
-                Intent i = UserProfileActivity.newIntent(getActivity(), userId);
-                startActivity(i);
-            }
+        mAdapter = new FeedsRecyclerViewAdapter(getActivity(), new ArrayList<>(), new FeedsRecyclerViewAdapter.OnItemClickListener() {
 
             @Override
             public void onPhotoClicked(Photo photo) {
@@ -114,11 +111,6 @@ public class FeedsFragment extends Fragment {
                 if (mLikeClickLimiter.shouldFetch(feedId)) {
                     Timber.i("like clicked");
                 }
-            }
-
-            @Override
-            public void onCommentClicked(String feedId) {
-                startActivity(CommentsActivity.newIntent(getActivity(), feedId));
             }
 
             @Override
@@ -135,7 +127,7 @@ public class FeedsFragment extends Fragment {
                     popupMenu.show();
                 }
             }
-        });
+        }, mFeedsViewModel);
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
         mBinding.rvFeeds.setLayoutManager(linearLayoutManager);
@@ -186,5 +178,14 @@ public class FeedsFragment extends Fragment {
             Intent intent = new Intent(getActivity(), CreateFeedActivity.class);
             startActivity(intent);
         });
+    }
+
+    private void showUserProfile(String userId) {
+        Intent i = UserProfileActivity.newIntent(getActivity(), userId);
+        startActivity(i);
+    }
+
+    private void showCommentsByFeed(String feedId) {
+        startActivity(CommentsActivity.newIntent(getActivity(), feedId));
     }
 }

@@ -1,4 +1,4 @@
-package com.petnbu.petnbu;
+package com.petnbu.petnbu.util;
 
 import android.app.Activity;
 import android.content.ContentUris;

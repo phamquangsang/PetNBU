@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.android.gms.common.internal.Preconditions;
+import com.petnbu.petnbu.GlideRequests;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.databinding.ViewFeedPhotosBinding;
 import com.petnbu.petnbu.model.FeedUI;
@@ -18,15 +19,15 @@ import com.petnbu.petnbu.util.ImageUtils;
 public class PhotosPagerAdapter extends PagerAdapter {
 
     private FeedUI mFeed;
-    private RequestManager mRequestManager;
+    private GlideRequests mGlideRequests;
     private OnItemClickListener mOnItemClickListener;
 
-    public PhotosPagerAdapter(FeedUI feed, RequestManager requestManager, OnItemClickListener onItemClickListener) {
+    public PhotosPagerAdapter(FeedUI feed, GlideRequests glideRequests, OnItemClickListener onItemClickListener) {
         Preconditions.checkNotNull(feed);
-        Preconditions.checkNotNull(requestManager);
+        Preconditions.checkNotNull(glideRequests);
 
         mFeed = feed;
-        mRequestManager = requestManager;
+        mGlideRequests = glideRequests;
         mOnItemClickListener = onItemClickListener;
     }
 
@@ -53,7 +54,7 @@ public class PhotosPagerAdapter extends PagerAdapter {
         ImageUtils.SizeDeterminer sizeDeterminer = new ImageUtils.SizeDeterminer(viewFeedPhotosBinding.imgContent);
         sizeDeterminer.getSize((width, height) -> {
             String photoUrl = ImageUtils.getPhotoUrl(mFeed.getPhotos().get(position), width);
-            mRequestManager
+            mGlideRequests
                     .load(!TextUtils.isEmpty(photoUrl) ? photoUrl : mFeed.getPhotos().get(position).getOriginUrl())
                     .apply(RequestOptions.centerInsideTransform())
                     .into(viewFeedPhotosBinding.imgContent);
@@ -66,7 +67,7 @@ public class PhotosPagerAdapter extends PagerAdapter {
     @Override
     public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
         container.removeView((View) object);
-        mRequestManager.clear((View) object);
+        mGlideRequests.clear((View) object);
     }
 
     public void setData(FeedUI feed) {

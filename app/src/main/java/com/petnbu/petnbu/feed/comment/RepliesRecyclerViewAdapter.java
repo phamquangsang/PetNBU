@@ -30,11 +30,14 @@ import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.BitmapImageViewTarget;
 import com.bumptech.glide.request.target.Target;
 import com.bumptech.glide.request.transition.Transition;
+import com.google.android.gms.common.internal.Preconditions;
 import com.petnbu.petnbu.BaseBindingViewHolder;
+import com.petnbu.petnbu.GlideApp;
+import com.petnbu.petnbu.GlideRequests;
 import com.petnbu.petnbu.R;
-import com.petnbu.petnbu.Utils;
+import com.petnbu.petnbu.model.LocalStatus;
+import com.petnbu.petnbu.util.Utils;
 import com.petnbu.petnbu.databinding.ViewCommentBinding;
-import com.petnbu.petnbu.model.Comment;
 import com.petnbu.petnbu.model.CommentUI;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.util.ColorUtils;
@@ -46,15 +49,21 @@ import java.util.List;
 public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<RepliesRecyclerViewAdapter.ViewHolder> {
 
     private List<CommentUI> mComments;
-    private RequestManager mRequestManager;
     private RepliesRecyclerViewAdapter.OnItemClickListener mOnItemClickListener;
+    private CommentsViewModel mCommentsViewModel;
+    private GlideRequests mGlideRequests;
+
     private String mCommentId;
     private int mDataVersion;
 
-    public RepliesRecyclerViewAdapter(List<CommentUI> comments, String commentId, RequestManager requestManager,
-                                      OnItemClickListener onItemClickListener) {
+    public RepliesRecyclerViewAdapter(Context context, List<CommentUI> comments, String commentId,
+                                      OnItemClickListener onItemClickListener, CommentsViewModel commentsViewModel) {
+        Preconditions.checkNotNull(context);
+        Preconditions.checkNotNull(commentsViewModel);
+
         mComments = comments != null ? comments : new ArrayList<>();
-        mRequestManager = requestManager;
+        mGlideRequests = GlideApp.with(context);
+        mCommentsViewModel = commentsViewModel;
         mOnItemClickListener = onItemClickListener;
         mCommentId = commentId;
     }
@@ -102,6 +111,14 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<RepliesRecy
 
         public ViewHolder(View itemView) {
             super(itemView);
+
+            mBinding.imgProfile.setOnClickListener(v -> {
+                if (getAdapterPosition() != RecyclerView.NO_POSITION) {
+                    CommentUI commentUI = mComments.get(getAdapterPosition());
+                    if (commentUI.getLocalStatus() != LocalStatus.STATUS_UPLOADING)
+                        mCommentsViewModel.openUserProfile(commentUI.getOwner().getUserId());
+                }
+            });
         }
 
         @Override
@@ -113,7 +130,7 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<RepliesRecy
         }
 
         private void displayUserInfo() {
-            mRequestManager.asBitmap()
+            mGlideRequests.asBitmap()
                     .load(mComment.getOwner().getAvatar().getOriginUrl())
                     .apply(RequestOptions.centerCropTransform())
                     .into(new BitmapImageViewTarget(mBinding.imgProfile) {
@@ -181,7 +198,7 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<RepliesRecy
                 mBinding.tvLatestComment.setText(builder);
                 mBinding.tvPreviousReplies.setText(context.getString(R.string.feed_view_previous_replies, mComment.getCommentCount() - 1));
 
-                mRequestManager.asBitmap().load(mComment.getLatestCommentOwnerAvatar().getOriginUrl())
+                mGlideRequests.asBitmap().load(mComment.getLatestCommentOwnerAvatar().getOriginUrl())
                         .apply(RequestOptions.overrideOf(imageSize, imageSize))
                         .listener(new RequestListener<Bitmap>() {
                             @Override
@@ -239,12 +256,8 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<RepliesRecy
 
     public interface OnItemClickListener {
 
-        void onProfileClicked(String userId);
-
         void onPhotoClicked(Photo photo);
 
         void onLikeClicked(String commentId);
-
-        void onReplyClicked(String commentId);
     }
 }
