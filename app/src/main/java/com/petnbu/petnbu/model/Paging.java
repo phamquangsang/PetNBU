@@ -18,6 +18,10 @@ public class Paging {
     public static String feedCommentsPagingId(String feedId){
         return feedId + "-comments";
     }
+
+    public static String subCommentsPagingId(String parentCmtId){
+        return parentCmtId + "-subComments";
+    }
     public static String userFeedsPagingId(String userId){
         return userId + "-feeds";
     }

@@ -233,6 +233,69 @@ public class CommentRepository {
 
     }
 
+    public LiveData<Resource<List<CommentUI>>> getSubComments(String parentCommentId, long after, int limit) {
+
+        return new NetworkBoundResource<List<CommentUI>, List<Comment>>(mAppExecutors) {
+            @Override
+            protected void saveCallResult(@NonNull List<Comment> items) {
+
+                List<String> listId = new ArrayList<>(items.size());
+                String pagingId = Paging.subCommentsPagingId(parentCommentId);
+                for (Comment item : items) {
+                    listId.add(item.getId());
+                }
+                Paging paging = new Paging(pagingId,
+                        listId, false,
+                        listId.isEmpty() ? null : listId.get(listId.size() - 1));
+                mPetDb.runInTransaction(() -> {
+                    mCommentDao.insertListComment(items);
+                    for (Comment item : items) {
+                        mUserDao.insert(item.getFeedUser());
+                        mCommentDao.insertFromComment(item.getLatestComment());
+                    }
+                    mFeedDao.insert(paging);
+                });
+            }
+
+            @Override
+            protected boolean shouldFetch(@Nullable List<CommentUI> data) {
+                return data == null || data.isEmpty() || mRateLimiter.shouldFetch(Paging.subCommentsPagingId(parentCommentId));
+            }
+
+            @Override
+            protected void deleteDataFromDb(List<Comment> body) {
+                mFeedDao.deleteFeedPaging(Paging.subCommentsPagingId(parentCommentId));
+            }
+
+            @Override
+            protected boolean shouldDeleteOldData(List<Comment> body) {
+                return false;
+            }
+
+            @NonNull
+            @Override
+            protected LiveData<List<CommentUI>> loadFromDb() {
+                return Transformations.switchMap(mFeedDao.loadFeedPaging(Paging.subCommentsPagingId(parentCommentId)), input -> {
+                    if (input == null) {
+                        MutableLiveData<List<CommentUI>> data = new MutableLiveData<>();
+                        data.postValue(null);
+                        return data;
+                    } else {
+                        Timber.i("loadSubCommentsFromDb paging: %s", input.toString());
+                        return mCommentDao.loadComments(input.getIds());
+                    }
+                });
+            }
+
+            @NonNull
+            @Override
+            protected LiveData<ApiResponse<List<Comment>>> createCall() {
+                return mWebService.getSubComments(parentCommentId, after, limit);
+            }
+        }.asLiveData();
+
+    }
+
     public LiveData<Resource<Boolean>> fetchNextPage(String feedId, String pagingId) {
         FetchNextPageFeedComment fetchNextPageTask = new FetchNextPageFeedComment(feedId, pagingId, mWebService, mPetDb, mAppExecutors);
         mAppExecutors.networkIO().execute(fetchNextPageTask);

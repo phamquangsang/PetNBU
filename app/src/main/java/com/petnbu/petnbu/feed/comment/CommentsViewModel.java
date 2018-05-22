@@ -53,6 +53,8 @@ public class CommentsViewModel extends ViewModel {
 
     private final MutableLiveData<List<CommentUI>> mCommentsLiveData = new MutableLiveData<>();
 
+    private final MutableLiveData<List<CommentUI>> mSubCommentsLiveData = new MutableLiveData<>();
+
     public final ObservableBoolean showLoading = new ObservableBoolean(false);
 
     private final SingleLiveEvent<String> mOpenRepliesEvent = new SingleLiveEvent<>();
@@ -89,13 +91,8 @@ public class CommentsViewModel extends ViewModel {
     }
 
 
-    public LiveData<List<CommentUI>> loadSubComments(String commentId) {
-        showLoading.set(true);
-        return Transformations.switchMap(mWebService.getCommentsByComment(commentId), input -> {
-            showLoading.set(false);
-//           mCommentsLiveData.setValue(Resource.success(input.body));
-            return mCommentsLiveData;
-        });
+    public LiveData<Resource<List<CommentUI>>> loadSubComments(String commentId) {
+        return mCommentRepository.getSubComments(commentId, new Date().getTime(), CommentRepository.COMMENT_PER_PAGE);
     }
 
     public LiveData<LoadMoreState> getLoadMoreState() {

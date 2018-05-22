@@ -320,7 +320,7 @@ public class FakeWebService implements WebService {
     }
 
     @Override
-    public LiveData<ApiResponse<List<Comment>>> getCommentsByComment(String commentId) {
+    public LiveData<ApiResponse<List<Comment>>> getSubComments(String commentId, long after, int limit) {
         MutableLiveData<ApiResponse<List<Comment>>> commentsLiveData = new MutableLiveData<>();
         List<Comment> comments = new ArrayList<>();
 
@@ -399,6 +399,12 @@ public class FakeWebService implements WebService {
 
     @Override
     public LiveData<ApiResponse<Comment>> createReplyComment(Comment comment, String parentCommentId) {
+        return null;
+    }
+
+
+    @Override
+    public LiveData<ApiResponse<List<Comment>>> getSubCommentsPaging(String commentId, String afterCommentId, int limit) {
         return null;
     }
 }
