@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 
 import java.util.ArrayList;
@@ -22,6 +23,21 @@ public final class PermissionUtils {
         if(!notGrantedPermissions.isEmpty()) {
             String[] notGrantedPermissionsArray = new String[]{};
             ActivityCompat.requestPermissions(activity, notGrantedPermissions.toArray(notGrantedPermissionsArray), requestCode);
+            return true;
+        }
+        return false;
+    }
+
+    public static final boolean requestPermissions(Fragment fragment, int requestCode, String... permissions) {
+        ArrayList<String> notGrantedPermissions = new ArrayList<>();
+        for (String permission : permissions) {
+            if (ContextCompat.checkSelfPermission(fragment.getActivity(), permission) != PackageManager.PERMISSION_GRANTED) {
+                notGrantedPermissions.add(permission);
+            }
+        }
+        if(!notGrantedPermissions.isEmpty()) {
+            String[] notGrantedPermissionsArray = new String[]{};
+            fragment.requestPermissions(notGrantedPermissions.toArray(notGrantedPermissionsArray), requestCode);
             return true;
         }
         return false;

@@ -127,7 +127,7 @@ public class CommentsFragment extends Fragment {
 
     private void checkToRequestReadExternalPermission() {
         String[] permissions = {Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
-        if (!PermissionUtils.requestPermissions(getActivity(), REQUEST_READ_EXTERNAL_PERMISSIONS, permissions)) {
+        if (!PermissionUtils.requestPermissions(this, REQUEST_READ_EXTERNAL_PERMISSIONS, permissions)) {
             if (mCameraClicked) {
                 NavigationUtils.openPhotoGallery(this, false, OPEN_GALLERY_REQUEST_CODE);
                 mCameraClicked = false;

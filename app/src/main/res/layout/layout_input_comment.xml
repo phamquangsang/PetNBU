@@ -58,8 +58,8 @@
 
         <ImageView
             android:id="@+id/imgCamera"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:layout_marginStart="12dp"
             android:layout_marginLeft="12dp"
             app:layout_constraintBottom_toBottomOf="@+id/edText"
