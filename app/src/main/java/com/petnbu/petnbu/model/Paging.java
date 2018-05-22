@@ -14,7 +14,7 @@ import java.util.List;
 @TypeConverters(PetTypeConverters.class)
 public class Paging {
 
-    public static final String GLOBAL_FEEDS_PAGING_ID = "global-feeds-paging-id";
+    public static final String GLOBAL_FEEDS_PAGING_ID = "global-feeds-paging-id-feeds";
     public static String feedCommentsPagingId(String feedId){
         return feedId + "-comments";
     }
@@ -24,6 +24,14 @@ public class Paging {
     }
     public static String userFeedsPagingId(String userId){
         return userId + "-feeds";
+    }
+
+    public static boolean isFeedPagingId(@NonNull String pagingId){
+        return pagingId.endsWith("feeds");
+    }
+
+    public static boolean isCommentPagingId(@NonNull String pagingId){
+        return pagingId.endsWith("comments") || pagingId.endsWith("subComments");
     }
 
     @PrimaryKey

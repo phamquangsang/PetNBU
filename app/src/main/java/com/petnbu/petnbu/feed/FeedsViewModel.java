@@ -46,8 +46,8 @@ public class FeedsViewModel extends ViewModel {
         loadMoreHandler = new LoadMoreHandler(mFeedRepository);
     }
 
-    public LiveData<Resource<List<FeedUI>>> getFeeds(String pagingId) {
-        mFeedsLiveData = mFeedRepository.loadFeeds(pagingId);
+    public LiveData<Resource<List<FeedUI>>> getFeeds(String pagingId, String loggedUserId) {
+        mFeedsLiveData = mFeedRepository.loadFeeds(pagingId, loggedUserId);
         return mFeedsLiveData;
     }
 

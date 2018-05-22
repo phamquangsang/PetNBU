@@ -89,7 +89,7 @@ public class CommentApiTest {
 
     @Test
     public void createReply(){
-        String parentCommentId = "9OcPdLhgmWRphFQxAfCb";
+        String parentCommentId = "ZIKSOzLudKLRu6yQIOhI";
         FirebaseFirestore firestore = FirebaseFirestore.getInstance();
         WebService webService = new FirebaseService(firestore);
 

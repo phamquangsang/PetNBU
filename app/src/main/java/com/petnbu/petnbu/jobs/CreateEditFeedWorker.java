@@ -147,16 +147,16 @@ public class CreateEditFeedWorker extends Worker {
                             mFeedDao.updateFeedId(temporaryFeedId, newFeed.getFeedId());
                             newFeed.setStatus(STATUS_DONE);
 
-                            Paging currentPaging = mFeedDao.findFeedPaging(Paging.GLOBAL_FEEDS_PAGING_ID);
+                            Paging currentPaging = mPetDb.pagingDao().findFeedPaging(Paging.GLOBAL_FEEDS_PAGING_ID);
                             if (currentPaging != null) {
-                                currentPaging.replaceId(temporaryFeedId, newFeed.getFeedId());
-                                mFeedDao.update(currentPaging);
+                                currentPaging.getIds().add(0, newFeed.getFeedId());
+                                mPetDb.pagingDao().update(currentPaging);
                             }
 
-                            Paging userPaging = mFeedDao.findFeedPaging(newFeed.getFeedUser().getUserId());
+                            Paging userPaging = mPetDb.pagingDao().findFeedPaging(newFeed.getFeedUser().getUserId());
                             if (userPaging != null) {
-                                userPaging.replaceId(temporaryFeedId, newFeed.getFeedId());
-                                mFeedDao.update(userPaging);
+                                userPaging.getIds().add(0, newFeed.getFeedId());
+                                mPetDb.pagingDao().update(userPaging);
                             }
                             mFeedDao.update(newFeed.toEntity());
                         });

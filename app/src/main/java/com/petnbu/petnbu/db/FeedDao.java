@@ -14,7 +14,6 @@ import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedEntity;
 import com.petnbu.petnbu.model.FeedUI;
 import com.petnbu.petnbu.model.LocalStatus;
-import com.petnbu.petnbu.model.Paging;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.util.TraceUtils;
 
@@ -92,8 +91,8 @@ public abstract class FeedDao {
             "LEFT JOIN users AS feedUsers ON feeds.fromUserId = feedUsers.userId " +
             "LEFT JOIN comments ON feeds.latestCommentId = comments.id " +
             "LEFT JOIN users AS commentUsers ON comments.ownerId = commentUsers.userId " +
-            "WHERE feedId IN (:ids) ORDER BY feeds.timeCreated DESC")
-    public abstract LiveData<List<FeedUI>> loadFeedsIds(List<String> ids);
+            "WHERE feedId IN (:ids) OR (status = 1 AND fromUserId = :ownerId) ORDER BY feeds.timeCreated DESC")
+    public abstract LiveData<List<FeedUI>> loadFeedsIds(List<String> ids, String ownerId);
 
     @Query("SELECT feedId, name, userId, avatar, photos, commentCount, likeCount, content, feeds.timeCreated, feeds.timeUpdated, status, likeInProgress  " +
             "FROM feeds, users " +
@@ -123,20 +122,7 @@ public abstract class FeedDao {
     @Query("DELETE FROM feeds WHERE feedId IN (:ids) AND status != 1")
     public abstract void deleteFeeds(List<String> ids);
 
-    @Query("SELECT * FROM paging WHERE pagingId = :id")
-    abstract public LiveData<Paging> loadFeedPaging(String id);
-
-    @Query("SELECT * FROM paging WHERE pagingId = :id")
-    abstract public Paging findFeedPaging(String id);
 
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    abstract public void insert(Paging paging);
-
-    @Update(onConflict = OnConflictStrategy.REPLACE)
-    abstract public void update(Paging paging);
-
-    @Query("DELETE FROM paging WHERE pagingId = :pagingId")
-    abstract public void deleteFeedPaging(String pagingId);
 
 }

@@ -37,7 +37,7 @@ public class FetchNextPageFeedComment implements Runnable{
 
     @Override
     public void run() {
-        Paging currentPaging = mPetDb.feedDao().findFeedPaging(mPagingId);
+        Paging currentPaging = mPetDb.pagingDao().findFeedPaging(mPagingId);
 
         if (currentPaging == null || currentPaging.isEnded() || currentPaging.getOldestId() == null) {
             mLiveData.postValue(new Resource<>(Status.SUCCESS, false, null));
@@ -69,7 +69,7 @@ public class FetchNextPageFeedComment implements Runnable{
                                             mPetDb.userDao().insert(item.getFeedUser());
                                             mPetDb.commentDao().insertFromComment(item.getLatestComment());
                                         }
-                                        mPetDb.feedDao().insert(newPaging);
+                                        mPetDb.pagingDao().insert(newPaging);
                                     }
                                 });
 
@@ -77,7 +77,7 @@ public class FetchNextPageFeedComment implements Runnable{
                             mLiveData.postValue(new Resource<>(Status.SUCCESS, true, null));
                         } else {
                             currentPaging.setEnded(true);
-                            mAppExecutors.diskIO().execute(() -> mPetDb.feedDao().update(currentPaging));
+                            mAppExecutors.diskIO().execute(() -> mPetDb.pagingDao().update(currentPaging));
                             mLiveData.postValue(new Resource<>(Status.SUCCESS, false, null));
                         }
                     } else {

@@ -64,7 +64,7 @@ public class FeedsFragment extends Fragment {
         if (activity != null) {
             mUserId = SharedPrefUtil.getUserId();
             mFeedsViewModel = ViewModelProviders.of(getActivity()).get(FeedsViewModel.class);
-            mFeedsViewModel.getFeeds(Paging.GLOBAL_FEEDS_PAGING_ID).observe(this, feeds -> {
+            mFeedsViewModel.getFeeds(Paging.GLOBAL_FEEDS_PAGING_ID, SharedPrefUtil.getUserId()).observe(this, feeds -> {
                 Timber.i("feeds: %s", feeds);
                 if (feeds != null) {
                     if (feeds.status == Status.LOADING) {

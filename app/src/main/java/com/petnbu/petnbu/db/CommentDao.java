@@ -55,9 +55,23 @@ public abstract class CommentDao {
             "left join users on comments.ownerId = users.userId " +
             "left join comments as subComments on comments.latestCommentId = subComments.id " +
             "left join users as subCommentUser on subComments.ownerId = subCommentUser.userId " +
-            "where comments.id in (:ids) " +
+            "where comments.id in (:ids) or (comments.parentFeedId = :feedId and comments.localStatus = 1)" +
             "order by comments.timeCreated DESC")
-    public abstract LiveData<List<CommentUI>> loadComments(List<String> ids);
+    public abstract LiveData<List<CommentUI>> loadFeedComments(List<String> ids, String feedId);
+
+    @Query("SELECT comments.id, users.userId, users.avatar, users.name, comments.content, " +
+            "comments.photo, comments.likeCount, comments.commentCount, comments.parentCommentId, " +
+            "comments.parentFeedId, comments.localStatus, comments.timeCreated, " +
+            "subComments.id as latestCommentId, subcomments.content as latestCommentContent, " +
+            "subCommentUser.userId as latestCommentOwnerId, subCommentUser.name as latestCommentOwnerName, " +
+            "subCommentUser.avatar as latestCommentOwnerAvatar " +
+            "from comments " +
+            "left join users on comments.ownerId = users.userId " +
+            "left join comments as subComments on comments.latestCommentId = subComments.id " +
+            "left join users as subCommentUser on subComments.ownerId = subCommentUser.userId " +
+            "where comments.id in (:ids) or (comments.parentCommentId = :parentCommentId and comments.localStatus = 1)" +
+            "order by comments.timeCreated DESC")
+    public abstract LiveData<List<CommentUI>> loadSubComments(List<String> ids, String parentCommentId);
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
     public abstract void update(CommentEntity commentEntity);

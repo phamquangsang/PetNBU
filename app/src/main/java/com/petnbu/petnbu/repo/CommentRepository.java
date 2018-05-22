@@ -30,6 +30,7 @@ import com.petnbu.petnbu.model.Status;
 import com.petnbu.petnbu.model.UserEntity;
 import com.petnbu.petnbu.util.IdUtil;
 import com.petnbu.petnbu.util.RateLimiter;
+import com.petnbu.petnbu.util.TraceUtils;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -89,17 +90,8 @@ public class CommentRepository {
                 comment.setTimeUpdated(new Date());
                 comment.setId(IdUtil.generateID("comment"));
                 mCommentDao.insertFromComment(comment);
-                Paging feedCommentPaging = mFeedDao.findFeedPaging(Paging.feedCommentsPagingId(comment.getParentFeedId()));
-                if(feedCommentPaging!=null){
-                    feedCommentPaging.getIds().add(0, comment.getId());
-                }else{
-                    List<String> ids = new ArrayList<>();
-                    ids.add(comment.getId());
-                    feedCommentPaging = new Paging(Paging.feedCommentsPagingId(comment.getParentFeedId()), ids, true, null);
-                }
-                mFeedDao.update(feedCommentPaging);
             });
-            scheduleSaveCommentWorker(comment);
+            TraceUtils.begin("scheduleSaveComment", () -> scheduleSaveCommentWorker(comment));
         });
     }
 
@@ -190,7 +182,7 @@ public class CommentRepository {
                         mUserDao.insert(item.getFeedUser());
                         mCommentDao.insertFromComment(item.getLatestComment());
                     }
-                    mFeedDao.insert(paging);
+                    mPetDb.pagingDao().insert(paging);
                 });
             }
 
@@ -201,7 +193,7 @@ public class CommentRepository {
 
             @Override
             protected void deleteDataFromDb(List<Comment> body) {
-                mFeedDao.deleteFeedPaging(Paging.feedCommentsPagingId(feedId));
+                mPetDb.pagingDao().deleteFeedPaging(Paging.feedCommentsPagingId(feedId));
             }
 
             @Override
@@ -212,14 +204,14 @@ public class CommentRepository {
             @NonNull
             @Override
             protected LiveData<List<CommentUI>> loadFromDb() {
-                return Transformations.switchMap(mFeedDao.loadFeedPaging(Paging.feedCommentsPagingId(feedId)), input -> {
+                return Transformations.switchMap(mPetDb.pagingDao().loadFeedPaging(Paging.feedCommentsPagingId(feedId)), input -> {
                     if (input == null) {
                         MutableLiveData<List<CommentUI>> data = new MutableLiveData<>();
                         data.postValue(null);
                         return data;
                     } else {
                         Timber.i("loadFeedsFromDb paging: %s", input.toString());
-                        return mCommentDao.loadComments(input.getIds());
+                        return mCommentDao.loadFeedComments(input.getIds(), feedId);
                     }
                 });
             }
@@ -253,7 +245,7 @@ public class CommentRepository {
                         mUserDao.insert(item.getFeedUser());
                         mCommentDao.insertFromComment(item.getLatestComment());
                     }
-                    mFeedDao.insert(paging);
+                    mPetDb.pagingDao().insert(paging);
                 });
             }
 
@@ -264,7 +256,7 @@ public class CommentRepository {
 
             @Override
             protected void deleteDataFromDb(List<Comment> body) {
-                mFeedDao.deleteFeedPaging(Paging.subCommentsPagingId(parentCommentId));
+                mPetDb.pagingDao().deleteFeedPaging(Paging.subCommentsPagingId(parentCommentId));
             }
 
             @Override
@@ -275,14 +267,14 @@ public class CommentRepository {
             @NonNull
             @Override
             protected LiveData<List<CommentUI>> loadFromDb() {
-                return Transformations.switchMap(mFeedDao.loadFeedPaging(Paging.subCommentsPagingId(parentCommentId)), input -> {
+                return Transformations.switchMap(mPetDb.pagingDao().loadFeedPaging(Paging.subCommentsPagingId(parentCommentId)), input -> {
                     if (input == null) {
                         MutableLiveData<List<CommentUI>> data = new MutableLiveData<>();
                         data.postValue(null);
                         return data;
                     } else {
                         Timber.i("loadSubCommentsFromDb paging: %s", input.toString());
-                        return mCommentDao.loadComments(input.getIds());
+                        return mCommentDao.loadSubComments(input.getIds(), parentCommentId);
                     }
                 });
             }

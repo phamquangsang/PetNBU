@@ -127,10 +127,10 @@ public class CreateCommentWorker extends Worker {
                     Comment newComment = commentApiResponse.body;
 
                     mAppExecutors.diskIO().execute(() -> mPetDb.runInTransaction(() -> {
-                        Paging feedCommentPaging = mPetDb.feedDao().findFeedPaging(Paging.feedCommentsPagingId(comment.getParentFeedId()));
+                        Paging feedCommentPaging = mPetDb.pagingDao().findFeedPaging(Paging.feedCommentsPagingId(comment.getParentFeedId()));
                         if(feedCommentPaging != null) {
-                            feedCommentPaging.replaceId(oldCommentId, newComment.getId());
-                            mPetDb.feedDao().update(feedCommentPaging);
+                            feedCommentPaging.getIds().add(0, newComment.getId());
+                            mPetDb.pagingDao().update(feedCommentPaging);
                         }
                         mCommentDao.updateCommentId(oldCommentId, newComment.getId());
                         newComment.setLocalStatus(STATUS_DONE);

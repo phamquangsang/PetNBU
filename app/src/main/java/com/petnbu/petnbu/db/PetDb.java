@@ -12,7 +12,7 @@ import com.petnbu.petnbu.model.Paging;
 import com.petnbu.petnbu.model.SubCommentEntity;
 import com.petnbu.petnbu.model.UserEntity;
 
-@Database(entities = {UserEntity.class, FeedEntity.class, Paging.class, CommentEntity.class, FeedCommentEntity.class, SubCommentEntity.class} , version = 12)
+@Database(entities = {UserEntity.class, FeedEntity.class, Paging.class, CommentEntity.class} , version = 13)
 @TypeConverters(value = PetTypeConverters.class)
 public abstract class PetDb extends RoomDatabase {
 
@@ -21,4 +21,6 @@ public abstract class PetDb extends RoomDatabase {
     abstract public UserDao userDao();
 
     abstract public CommentDao commentDao();
+
+    abstract public PagingDao pagingDao();
 }
