@@ -17,6 +17,7 @@ import com.bumptech.glide.RequestManager;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.databinding.FragmentRepliesCommentsBinding;
 import com.petnbu.petnbu.model.Photo;
+import com.petnbu.petnbu.model.Status;
 
 public class RepliesFragment extends Fragment {
 
@@ -58,8 +59,17 @@ public class RepliesFragment extends Fragment {
         mCommentsViewModel = ViewModelProviders.of(getActivity()).get(CommentsViewModel.class);
         mBinding.setViewModel(mCommentsViewModel);
 
-        mCommentsViewModel.loadSubComments(mCommentId).observe(this, comments -> {
-            mAdapter.setComments(comments);
+        mCommentsViewModel.loadSubComments(mCommentId).observe(this, commentsResource -> {
+            if(commentsResource != null){
+                if(commentsResource.data != null){
+                    mAdapter.setComments(commentsResource.data);
+                }
+                if(commentsResource.status == Status.LOADING){
+                    //show loading
+                }else{
+                    //hide loading
+                }
+            }
         });
 
         mBinding.rvComments.setLayoutManager(new LinearLayoutManager(getActivity()));

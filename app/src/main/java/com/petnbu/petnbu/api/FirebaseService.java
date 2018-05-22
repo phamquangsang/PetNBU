@@ -504,8 +504,69 @@ public class FirebaseService implements WebService {
     }
 
     @Override
-    public LiveData<ApiResponse<List<Comment>>> getCommentsByComment(String commentId) {
-        return null;
+    public LiveData<ApiResponse<List<Comment>>> getSubComments(String commentId, long after, int limit) {
+        MutableLiveData<ApiResponse<List<Comment>>> result = new MutableLiveData<>();
+        String subCommentsPath = String.format("comments/%s/subComments", commentId);
+        CollectionReference ref = mDb.collection(subCommentsPath);
+        ref.orderBy("timeCreated", Query.Direction.DESCENDING).startAfter(new Date(after)).limit(limit)
+                .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                Timber.i("getFeedComments succeed");
+                List<Comment> subComments = new ArrayList<>();
+                for (DocumentSnapshot cmtSnapShot : queryDocumentSnapshots) {
+                    subComments.add(cmtSnapShot.toObject(Comment.class));
+                }
+                result.setValue(new ApiResponse<>(subComments, true, null));
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                result.setValue(new ApiResponse<>(null, false, e.getMessage()));
+            }
+        });
+        return result;
+    }
+
+    @Override
+    public LiveData<ApiResponse<List<Comment>>> getSubCommentsPaging(String commentId, String afterCommentId, int limit) {
+        MutableLiveData<ApiResponse<List<Comment>>> result = new MutableLiveData<>();
+        mDb.document(String.format("comments/%s/subComments/%s", commentId, afterCommentId))
+                .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(DocumentSnapshot documentSnapshot) {
+                if (!documentSnapshot.exists()) {
+                    result.setValue(new ApiResponse<>(null, false, "sub comment not found"));
+                    return;
+                }
+                String subCommentsPath = String.format("comments/%s/subComments", commentId);
+                CollectionReference ref = mDb.collection(subCommentsPath);
+                ref.orderBy("timeCreated", Query.Direction.DESCENDING).startAfter(documentSnapshot).limit(limit)
+                        .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        Timber.i("getFeedComments succeed");
+                        List<Comment> subComments = new ArrayList<>();
+                        for (DocumentSnapshot cmtSnapShot : queryDocumentSnapshots) {
+                            subComments.add(cmtSnapShot.toObject(Comment.class));
+                        }
+                        result.setValue(new ApiResponse<>(subComments, true, null));
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        result.setValue(new ApiResponse<>(null, false, e.getMessage()));
+                    }
+                });
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                result.setValue(new ApiResponse<>(null, false, e.getMessage()));
+            }
+        });
+
+        return result;
     }
 
     private void updateFeedTransaction(Transaction transaction, Feed feed, Map<String, Object> update) throws FirebaseFirestoreException {

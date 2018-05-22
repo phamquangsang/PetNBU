@@ -40,7 +40,9 @@ public interface WebService {
 
     LiveData<ApiResponse<Comment>> createReplyComment(Comment comment, String parentCommentId);
 
-    LiveData<ApiResponse<List<Comment>>> getCommentsByComment(String commentId);
+    LiveData<ApiResponse<List<Comment>>> getSubComments(String commentId, long after, int limit);
+
+    LiveData<ApiResponse<List<Comment>>> getSubCommentsPaging(String commentId, String afterCommentId, int limit);
 }
 
 
