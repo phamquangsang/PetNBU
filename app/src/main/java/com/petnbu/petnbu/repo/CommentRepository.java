@@ -282,8 +282,14 @@ public class CommentRepository {
         }.asLiveData();
     }
 
-    public LiveData<Resource<Boolean>> fetchNextPage(String feedId, String pagingId) {
+    public LiveData<Resource<Boolean>> fetchCommentsNextPage(String feedId, String pagingId) {
         FetchNextPageFeedComment fetchNextPageTask = new FetchNextPageFeedComment(feedId, pagingId, mWebService, mPetDb, mAppExecutors);
+        mAppExecutors.networkIO().execute(fetchNextPageTask);
+        return fetchNextPageTask.getLiveData();
+    }
+
+    public LiveData<Resource<Boolean>> fetchSubCommentsNextPage(String commentid, String pagingId) {
+        FetchNextPageFeedComment fetchNextPageTask = new FetchNextPageFeedComment(commentid, pagingId, mWebService, mPetDb, mAppExecutors);
         mAppExecutors.networkIO().execute(fetchNextPageTask);
         return fetchNextPageTask.getLiveData();
     }

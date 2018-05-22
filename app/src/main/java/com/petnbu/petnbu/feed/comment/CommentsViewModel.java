@@ -54,6 +54,8 @@ public class CommentsViewModel extends ViewModel {
     public final ObservableBoolean showLoadingFeedReplies = new ObservableBoolean(false);
     public final ObservableBoolean showLoadingCommentReplies = new ObservableBoolean(false);
 
+    private SubCommentLoadMoreHandler subCommentLoadMoreHandler;
+
     private final SingleLiveEvent<String> mOpenRepliesEvent = new SingleLiveEvent<>();
     private final SingleLiveEvent<String> mOpenUserProfileEvent = new SingleLiveEvent<>();
 
@@ -61,6 +63,7 @@ public class CommentsViewModel extends ViewModel {
     public CommentsViewModel() {
         PetApplication.getAppComponent().inject(this);
         loadMoreHandler = new LoadMoreHandler(mCommentRepository);
+        subCommentLoadMoreHandler = new SubCommentLoadMoreHandler(mCommentRepository);
     }
 
     public LiveData<UserEntity> loadUserInfo() {
@@ -106,6 +109,8 @@ public class CommentsViewModel extends ViewModel {
         return loadMoreHandler.loadMoreState;
     }
 
+
+
     public void sendComment(String feedId, String content, Photo photo) {
         Comment comment = new Comment();
         comment.setParentFeedId(feedId);
@@ -125,6 +130,11 @@ public class CommentsViewModel extends ViewModel {
     public void loadNextPage(String feedId) {
         Timber.i("loadNextPage :");
         loadMoreHandler.loadNextPage(feedId, Paging.feedCommentsPagingId(feedId));
+    }
+
+    public void loadSubCommentsNextPage(String commentId){
+        Timber.i("loadSubCommentsNextPage :");
+        subCommentLoadMoreHandler.loadNextPage(commentId, Paging.subCommentsPagingId(commentId));
     }
 
     public void openUserProfile(String userId) {
@@ -165,7 +175,69 @@ public class CommentsViewModel extends ViewModel {
             }
             Timber.i("loadNextPage");
             unregister();
-            nextPageLiveData = commentRepo.fetchNextPage(feedId, pagingId);
+            nextPageLiveData = commentRepo.fetchCommentsNextPage(feedId, pagingId);
+            loadMoreState.setValue(new LoadMoreState(true, null));
+            nextPageLiveData.observeForever(this);
+        }
+
+        @Override
+        public void onChanged(@Nullable Resource<Boolean> result) {
+            if (result == null) {
+                reset();
+            } else {
+                Timber.i(result.toString());
+                switch (result.status) {
+                    case SUCCESS:
+                        hasMore = Boolean.TRUE.equals(result.data);
+                        unregister();
+                        loadMoreState.setValue(new LoadMoreState(false, null));
+                        break;
+                    case ERROR:
+                        hasMore = true;
+                        unregister();
+                        loadMoreState.setValue(new LoadMoreState(false, result.message));
+                        break;
+                }
+            }
+        }
+
+        private void unregister() {
+            if (nextPageLiveData != null) {
+                nextPageLiveData.removeObserver(this);
+                nextPageLiveData = null;
+            }
+        }
+
+        private void reset() {
+            unregister();
+            hasMore = true;
+            loadMoreState.setValue(new LoadMoreState(false, null));
+        }
+    }
+
+    private static class SubCommentLoadMoreHandler implements Observer<Resource<Boolean>> {
+
+        private final CommentRepository commentRepo;
+
+        private MutableLiveData<LoadMoreState> loadMoreState = new MutableLiveData<>();
+
+        private LiveData<Resource<Boolean>> nextPageLiveData;
+
+        private boolean hasMore = true;
+
+        public SubCommentLoadMoreHandler(CommentRepository commentRepository) {
+            commentRepo = commentRepository;
+            loadMoreState.setValue(new LoadMoreState(false, null));
+        }
+
+        public void loadNextPage(String commentId, String pagingId) {
+            if (!hasMore || loadMoreState.getValue() == null || loadMoreState.getValue().isRunning()) {
+                Timber.i("hasMore = %s", hasMore);
+                return;
+            }
+            Timber.i("loadNextPage");
+            unregister();
+            nextPageLiveData = commentRepo.fetchSubCommentsNextPage(commentId, pagingId);
             loadMoreState.setValue(new LoadMoreState(true, null));
             nextPageLiveData.observeForever(this);
         }

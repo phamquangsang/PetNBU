@@ -2,7 +2,6 @@ package com.petnbu.petnbu.feed.comment;
 
 import android.Manifest;
 import android.app.Activity;
-import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
@@ -12,6 +11,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -19,14 +19,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.request.RequestOptions;
 import com.petnbu.petnbu.GlideApp;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.databinding.FragmentRepliesCommentsBinding;
 import com.petnbu.petnbu.model.Photo;
-import com.petnbu.petnbu.model.Status;
 import com.petnbu.petnbu.util.NavigationUtils;
 import com.petnbu.petnbu.util.PermissionUtils;
 
@@ -89,6 +86,20 @@ public class RepliesFragment extends Fragment {
             }
         }, mCommentsViewModel);
         mBinding.rvComments.setAdapter(mAdapter);
+        mBinding.rvComments.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                LinearLayoutManager layoutManager = (LinearLayoutManager)
+                        recyclerView.getLayoutManager();
+                int lastPosition = layoutManager
+                        .findLastVisibleItemPosition();
+                if (lastPosition >= mAdapter.getItemCount() - 2 && mAdapter.getItemCount() > 0) {
+                    mCommentsViewModel.loadSubCommentsNextPage(mCommentId);
+                }
+            }
+        });
 
         mBinding.layoutInputComment.imgCamera.setOnClickListener(v -> {
             mCameraClicked = true;
