@@ -50,7 +50,7 @@ public abstract class CommentDao {
             "comments.parentFeedId, comments.localStatus, comments.timeCreated, " +
             "subComments.id as latestCommentId, subcomments.content as latestCommentContent, " +
             "subCommentUser.userId as latestCommentOwnerId, subCommentUser.name as latestCommentOwnerName, " +
-            "subCommentUser.avatar as latestCommentOwnerAvatar " +
+            "subCommentUser.avatar as latestCommentOwnerAvatar, subComments.photo as latestCommentPhoto " +
             "from comments " +
             "left join users on comments.ownerId = users.userId " +
             "left join comments as subComments on comments.latestCommentId = subComments.id " +

@@ -2,6 +2,7 @@ package com.petnbu.petnbu.model;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 public class FeedUI {
     public String feedId;
@@ -17,6 +18,7 @@ public class FeedUI {
     public String commentOwnerName;
     public Photo commentUserAvatar;
     public String commentContent;
+    public Photo commentPhoto;
     public int status;
 
     public String getFeedId() {
@@ -75,6 +77,10 @@ public class FeedUI {
         return status;
     }
 
+    public Photo getCommentPhoto() {
+        return commentPhoto;
+    }
+
     @Override
     public String toString() {
         return "FeedUI{" +
@@ -100,8 +106,9 @@ public class FeedUI {
         if (likeCount != feedUI.likeCount) return false;
         if (commentCount != feedUI.commentCount) return false;
         if (status != feedUI.status) return false;
-        if (!feedId.equals(feedUI.feedId)) return false;
-        if (!ownerId.equals(feedUI.ownerId)) return false;
+        if (feedId != null ? !feedId.equals(feedUI.feedId) : feedUI.feedId != null) return false;
+        if (ownerId != null ? !ownerId.equals(feedUI.ownerId) : feedUI.ownerId != null)
+            return false;
         if (name != null ? !name.equals(feedUI.name) : feedUI.name != null) return false;
         if (avatar != null ? !avatar.equals(feedUI.avatar) : feedUI.avatar != null) return false;
         if (photos != null ? !photos.equals(feedUI.photos) : feedUI.photos != null) return false;
@@ -115,13 +122,15 @@ public class FeedUI {
             return false;
         if (commentUserAvatar != null ? !commentUserAvatar.equals(feedUI.commentUserAvatar) : feedUI.commentUserAvatar != null)
             return false;
-        return commentContent != null ? commentContent.equals(feedUI.commentContent) : feedUI.commentContent == null;
+        if (commentContent != null ? !commentContent.equals(feedUI.commentContent) : feedUI.commentContent != null)
+            return false;
+        return commentPhoto != null ? commentPhoto.equals(feedUI.commentPhoto) : feedUI.commentPhoto == null;
     }
 
     @Override
     public int hashCode() {
-        int result = feedId.hashCode();
-        result = 31 * result + ownerId.hashCode();
+        int result = feedId != null ? feedId.hashCode() : 0;
+        result = 31 * result + (ownerId != null ? ownerId.hashCode() : 0);
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (avatar != null ? avatar.hashCode() : 0);
         result = 31 * result + (photos != null ? photos.hashCode() : 0);
@@ -133,6 +142,7 @@ public class FeedUI {
         result = 31 * result + (commentOwnerName != null ? commentOwnerName.hashCode() : 0);
         result = 31 * result + (commentUserAvatar != null ? commentUserAvatar.hashCode() : 0);
         result = 31 * result + (commentContent != null ? commentContent.hashCode() : 0);
+        result = 31 * result + (commentPhoto != null ? commentPhoto.hashCode() : 0);
         result = 31 * result + status;
         return result;
     }

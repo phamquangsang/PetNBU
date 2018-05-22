@@ -94,14 +94,26 @@ public class CreateCommentWorker extends Worker {
                                 commentPhoto.setThumbnailUrl(uploadedPhoto.getThumbnailUrl());
                             }
                             if(uploadedPhoto != null) {
-                                createComment(comment);
-                                workerResult = WorkerResult.SUCCESS;
+                                if(!TextUtils.isEmpty(comment.getParentFeedId())) {
+                                    createComment(comment);
+                                    workerResult = WorkerResult.SUCCESS;
+                                } else if(!TextUtils.isEmpty(comment.getParentCommentId())) {
+                                    createSubComment(comment);
+                                    workerResult = WorkerResult.SUCCESS;
+                                }
+                                workerResult = WorkerResult.FAILURE;
                             } else {
                                 workerResult = WorkerResult.FAILURE;
                             }
                         } else {
-                            createComment(comment);
-                            workerResult = WorkerResult.SUCCESS;
+                            if(!TextUtils.isEmpty(comment.getParentFeedId())) {
+                                createComment(comment);
+                                workerResult = WorkerResult.SUCCESS;
+                            } else if(!TextUtils.isEmpty(comment.getParentCommentId())) {
+                                createSubComment(comment);
+                                workerResult = WorkerResult.SUCCESS;
+                            }
+                            workerResult = WorkerResult.FAILURE;
                         }
                     } catch (InterruptedException e) {
                         e.printStackTrace();
@@ -147,4 +159,43 @@ public class CreateCommentWorker extends Worker {
         countDownLatch.await();
     }
 
+    private void createSubComment(Comment comment) throws InterruptedException {
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        final String oldCommentId = comment.getId();
+
+        LiveData<ApiResponse<Comment>> apiResponse = mWebService.createReplyComment(comment, comment.getParentCommentId());
+        apiResponse.observeForever(new Observer<ApiResponse<Comment>>() {
+            @Override
+            public void onChanged(@Nullable ApiResponse<Comment> commentApiResponse) {
+                apiResponse.removeObserver(this);
+
+                if(commentApiResponse != null && commentApiResponse.isSucceed && commentApiResponse.body != null) {
+                    Timber.d("create comment %s success", comment.getId());
+                    Comment newComment = commentApiResponse.body;
+
+                    mAppExecutors.diskIO().execute(() -> mPetDb.runInTransaction(() -> {
+                        Paging subCommentPaging = mPetDb.pagingDao().findFeedPaging(Paging.subCommentsPagingId(comment.getParentCommentId()));
+                        if(subCommentPaging != null) {
+                            subCommentPaging.getIds().add(0, newComment.getId());
+                            mPetDb.pagingDao().update(subCommentPaging);
+                        }
+                        mCommentDao.updateCommentId(oldCommentId, newComment.getId());
+                        newComment.setLocalStatus(STATUS_DONE);
+                        mCommentDao.update(newComment.toEntity());
+
+                        CommentEntity parentComment = mCommentDao.getCommentById(comment.getParentCommentId());
+                        parentComment.setLatestCommentId(comment.getId());
+                        parentComment.setCommentCount(parentComment.getCommentCount()+1);
+                        mCommentDao.update(parentComment);
+                    }));
+                } else {
+                    Timber.d("create comment %s error : %s", comment.getId(), commentApiResponse.errorMessage);
+                    comment.setLocalStatus(STATUS_ERROR);
+                    mAppExecutors.diskIO().execute(() -> mCommentDao.update(comment.toEntity()));
+                }
+                countDownLatch.countDown();
+            }
+        });
+        countDownLatch.await();
+    }
 }

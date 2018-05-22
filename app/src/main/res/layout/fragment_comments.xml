@@ -1,36 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
 
-        <import type="android.view.View"/>
+        <import type="android.view.View" />
 
         <variable
             name="viewModel"
-            type="com.petnbu.petnbu.feed.comment.CommentsViewModel"/>
+            type="com.petnbu.petnbu.feed.comment.CommentsViewModel" />
     </data>
 
-    <FrameLayout
+    <android.support.constraint.ConstraintLayout
         android:id="@+id/layoutRoot"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/rvComments"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
             android:clipToPadding="false"
+            android:paddingTop="4dp"
             android:paddingBottom="8dp"
-            android:paddingTop="4dp"/>
+            app:layout_constraintBottom_toTopOf="@+id/layoutInputComment"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-        <com.github.ybq.android.spinkit.SpinKitView
-            android:id="@+id/spinKit"
-            style="@style/SpinKitView.FadingCircle"
+        <include
+            layout="@layout/view_loading"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:visibility="@{viewModel.showLoading ? View.VISIBLE : View.GONE}"
-            app:SpinKit_Color="@color/colorPrimary"/>
-    </FrameLayout>
+            android:visibility="@{viewModel.showLoadingFeedReplies ? View.VISIBLE : View.GONE}"
+            app:layout_constraintBottom_toTopOf="@+id/layoutInputComment"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <include
+            android:id="@+id/layoutInputComment"
+            layout="@layout/layout_input_comment"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+    </android.support.constraint.ConstraintLayout>
 </layout>

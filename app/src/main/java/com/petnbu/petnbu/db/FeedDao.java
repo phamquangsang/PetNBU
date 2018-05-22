@@ -86,7 +86,7 @@ public abstract class FeedDao {
     @Query("SELECT feedId, feeds.fromUserId as ownerId,feedUsers.name, feedUsers.avatar, feeds.timeCreated, " +
             "feeds.likeCount, feeds.commentCount, feeds.content AS feedContent, feeds.status, feeds.photos, " +
             "commentUsers.userId as commentOwnerId ,commentUsers.name AS commentOwnerName, " +
-            "commentUsers.avatar AS commentUserAvatar, comments.content AS commentContent  " +
+            "commentUsers.avatar AS commentUserAvatar, comments.content AS commentContent, comments.photo as commentPhoto  " +
             "FROM feeds " +
             "LEFT JOIN users AS feedUsers ON feeds.fromUserId = feedUsers.userId " +
             "LEFT JOIN comments ON feeds.latestCommentId = comments.id " +
@@ -102,7 +102,7 @@ public abstract class FeedDao {
     @Query("SELECT feedId, feeds.fromUserId as ownerId,feedUsers.name, feedUsers.avatar, feeds.timeCreated, " +
             "feeds.likeCount, feeds.commentCount, feeds.content AS feedContent, feeds.status, feeds.photos, " +
             "commentUsers.userId as commentOwnerId ,commentUsers.name AS commentOwnerName, " +
-            "commentUsers.avatar AS commentUserAvatar, comments.content AS commentContent  " +
+            "commentUsers.avatar AS commentUserAvatar, comments.content AS commentContent, comments.photo as commentPhoto  " +
             "FROM feeds " +
             "LEFT JOIN users AS feedUsers ON feeds.fromUserId = feedUsers.userId " +
             "LEFT JOIN comments ON feeds.latestCommentId = comments.id " +

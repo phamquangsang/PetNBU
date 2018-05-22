@@ -15,6 +15,7 @@ import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.RecyclerView;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
+import android.text.TextUtils;
 import android.text.format.DateUtils;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
@@ -159,66 +160,42 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<RepliesRecy
             builder.append(mComment.getContent());
             builder.setSpan(new ForegroundColorSpan(ColorUtils.modifyAlpha(Color.BLACK, 0.8f)), start, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             mBinding.tvContent.setText(builder);
+
+            if(mComment.getPhoto() != null) {
+                mBinding.imgPhoto.setVisibility(View.VISIBLE);
+                String photoUrl = TextUtils.isEmpty(mComment.getPhoto().getSmallUrl()) ?
+                        mComment.getPhoto().getOriginUrl() : mComment.getPhoto().getSmallUrl();
+                mGlideRequests.load(photoUrl)
+                        .apply(RequestOptions.centerInsideTransform())
+                        .into(mBinding.imgPhoto);
+            } else {
+                mBinding.imgPhoto.setVisibility(View.GONE);
+            }
         }
 
         private void displayInfo() {
             mBinding.tvDate.setText(DateUtils.getRelativeTimeSpanString(mComment.getTimeCreated().getTime(),
                     Calendar.getInstance().getTimeInMillis(), 0L, DateUtils.FORMAT_ABBREV_RELATIVE));
-            if (mComment.getLikeCount() > 0) {
-                mBinding.tvLikesCount.setVisibility(View.VISIBLE);
-                mBinding.tvLikesCount.setText(String.format("%d %s", mComment.getLikeCount(), mComment.getLikeCount() > 1 ? "likes" : "like"));
+            if (!mComment.getId().equals(mCommentId)) {
+                mBinding.divider.setVisibility(View.INVISIBLE);
+
+                if (mComment.getLikeCount() > 0) {
+                    mBinding.tvLikesCount.setVisibility(View.VISIBLE);
+                    mBinding.tvLikesCount.setText(String.format("%d %s", mComment.getLikeCount(), mComment.getLikeCount() > 1 ? "likes" : "like"));
+                } else {
+                    mBinding.tvLikesCount.setVisibility(View.GONE);
+                }
+
+                if (mComment.getLocalStatus() == LocalStatus.STATUS_UPLOADING) {
+                    mBinding.layoutLike.setVisibility(View.INVISIBLE);
+                    mBinding.progressBar.setVisibility(View.VISIBLE);
+                } else {
+                    mBinding.layoutLike.setVisibility(View.VISIBLE);
+                    mBinding.progressBar.setVisibility(View.GONE);
+                }
             } else {
-                mBinding.tvLikesCount.setVisibility(View.GONE);
-            }
-            mBinding.divider.setVisibility(mComment.getId().equals(mCommentId) ? View.VISIBLE : View.INVISIBLE);
-        }
-
-        private void displayReplies() {
-            if(mComment.getLatestCommentId() != null) {
-                mBinding.tvLatestComment.setVisibility(View.VISIBLE);
-                mBinding.tvPreviousReplies.setVisibility(View.VISIBLE);
-
-                Context context = itemView.getContext();
-                int imageSize = (int) Utils.convertDpToPixel(context, 36);
-                Drawable leftDrawable = ContextCompat.getDrawable(context, R.drawable.logo);
-                leftDrawable.setBounds(0, 0, imageSize, imageSize);
-
-                mBinding.tvLatestComment.setCompoundDrawables(leftDrawable, null, null, null);
-                mBinding.tvLatestComment.setCompoundDrawablePadding((int) Utils.convertDpToPixel(context, 8));
-
-                SpannableStringBuilder builder = new SpannableStringBuilder(mComment.getLatestCommentOwnerName() + "");
-                int start = 0;
-                builder.setSpan(new StyleSpan(Typeface.BOLD), start, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                builder.setSpan(new ForegroundColorSpan(Color.BLACK), start, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                builder.append("  ");
-
-                start = builder.length();
-                builder.append(mComment.getLatestCommentContent());
-                builder.setSpan(new ForegroundColorSpan(ColorUtils.modifyAlpha(Color.BLACK, 0.8f)), start, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                mBinding.tvLatestComment.setText(builder);
-                mBinding.tvPreviousReplies.setText(context.getString(R.string.feed_view_previous_replies, mComment.getCommentCount() - 1));
-
-                mGlideRequests.asBitmap().load(mComment.getLatestCommentOwnerAvatar().getOriginUrl())
-                        .apply(RequestOptions.overrideOf(imageSize, imageSize))
-                        .listener(new RequestListener<Bitmap>() {
-                            @Override
-                            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {
-                                return false;
-                            }
-
-                            @Override
-                            public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
-                                RoundedBitmapDrawable roundedBitmapDrawable= RoundedBitmapDrawableFactory.create(context.getResources(), resource);
-                                roundedBitmapDrawable.setCircular(true);
-                                roundedBitmapDrawable.setAntiAlias(true);
-                                roundedBitmapDrawable.setBounds(0, 0, imageSize, imageSize);
-                                mBinding.tvLatestComment.setCompoundDrawables(roundedBitmapDrawable, null, null, null);
-                                return false;
-                            }
-                        }).submit();
-            } else {
-                mBinding.tvLatestComment.setVisibility(View.GONE);
-                mBinding.tvPreviousReplies.setVisibility(View.GONE);
+                mBinding.divider.setVisibility(View.VISIBLE);
+                mBinding.progressBar.setVisibility(View.GONE);
             }
         }
     }
