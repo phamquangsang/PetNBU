@@ -61,6 +61,7 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
 
     public CommentsRecyclerViewAdapter(Context context, List<CommentUI> comments, String feedId,
                                        CommentsViewModel commentsViewModel) {
+        Preconditions.checkNotNull(context);
         Preconditions.checkNotNull(commentsViewModel);
 
         mComments = comments != null ? comments : new ArrayList<>();
@@ -107,11 +108,12 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
 
     public void setAddLoadMore(boolean addLoadMore) {
         if (mAddLoadMore != addLoadMore) {
-            mAddLoadMore = addLoadMore;
-            if (mAddLoadMore) {
+            if (addLoadMore) {
+                mAddLoadMore = addLoadMore;
                 notifyItemInserted(getLoadingMoreItemPosition());
             } else {
                 notifyItemRemoved(getLoadingMoreItemPosition());
+                mAddLoadMore = addLoadMore;
             }
         }
     }
