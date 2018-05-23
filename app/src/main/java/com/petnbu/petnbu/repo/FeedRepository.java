@@ -8,7 +8,9 @@ import android.arch.lifecycle.Transformations;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.widget.Toast;
 
+import com.google.android.gms.common.api.Api;
 import com.petnbu.petnbu.AppExecutors;
 import com.petnbu.petnbu.SharedPrefUtil;
 import com.petnbu.petnbu.api.ApiResponse;
@@ -28,6 +30,7 @@ import com.petnbu.petnbu.model.Resource;
 import com.petnbu.petnbu.model.UserEntity;
 import com.petnbu.petnbu.util.IdUtil;
 import com.petnbu.petnbu.util.RateLimiter;
+import com.petnbu.petnbu.util.Toaster;
 import com.petnbu.petnbu.util.TraceUtils;
 
 import java.util.ArrayList;
@@ -42,7 +45,6 @@ import androidx.work.Constraints;
 import androidx.work.Data;
 import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
-import androidx.work.WorkContinuation;
 import androidx.work.WorkManager;
 import timber.log.Timber;
 
@@ -63,12 +65,15 @@ public class FeedRepository {
 
     private final RateLimiter<String> mRateLimiter = new RateLimiter<>(10, TimeUnit.MINUTES);
 
+    private Toaster mToaster;
+
     @Inject
-    public FeedRepository(PetDb petDb, AppExecutors appExecutors, WebService webService, Application application) {
+    public FeedRepository(PetDb petDb, AppExecutors appExecutors, WebService webService, Application application, Toaster toaster) {
         mPetDb = petDb;
         mAppExecutors = appExecutors;
         mWebService = webService;
         mApplication = application;
+        mToaster = toaster;
     }
 
     public LiveData<Resource<List<FeedUI>>> loadFeeds(String pagingId, String userId) {
@@ -372,27 +377,39 @@ public class FeedRepository {
                 if (feed.isLiked()) {
                     //todo unlike post
                     LiveData<ApiResponse<Feed>> result = mWebService.unLikeFeed(userId, feedId);
-                    result.observeForever(feedApiResponse -> {
-                        if (feedApiResponse != null) {
-                            if (feedApiResponse.isSucceed && feedApiResponse.body != null) {
-                                feed.setLikeCount(feedApiResponse.body.getLikeCount());
-                                feed.setLiked(false);
+                    result.observeForever(new Observer<ApiResponse<Feed>>() {
+                        @Override
+                        public void onChanged(@Nullable ApiResponse<Feed> feedApiResponse) {
+                            if (feedApiResponse != null) {
+                                result.removeObserver(this);
+                                if (feedApiResponse.isSucceed && feedApiResponse.body != null) {
+                                    feed.setLikeCount(feedApiResponse.body.getLikeCount());
+                                    feed.setLiked(false);
+                                }else{
+                                    mToaster.makeText(feedApiResponse.errorMessage);
+                                }
+                                feed.setLikeInProgress(false);
+                                mAppExecutors.diskIO().execute(() -> mPetDb.feedDao().update(feed));
                             }
-                            feed.setLikeInProgress(false);
-                            mAppExecutors.diskIO().execute(() -> mPetDb.feedDao().update(feed));
                         }
                     });
                 } else {
                     //todo like post
                     LiveData<ApiResponse<Feed>> result = mWebService.likeFeed(userId, feedId);
-                    result.observeForever(feedApiResponse -> {
-                        if (feedApiResponse != null) {
-                            if (feedApiResponse.isSucceed && feedApiResponse.body != null) {
-                                feed.setLikeCount(feedApiResponse.body.getLikeCount());
-                                feed.setLiked(true);
+                    result.observeForever(new Observer<ApiResponse<Feed>>() {
+                        @Override
+                        public void onChanged(@Nullable ApiResponse<Feed> feedApiResponse) {
+                            if (feedApiResponse != null) {
+                                result.removeObserver(this);
+                                if (feedApiResponse.isSucceed && feedApiResponse.body != null) {
+                                    feed.setLikeCount(feedApiResponse.body.getLikeCount());
+                                    feed.setLiked(true);
+                                }else{
+                                    mToaster.makeText(feedApiResponse.errorMessage);
+                                }
+                                feed.setLikeInProgress(false);
+                                mAppExecutors.diskIO().execute(() -> mPetDb.feedDao().update(feed));
                             }
-                            feed.setLikeInProgress(false);
-                            mAppExecutors.diskIO().execute(() -> mPetDb.feedDao().update(feed));
                         }
                     });
                 }
