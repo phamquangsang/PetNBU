@@ -36,6 +36,8 @@ import com.petnbu.petnbu.BaseBindingViewHolder;
 import com.petnbu.petnbu.GlideApp;
 import com.petnbu.petnbu.GlideRequests;
 import com.petnbu.petnbu.R;
+import com.petnbu.petnbu.model.Photo;
+import com.petnbu.petnbu.util.ImageUtils;
 import com.petnbu.petnbu.util.Utils;
 import com.petnbu.petnbu.databinding.ViewCommentBinding;
 import com.petnbu.petnbu.databinding.ViewLoadingBinding;
@@ -212,11 +214,29 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
 
             if(mComment.getPhoto() != null) {
                 mBinding.imgPhoto.setVisibility(View.VISIBLE);
-                String photoUrl = TextUtils.isEmpty(mComment.getPhoto().getSmallUrl()) ?
-                        mComment.getPhoto().getOriginUrl() : mComment.getPhoto().getSmallUrl();
-                mGlideRequests.load(photoUrl)
-                        .apply(RequestOptions.centerInsideTransform())
-                        .into(mBinding.imgPhoto);
+                Photo photo = mComment.getPhoto();
+
+                new ImageUtils.SizeDeterminer(mBinding.imgPhoto).getSize((width, height) -> {
+                    int photoWidth = photo.getWidth();
+                    int photoHeight = photo.getHeight();
+                    float ratio = photoWidth/(float)photoHeight;
+
+                    ViewGroup.LayoutParams layoutParams = mBinding.imgPhoto.getLayoutParams();
+                    if(photoWidth > photoHeight) {
+                        layoutParams.width = width;
+                        layoutParams.height = (int) (layoutParams.width / ratio);
+                    } else {
+                        layoutParams.width = width/2;
+                        layoutParams.height = (int) (layoutParams.width / ratio);
+                    }
+                    mBinding.imgPhoto.setLayoutParams(layoutParams);
+
+                    String photoUrl = TextUtils.isEmpty(mComment.getPhoto().getSmallUrl()) ?
+                            mComment.getPhoto().getOriginUrl() : mComment.getPhoto().getSmallUrl();
+                    mGlideRequests.load(photoUrl)
+                            .apply(RequestOptions.centerInsideTransform())
+                            .into(mBinding.imgPhoto);
+                });
             } else {
                 mBinding.imgPhoto.setVisibility(View.GONE);
             }
