@@ -2,6 +2,7 @@ package com.petnbu.petnbu.di;
 
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
+import com.petnbu.petnbu.AppExecutors;
 import com.petnbu.petnbu.api.FirebaseService;
 import com.petnbu.petnbu.api.WebService;
 
@@ -30,7 +31,7 @@ public class WebServiceModule {
 
     @Singleton
     @Provides
-    WebService provideWedService(FirebaseFirestore firebaseFirestore){
-        return new FirebaseService(firebaseFirestore);
+    WebService provideWedService(FirebaseFirestore firebaseFirestore, AppExecutors appExecutors){
+        return new FirebaseService(firebaseFirestore, appExecutors);
     }
 }

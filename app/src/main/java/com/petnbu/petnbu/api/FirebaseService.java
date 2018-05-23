@@ -18,6 +18,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.firestore.Transaction;
 import com.google.firebase.firestore.WriteBatch;
+import com.petnbu.petnbu.AppExecutors;
 import com.petnbu.petnbu.SharedPrefUtil;
 import com.petnbu.petnbu.model.Comment;
 import com.petnbu.petnbu.model.Feed;
@@ -30,6 +31,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.inject.Inject;
+
 import timber.log.Timber;
 
 public class FirebaseService implements WebService {
@@ -40,10 +43,14 @@ public class FirebaseService implements WebService {
 
     private static final String USERS = "users";
 
-    private FirebaseFirestore mDb;
+    private final AppExecutors mExecutors;
 
-    public FirebaseService(FirebaseFirestore firebaseFirestore) {
+    private final FirebaseFirestore mDb;
+
+    @Inject
+    public FirebaseService(FirebaseFirestore firebaseFirestore, AppExecutors appExecutors) {
         mDb = firebaseFirestore;
+        mExecutors = appExecutors;
     }
 
     @Override
@@ -102,10 +109,10 @@ public class FirebaseService implements WebService {
                 mDb.document(String.format("users/%s/feeds/%s", feed.getFeedUser().getUserId(), feed.getFeedId()));
         batch.update(userFeed, updates);
         batch.commit()
-                .addOnSuccessListener(aVoid -> {
+                .addOnSuccessListener(aVoid -> mExecutors.networkIO().execute(() -> {
                     feed.setTimeUpdated(new Date());
-                    result.setValue(new ApiResponse<>(feed, true, null));
-                })
+                    result.postValue(new ApiResponse<>(feed, true, null));
+                }))
                 .addOnFailureListener(e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
         return result;
     }
@@ -117,15 +124,15 @@ public class FirebaseService implements WebService {
         mDb.collection(GLOBAL_FEEDS).orderBy("timeCreated", Query.Direction.DESCENDING)
                 .limit(limit).startAfter(dateAfter)
                 .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
+                .addOnSuccessListener(queryDocumentSnapshots -> mExecutors.networkIO().execute(() -> {
                     List<Feed> feedRespons = new ArrayList<>(limit);
                     for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
                         Timber.i(doc.toString());
                         feedRespons.add(doc.toObject(Feed.class));
                     }
                     Timber.i("onSuccess: loaded %d feed(s)", queryDocumentSnapshots.getDocuments().size());
-                    result.setValue(new ApiResponse<>(feedRespons, true, null));
-                }).addOnFailureListener(e -> {
+                    result.postValue(new ApiResponse<>(feedRespons, true, null));
+                })).addOnFailureListener(e -> {
             Timber.e("onFailure: %s", e.getMessage());
             result.setValue(new ApiResponse<>(null, false, e.getMessage()));
         });
@@ -143,14 +150,14 @@ public class FirebaseService implements WebService {
                         .limit(limit)
                         .startAfter(documentSnapshot)
                         .get()
-                        .addOnSuccessListener(queryDocumentSnapshots -> {
+                        .addOnSuccessListener(queryDocumentSnapshots -> mExecutors.networkIO().execute(() -> {
                             List<Feed> feedRespons = new ArrayList<>(limit);
                             for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
                                 feedRespons.add(doc.toObject(Feed.class));
                             }
                             Timber.i("onSuccess: loaded %d feed(s)", queryDocumentSnapshots.getDocuments().size());
-                            result.setValue(new ApiResponse<>(feedRespons, true, null));
-                        }).addOnFailureListener(e -> {
+                            result.postValue(new ApiResponse<>(feedRespons, true, null));
+                        })).addOnFailureListener(e -> {
                     Timber.e("onFailure: %s", e.getMessage());
                     result.setValue(new ApiResponse<>(null, false, e.getMessage()));
                 });
@@ -172,15 +179,15 @@ public class FirebaseService implements WebService {
                 .startAfter(new Date(after))
                 .limit(limit)
                 .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
+                .addOnSuccessListener(queryDocumentSnapshots -> mExecutors.networkIO().execute(() -> {
                     List<Feed> feedRespons = new ArrayList<>(limit);
                     for (DocumentSnapshot doc :
                             queryDocumentSnapshots) {
                         Timber.i("Feed: %s", doc.toString());
                         feedRespons.add(doc.toObject(Feed.class));
                     }
-                    result.setValue(new ApiResponse<>(feedRespons, true, null));
-                }).addOnFailureListener(e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
+                    result.postValue(new ApiResponse<>(feedRespons, true, null));
+                })).addOnFailureListener(e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
         return result;
     }
 
@@ -188,7 +195,7 @@ public class FirebaseService implements WebService {
     public LiveData<ApiResponse<List<Feed>>> getUserFeed(String userId, String afterFeedId, int limit) {
         MutableLiveData<ApiResponse<List<Feed>>> result = new MutableLiveData<>();
         mDb.collection(GLOBAL_FEEDS).document(afterFeedId).get()
-                .addOnSuccessListener(documentSnapshot -> {
+                .addOnSuccessListener(documentSnapshot -> mExecutors.networkIO().execute(() -> {
                     if (documentSnapshot.exists()) {
                         mDb.collection(USERS).document(userId).collection(FEEDS)
                                 .orderBy("timeCreated", Query.Direction.DESCENDING)
@@ -201,13 +208,13 @@ public class FirebaseService implements WebService {
                                             queryDocumentSnapshots) {
                                         feedRespons.add(doc.toObject(Feed.class));
                                     }
-                                    result.setValue(new ApiResponse<>(feedRespons, true, null));
+                                    result.postValue(new ApiResponse<>(feedRespons, true, null));
                                 }).addOnFailureListener(e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
                     } else {
                         result.setValue(new ApiResponse<>(null, false, "feedId " + afterFeedId + " does not exist"));
                     }
 
-                }).addOnFailureListener(e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
+                })).addOnFailureListener(e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
 
         return result;
     }
@@ -217,11 +224,11 @@ public class FirebaseService implements WebService {
         MutableLiveData<ApiResponse<Feed>> result = new MutableLiveData<>();
         mDb.collection(GLOBAL_FEEDS).document(feedId)
                 .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
+                .addOnSuccessListener(queryDocumentSnapshots -> mExecutors.networkIO().execute(() -> {
                     Feed feed = queryDocumentSnapshots.toObject(Feed.class);
                     Timber.i("onSuccess: loaded %s feed(s)", feed);
                     result.setValue(new ApiResponse<>(feed, true, null));
-                }).addOnFailureListener(e -> {
+                })).addOnFailureListener(e -> {
             Timber.e("onFailure: %s", e.getMessage());
             result.setValue(new ApiResponse<>(null, false, e.getMessage()));
         });
@@ -324,14 +331,14 @@ public class FirebaseService implements WebService {
         MutableLiveData<ApiResponse<UserEntity>> result = new MutableLiveData<>();
 
         mDb.collection(USERS).document(userId).get()
-                .addOnSuccessListener(documentSnapshot -> {
+                .addOnSuccessListener(documentSnapshot -> mExecutors.networkIO().execute(() -> {
                     if (documentSnapshot.exists()) {
                         UserEntity userEntity = documentSnapshot.toObject(UserEntity.class);
-                        result.setValue(new ApiResponse<>(userEntity, true, null));
+                        result.postValue(new ApiResponse<>(userEntity, true, null));
                     } else {
-                        result.setValue(new ApiResponse<>(null, false, "User not found"));
+                        result.postValue(new ApiResponse<>(null, false, "User not found"));
                     }
-                })
+                }))
                 .addOnFailureListener(e ->
                         result.setValue(new ApiResponse<>(null, false, e.getMessage())));
 
@@ -342,13 +349,13 @@ public class FirebaseService implements WebService {
         MutableLiveData<ApiResponse<List<UserEntity>>> result = new MutableLiveData<>();
         List<UserEntity> users = new ArrayList<>();
         mDb.collection(USERS).get()
-                .addOnSuccessListener(documentsSnapshot -> {
+                .addOnSuccessListener(documentsSnapshot -> mExecutors.networkIO().execute(() -> {
                     for (DocumentSnapshot user :
                             documentsSnapshot) {
                         users.add(user.toObject(UserEntity.class));
                     }
                     result.setValue(new ApiResponse<>(users, true, null));
-                })
+                }))
                 .addOnFailureListener(e ->
                         result.setValue(new ApiResponse<>(null, false, e.getMessage())));
 
@@ -480,14 +487,14 @@ public class FirebaseService implements WebService {
         String feedCommentsPath = String.format("global_feeds/%s/comments", feedId);
         CollectionReference ref = mDb.collection(feedCommentsPath);
         ref.orderBy("timeCreated", Query.Direction.DESCENDING).startAfter(new Date(after)).limit(limit)
-                .get().addOnSuccessListener(queryDocumentSnapshots -> {
+                .get().addOnSuccessListener(queryDocumentSnapshots -> mExecutors.networkIO().execute(() -> {
             Timber.i("getFeedComments succeed");
             List<Comment> comments = new ArrayList<>();
             for (DocumentSnapshot cmtSnapShot : queryDocumentSnapshots) {
                 comments.add(cmtSnapShot.toObject(Comment.class));
             }
-            result.setValue(new ApiResponse<>(comments, true, null));
-        }).addOnFailureListener(e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
+            result.postValue(new ApiResponse<>(comments, true, null));
+        })).addOnFailureListener(e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
         return result;
     }
 
@@ -495,23 +502,23 @@ public class FirebaseService implements WebService {
     public LiveData<ApiResponse<List<Comment>>> getCommentsPaging(String feedId, String commentId, int limit) {
         MutableLiveData<ApiResponse<List<Comment>>> result = new MutableLiveData<>();
         mDb.document(String.format("global_feeds/%s/comments/%s", feedId, commentId))
-                .get().addOnSuccessListener(documentSnapshot -> {
+                .get().addOnSuccessListener(documentSnapshot -> mExecutors.networkIO().execute(() -> {
             if (!documentSnapshot.exists()) {
-                result.setValue(new ApiResponse<>(null, false, "comment not found"));
+                result.postValue(new ApiResponse<>(null, false, "comment not found"));
                 return;
             }
             String feedCommentsPath = String.format("global_feeds/%s/comments", feedId);
             CollectionReference ref = mDb.collection(feedCommentsPath);
-            ref.orderBy("timeCreated", Query.Direction.DESCENDING).startAfter(documentSnapshot).limit(limit)
-                    .get().addOnSuccessListener(queryDocumentSnapshots -> {
-                Timber.i("getFeedComments succeed");
-                List<Comment> comments = new ArrayList<>();
-                for (DocumentSnapshot cmtSnapShot : queryDocumentSnapshots) {
-                    comments.add(cmtSnapShot.toObject(Comment.class));
-                }
-                result.setValue(new ApiResponse<>(comments, true, null));
-            }).addOnFailureListener(e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
-        }).addOnFailureListener(e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
+            ref.orderBy("timeCreated", Query.Direction.DESCENDING).startAfter(documentSnapshot).limit(limit).get()
+                    .addOnSuccessListener(queryDocumentSnapshots -> mExecutors.networkIO().execute(() -> {
+                        Timber.i("getFeedComments succeed");
+                        List<Comment> comments = new ArrayList<>();
+                        for (DocumentSnapshot cmtSnapShot : queryDocumentSnapshots) {
+                            comments.add(cmtSnapShot.toObject(Comment.class));
+                        }
+                        result.postValue(new ApiResponse<>(comments, true, null));
+                    })).addOnFailureListener(e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
+        })).addOnFailureListener(e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
 
         return result;
     }
@@ -522,14 +529,14 @@ public class FirebaseService implements WebService {
         String subCommentsPath = String.format("comments/%s/subComments", commentId);
         CollectionReference ref = mDb.collection(subCommentsPath);
         ref.orderBy("timeCreated", Query.Direction.DESCENDING).startAfter(new Date(after)).limit(limit)
-                .get().addOnSuccessListener(queryDocumentSnapshots -> {
+                .get().addOnSuccessListener(queryDocumentSnapshots -> mExecutors.networkIO().execute(() -> {
             Timber.i("getFeedComments succeed");
             List<Comment> subComments = new ArrayList<>();
             for (DocumentSnapshot cmtSnapShot : queryDocumentSnapshots) {
                 subComments.add(cmtSnapShot.toObject(Comment.class));
             }
-            result.setValue(new ApiResponse<>(subComments, true, null));
-        }).addOnFailureListener(e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
+            result.postValue(new ApiResponse<>(subComments, true, null));
+        })).addOnFailureListener(e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
         return result;
     }
 
@@ -537,23 +544,23 @@ public class FirebaseService implements WebService {
     public LiveData<ApiResponse<List<Comment>>> getSubCommentsPaging(String commentId, String afterCommentId, int limit) {
         MutableLiveData<ApiResponse<List<Comment>>> result = new MutableLiveData<>();
         mDb.document(String.format("comments/%s/subComments/%s", commentId, afterCommentId))
-                .get().addOnSuccessListener(documentSnapshot -> {
+                .get().addOnSuccessListener(documentSnapshot -> mExecutors.networkIO().execute(() -> {
             if (!documentSnapshot.exists()) {
-                result.setValue(new ApiResponse<>(null, false, "sub comment not found"));
+                result.postValue(new ApiResponse<>(null, false, "sub comment not found"));
                 return;
             }
             String subCommentsPath = String.format("comments/%s/subComments", commentId);
             CollectionReference ref = mDb.collection(subCommentsPath);
             ref.orderBy("timeCreated", Query.Direction.DESCENDING).startAfter(documentSnapshot).limit(limit)
-                    .get().addOnSuccessListener(queryDocumentSnapshots -> {
+                    .get().addOnSuccessListener(queryDocumentSnapshots -> mExecutors.networkIO().execute(() -> {
                 Timber.i("getFeedComments succeed");
                 List<Comment> subComments = new ArrayList<>();
                 for (DocumentSnapshot cmtSnapShot : queryDocumentSnapshots) {
                     subComments.add(cmtSnapShot.toObject(Comment.class));
                 }
-                result.setValue(new ApiResponse<>(subComments, true, null));
-            }).addOnFailureListener(e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
-        }).addOnFailureListener(e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
+                result.postValue(new ApiResponse<>(subComments, true, null));
+            })).addOnFailureListener(e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
+        })).addOnFailureListener(e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
 
         return result;
     }
@@ -589,26 +596,19 @@ public class FirebaseService implements WebService {
                     CollectionReference userLikePosts = mDb.collection("users").document(userId)
                             .collection("likePosts");
 
-                    userLikePosts.orderBy("timeCreated").startAt(inputFeeds.get(inputFeeds.size() - 1).getTimeCreated()).get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                        @Override
-                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                            Map<String, Object> likedFeeds = new HashMap<>();
-                            for (DocumentSnapshot item : queryDocumentSnapshots) {
-                                likedFeeds.put(item.getId(), item.get("timeCreated"));
-                            }
-                            for (Feed feed : inputFeeds) {
-                                if (likedFeeds.containsKey(feed.getFeedId())) {
-                                    feed.setLiked(true);
+                    userLikePosts.orderBy("timeCreated").startAt(inputFeeds.get(inputFeeds.size() - 1).getTimeCreated()).get()
+                            .addOnSuccessListener(queryDocumentSnapshots -> mExecutors.networkIO().execute(() -> {
+                                Map<String, Object> likedFeeds = new HashMap<>();
+                                for (DocumentSnapshot item : queryDocumentSnapshots) {
+                                    likedFeeds.put(item.getId(), item.get("timeCreated"));
                                 }
-                            }
-                            result.setValue(new ApiResponse<>(inputFeeds, true, null));
-                        }
-                    }).addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            result.setValue(new ApiResponse<>(inputFeeds, false, e.getMessage()));
-                        }
-                    });
+                                for (Feed feed : inputFeeds) {
+                                    if (likedFeeds.containsKey(feed.getFeedId())) {
+                                        feed.setLiked(true);
+                                    }
+                                }
+                                result.postValue(new ApiResponse<>(inputFeeds, true, null));
+                            })).addOnFailureListener(e -> result.setValue(new ApiResponse<>(inputFeeds, false, e.getMessage())));
                 } else {
                     result.setValue(new ApiResponse<>(null, false, input.errorMessage));
                 }
