@@ -5,6 +5,7 @@ import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MediatorLiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.Transformations;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -18,6 +19,7 @@ import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.db.UserDao;
 import com.petnbu.petnbu.jobs.CompressPhotoWorker;
 import com.petnbu.petnbu.jobs.CreateCommentWorker;
+import com.petnbu.petnbu.jobs.PhotoWorker;
 import com.petnbu.petnbu.jobs.UploadPhotoWorker;
 import com.petnbu.petnbu.model.Comment;
 import com.petnbu.petnbu.model.CommentUI;
@@ -40,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import androidx.work.Data;
 import timber.log.Timber;
 import androidx.work.Constraints;
 import androidx.work.NetworkType;
@@ -298,28 +301,27 @@ public class CommentRepository {
         Constraints uploadConstraints = new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build();
-        WorkContinuation photoWorkContinuation = null;
-        if(comment.getPhoto() != null) {
-            OneTimeWorkRequest compressionWork =
-                    new OneTimeWorkRequest.Builder(CompressPhotoWorker.class)
-                            .setInputData(CompressPhotoWorker.data(comment.getPhoto()))
-                            .build();
-            OneTimeWorkRequest uploadWork =
-                    new OneTimeWorkRequest.Builder(UploadPhotoWorker.class)
-                            .setConstraints(uploadConstraints)
-                            .build();
-            photoWorkContinuation = WorkManager.getInstance()
-                    .beginWith(compressionWork)
-                    .then(uploadWork);
-        }
-
         OneTimeWorkRequest createCommentWork =
                 new OneTimeWorkRequest.Builder(CreateCommentWorker.class)
                         .setInputData(CreateCommentWorker.data(comment))
                         .setConstraints(uploadConstraints)
                         .build();
-        if(photoWorkContinuation != null) {
-            photoWorkContinuation
+
+        if(comment.getPhoto() != null) {
+            OneTimeWorkRequest compressionWork =
+                    new OneTimeWorkRequest.Builder(CompressPhotoWorker.class)
+                            .setInputData(CompressPhotoWorker.data(comment.getPhoto()))
+                            .build();
+
+            String key = Uri.parse(comment.getPhoto().getOriginUrl()).getLastPathSegment();
+            OneTimeWorkRequest uploadWork =
+                    new OneTimeWorkRequest.Builder(UploadPhotoWorker.class)
+                            .setConstraints(uploadConstraints)
+                            .setInputData(new Data.Builder().putString(PhotoWorker.KEY_PHOTO, key).build())
+                            .build();
+            WorkManager.getInstance()
+                    .beginWith(compressionWork)
+                    .then(uploadWork)
                     .then(createCommentWork)
                     .enqueue();
         } else {

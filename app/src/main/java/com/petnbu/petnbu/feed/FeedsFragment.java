@@ -121,7 +121,7 @@ public class FeedsFragment extends Fragment {
                     popupMenu.getMenu().add("Edit");
                     popupMenu.setOnMenuItemClickListener(item -> {
                         if ("Edit".equals(item.getTitle())) {
-                            startActivity(CreateFeedActivity.newIntent(getActivity(), feed.feedId));
+                            startActivity(CreateEditFeedActivity.newIntent(getActivity(), feed.feedId));
                         }
                         return true;
                     });
@@ -176,7 +176,7 @@ public class FeedsFragment extends Fragment {
         });
 
         mBinding.fabNewPost.setOnClickListener(v -> {
-            Intent intent = new Intent(getActivity(), CreateFeedActivity.class);
+            Intent intent = new Intent(getActivity(), CreateEditFeedActivity.class);
             startActivity(intent);
         });
     }

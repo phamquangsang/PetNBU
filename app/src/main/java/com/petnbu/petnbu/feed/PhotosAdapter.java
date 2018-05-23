@@ -104,7 +104,9 @@ public class PhotosAdapter extends RecyclerView.Adapter<BaseBindingViewHolder> {
 
         @Override
         public void bindData(Photo photo) {
-            mGlideRequests.load(photo.getOriginUrl()).into(mBinding.imgContent);
+            mGlideRequests.load(photo.getSmallUrl())
+                    .centerInside()
+                    .into(mBinding.imgContent);
         }
     }
 

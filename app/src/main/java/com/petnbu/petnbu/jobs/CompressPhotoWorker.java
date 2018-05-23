@@ -8,6 +8,9 @@ import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.webkit.URLUtil;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
 import com.petnbu.petnbu.util.Utils;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.util.ImageUtils;
@@ -16,10 +19,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
+import androidx.work.Data;
 import timber.log.Timber;
 
-public class CompressPhotoWorker extends PhotoWorkder {
+public class CompressPhotoWorker extends PhotoWorker {
 
     @NonNull
     @Override
@@ -28,18 +34,28 @@ public class CompressPhotoWorker extends PhotoWorkder {
 
         String photoJson = getInputData().getString(KEY_PHOTO, "");
         if(!TextUtils.isEmpty(photoJson)) {
-            Photo photo = fromJson(photoJson);
             try {
-                if (!URLUtil.isHttpUrl(photo.getOriginUrl()) && !URLUtil.isHttpsUrl(photo.getOriginUrl())) {
-                    BitmapFactory.Options options = Utils.getBitmapSize(getApplicationContext(), Uri.parse(photo.getOriginUrl()));
-                    photo.setWidth(options.outWidth);
-                    photo.setHeight(options.outHeight);
-                    generateCompressedPhotos(photo);
+                List<Photo> photos = new Gson().fromJson(photoJson, new TypeToken<List<Photo>>(){}.getType());
+                Data.Builder outputDataBuilder = new Data.Builder();
+
+                for (Photo photo : photos) {
+                    Uri photoUri = Uri.parse(photo.getOriginUrl());
+
+                    if (!URLUtil.isHttpUrl(photo.getOriginUrl()) && !URLUtil.isHttpsUrl(photo.getOriginUrl())) {
+                        BitmapFactory.Options options = Utils.getBitmapSize(getApplicationContext(), photoUri);
+                        photo.setWidth(options.outWidth);
+                        photo.setHeight(options.outHeight);
+                        generateCompressedPhotos(photo);
+                    }
+                    outputDataBuilder.putString(photoUri.getLastPathSegment(), toJson(photo));
                 }
-                setOutputData(data(photo));
+                setOutputData(outputDataBuilder.build());
 
                 workerResult = WorkerResult.SUCCESS;
             } catch (IOException e) {
+                e.printStackTrace();
+                Timber.i("compress failed %s", e.getMessage());
+            } catch (JsonSyntaxException e) {
                 e.printStackTrace();
                 Timber.i("compress failed %s", e.getMessage());
             }
