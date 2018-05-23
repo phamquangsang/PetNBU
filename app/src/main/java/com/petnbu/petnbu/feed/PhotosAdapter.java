@@ -3,6 +3,7 @@ package com.petnbu.petnbu.feed;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -104,7 +105,7 @@ public class PhotosAdapter extends RecyclerView.Adapter<BaseBindingViewHolder> {
 
         @Override
         public void bindData(Photo photo) {
-            mGlideRequests.load(photo.getSmallUrl())
+            mGlideRequests.load(TextUtils.isEmpty(photo.getSmallUrl()) ? photo.getOriginUrl() : photo.getSmallUrl())
                     .centerInside()
                     .into(mBinding.imgContent);
         }
