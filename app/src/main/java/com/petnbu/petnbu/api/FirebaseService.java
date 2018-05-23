@@ -189,7 +189,7 @@ public class FirebaseService implements WebService {
                     }
                     result.postValue(new ApiResponse<>(feedRespons, true, null));
                 })).addOnFailureListener(e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
-        return result;
+        return processUserLikeFeeds(result, userId);
     }
 
     @Override
@@ -217,7 +217,7 @@ public class FirebaseService implements WebService {
 
                 })).addOnFailureListener(e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
 
-        return result;
+        return processUserLikeFeeds(result, userId);
     }
 
     @Override
