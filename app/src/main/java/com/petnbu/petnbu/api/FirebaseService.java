@@ -236,20 +236,46 @@ public class FirebaseService implements WebService {
     }
 
     @Override
-    public LiveData<ApiResponse<Feed>> likeFeed(String feedId) {
+    public LiveData<ApiResponse<Feed>> likeFeed(String userId, String feedId) {
+        MutableLiveData<ApiResponse<Feed>> result = new MutableLiveData<>();
         mDb.runTransaction(new Transaction.Function<Feed>() {
             @Nullable
             @Override
             public Feed apply(@NonNull Transaction transaction) throws FirebaseFirestoreException {
+                DocumentSnapshot feedSnap = transaction.get(mDb.document("global_feeds/"+feedId));
+                if(!feedSnap.exists()){
+                    result.setValue(new ApiResponse<>(null, false, String.format("Feed Id %s not found",feedId)));
+                    return null;
+                }
+                Feed feed = feedSnap.toObject(Feed.class);
+                Map<String, Object> updates = new HashMap<>();
+                int newLikeCount = feed.getLikeCount() + 1;
+                updates.put("likeCount", newLikeCount);
+                updateFeedTransaction(transaction, feed, updates);
 
-                return null;
+                DocumentReference likeByUsers = mDb.collection("global_feeds").document(feedId).collection("likedByUsers").document(userId);
+
+                Map<String, Object> timeStamp = new HashMap<>();
+                timeStamp.put("timeCreated", FieldValue.serverTimestamp());
+                transaction.set(likeByUsers, timeStamp);
+
+                DocumentReference userLikePosts = mDb.collection("users").document(userId).collection("likePosts").document(feedId);
+                transaction.set(userLikePosts, timeStamp);
+
+                feed.setLikeCount(newLikeCount);
+                return feed;
             }
         }).addOnSuccessListener(new OnSuccessListener<Feed>() {
             @Override
             public void onSuccess(Feed feed) {
-
+                result.setValue(new ApiResponse<>(feed, true, null));
             }
         });
+        return result;
+    }
+
+    @Override
+    public LiveData<ApiResponse<Feed>> unLikeFeed(String userId, String feedId) {
         return null;
     }
 
