@@ -24,22 +24,14 @@ import java.util.List;
 public abstract class FeedDao {
 
     public void insertFromFeed(Feed feed) {
-        FeedEntity feedEntity = new FeedEntity(feed.getFeedId(), feed.getFeedUser().getUserId(),
-                feed.getPhotos(), feed.getCommentCount(), feed.getLatestComment() == null ? null : feed.getLatestComment().getId()
-                , feed.getLikeCount(), feed.getContent(),
-                feed.getTimeCreated(), feed.getTimeUpdated(), feed.getStatus(), feed.isLikeInProgress());
-        insert(feedEntity);
+        insert(feed.toEntity());
     }
 
     public void insertFromFeedList(List<Feed> listFeed) {
         TraceUtils.begin("insertFromFeedList");
         List<FeedEntity> entities = new ArrayList<>(listFeed.size());
         for (Feed feed : listFeed) {
-            entities.add(new FeedEntity(feed.getFeedId(), feed.getFeedUser().getUserId(),
-                    feed.getPhotos(), feed.getCommentCount(), feed.getLatestComment() == null ? null : feed.getLatestComment().getId(),
-                    feed.getLikeCount(), feed.getContent(),
-                    feed.getTimeCreated(), feed.getTimeUpdated(), feed.getStatus(), feed.isLikeInProgress()));
-
+            entities.add(feed.toEntity());
         }
         TraceUtils.end();
         insert(entities);
@@ -55,6 +47,9 @@ public abstract class FeedDao {
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
     public abstract void update(FeedEntity feed);
+
+    @Update(onConflict = OnConflictStrategy.REPLACE)
+    public abstract void update(List<FeedEntity> feedList);
 
     @Query("UPDATE feeds SET content = :content WHERE feedId = :feedId")
     public abstract void updateContent(String content, String feedId);
@@ -79,12 +74,8 @@ public abstract class FeedDao {
     public abstract void deleteFeedById(String feedId);
 
 
-    @Query("SELECT feedId, name, userId, avatar, photos, commentCount, likeCount, content, feeds.timeCreated, feeds.timeUpdated, status, likeInProgress " +
-            "FROM feeds, users WHERE feedId IN (:ids) AND feeds.fromUserId = users.userId ORDER BY feeds.timeCreated DESC")
-    public abstract LiveData<List<Feed>> loadFeeds(List<String> ids);
-
     @Query("SELECT feedId, feeds.fromUserId as ownerId,feedUsers.name, feedUsers.avatar, feeds.timeCreated, " +
-            "feeds.likeCount, feeds.commentCount, feeds.content AS feedContent, feeds.status, feeds.photos, " +
+            "feeds.likeCount, feeds.isLiked, feeds.likeInProgress, feeds.commentCount, feeds.content AS feedContent, feeds.status, feeds.photos, " +
             "commentUsers.userId as commentOwnerId ,commentUsers.name AS commentOwnerName, " +
             "commentUsers.avatar AS commentUserAvatar, comments.content AS commentContent, comments.photo as commentPhoto  " +
             "FROM feeds " +
@@ -94,13 +85,13 @@ public abstract class FeedDao {
             "WHERE feedId IN (:ids) OR (status = 1 AND fromUserId = :ownerId) ORDER BY feeds.timeCreated DESC")
     public abstract LiveData<List<FeedUI>> loadFeedsIds(List<String> ids, String ownerId);
 
-    @Query("SELECT feedId, name, userId, avatar, photos, commentCount, likeCount, content, feeds.timeCreated, feeds.timeUpdated, status, likeInProgress  " +
+    @Query("SELECT feedId, name, userId, avatar, photos, commentCount, likeCount, isLiked, content, feeds.timeCreated, feeds.timeUpdated, status, likeInProgress  " +
             "FROM feeds, users " +
             "WHERE feeds.fromUserId = users.userId AND feedId = :feedId")
     public abstract LiveData<Feed> loadFeedById(String feedId);
 
     @Query("SELECT feedId, feeds.fromUserId as ownerId,feedUsers.name, feedUsers.avatar, feeds.timeCreated, " +
-            "feeds.likeCount, feeds.commentCount, feeds.content AS feedContent, feeds.status, feeds.photos, " +
+            "feeds.likeCount, feeds.isLiked, feeds.likeInProgress, feeds.commentCount, feeds.content AS feedContent, feeds.status, feeds.photos, " +
             "commentUsers.userId as commentOwnerId ,commentUsers.name AS commentOwnerName, " +
             "commentUsers.avatar AS commentUserAvatar, comments.content AS commentContent, comments.photo as commentPhoto  " +
             "FROM feeds " +

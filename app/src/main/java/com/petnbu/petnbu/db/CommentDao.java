@@ -5,6 +5,7 @@ import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.OnConflictStrategy;
 import android.arch.persistence.room.Query;
+import android.arch.persistence.room.RoomWarnings;
 import android.arch.persistence.room.Transaction;
 import android.arch.persistence.room.Update;
 import android.support.annotation.Nullable;
@@ -59,16 +60,12 @@ public abstract class CommentDao {
             "order by comments.timeCreated DESC")
     public abstract LiveData<List<CommentUI>> loadFeedComments(List<String> ids, String feedId);
 
+    @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)//sub comments does not have latestComment fields
     @Query("SELECT comments.id, users.userId, users.avatar, users.name, comments.content, " +
             "comments.photo, comments.likeCount, comments.commentCount, comments.parentCommentId, " +
-            "comments.parentFeedId, comments.localStatus, comments.timeCreated, " +
-            "subComments.id as latestCommentId, subcomments.content as latestCommentContent, " +
-            "subCommentUser.userId as latestCommentOwnerId, subCommentUser.name as latestCommentOwnerName, " +
-            "subCommentUser.avatar as latestCommentOwnerAvatar " +
+            "comments.parentFeedId, comments.localStatus, comments.timeCreated " +
             "from comments " +
             "left join users on comments.ownerId = users.userId " +
-            "left join comments as subComments on comments.latestCommentId = subComments.id " +
-            "left join users as subCommentUser on subComments.ownerId = subCommentUser.userId " +
             "where comments.id in (:ids) or (comments.parentCommentId = :parentCommentId and comments.localStatus = 1)" +
             "order by comments.timeCreated DESC")
     public abstract LiveData<List<CommentUI>> loadSubComments(List<String> ids, String parentCommentId);

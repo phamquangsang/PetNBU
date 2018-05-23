@@ -188,6 +188,20 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
                     mBinding.imgOptions.setVisibility(View.VISIBLE);
                 }
             }
+
+            if(feed.isLiked){
+                mBinding.imgLike.setImageResource(R.drawable.ic_favorite_red_24dp);
+            }else{
+                mBinding.imgLike.setImageResource(R.drawable.ic_favorite_border_black_24dp);
+            }
+            if(feed.likeInProgress){
+                mBinding.imgLike.setVisibility(View.INVISIBLE);
+                mBinding.imgLikeInProgress.setVisibility(View.VISIBLE);
+            }else{
+                mBinding.imgLike.setVisibility(View.VISIBLE);
+                mBinding.imgLikeInProgress.setVisibility(View.GONE);
+            }
+            mBinding.tvLikesCount.setText(String.valueOf(feed.getLikeCount()));
         }
 
         private void displayUserInfo() {

@@ -79,7 +79,7 @@ public class CreateEditFeedWorker extends Worker {
                 UserEntity userEntity = mUserDao.findUserById(feedEntity.getFromUserId());
                 FeedUser feedUser = new FeedUser(userEntity.getUserId(), userEntity.getAvatar(), userEntity.getName());
                 Feed feed = new Feed(feedEntity.getFeedId(), feedUser, feedEntity.getPhotos(), feedEntity.getCommentCount(), null
-                        , feedEntity.getLikeCount(), feedEntity.getContent(), feedEntity.getTimeCreated()
+                        , feedEntity.getLikeCount(),feedEntity.getContent(), feedEntity.getTimeCreated()
                         , feedEntity.getTimeUpdated(), feedEntity.getStatus());
 
                 if (feed.getStatus() == STATUS_UPLOADING) {

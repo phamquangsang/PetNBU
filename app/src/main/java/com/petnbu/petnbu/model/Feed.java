@@ -3,6 +3,7 @@ package com.petnbu.petnbu.model;
 import android.arch.persistence.room.Embedded;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.TypeConverters;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.google.firebase.firestore.Exclude;
@@ -15,12 +16,14 @@ import java.util.List;
 @TypeConverters(value = PetTypeConverters.class)
 public class Feed {
 
+    @NonNull
     private String feedId;
     @Embedded
     private FeedUser feedUser;
     private List<Photo> photos;
     private int commentCount;
     private int likeCount;
+    private boolean isLiked;
     private String content;
     @Nullable
     @Ignore
@@ -53,6 +56,7 @@ public class Feed {
         this.likeInProgress = false;
     }
 
+    @NonNull
     public String getFeedId() {
         return feedId;
     }
@@ -91,6 +95,14 @@ public class Feed {
 
     public void setLikeCount(int likeCount) {
         this.likeCount = likeCount;
+    }
+
+    public boolean isLiked() {
+        return isLiked;
+    }
+
+    public void setLiked(boolean liked) {
+        isLiked = liked;
     }
 
     public Date getTimeCreated() {
@@ -202,7 +214,7 @@ public class Feed {
     public FeedEntity toEntity(){
         return new FeedEntity(getFeedId(), getFeedUser().getUserId(),
                 getPhotos(), getCommentCount(), getLatestComment() == null ? null : getLatestComment().getId()
-                ,getLikeCount(), getContent(),
+                ,getLikeCount(), isLiked(), getContent(),
                 getTimeCreated(), getTimeUpdated(), getStatus(), isLikeInProgress());
     }
 

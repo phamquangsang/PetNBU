@@ -33,6 +33,8 @@ public class FeedEntity {
     @Nullable
     private String latestCommentId;
     private int likeCount;
+    @Exclude
+    private boolean isLiked;
     private String content;
     private Date timeCreated;
     private Date timeUpdated;
@@ -47,13 +49,14 @@ public class FeedEntity {
 
     @Ignore
     public FeedEntity(@NonNull String feedId, String fromUserId, List<Photo> photos, int commentCount,
-                      @Nullable String latestCommentId, int likeCount, String content, Date timeCreated, Date timeUpdated, int status, boolean likeInProgress) {
+                      @Nullable String latestCommentId, int likeCount, boolean isLiked, String content, Date timeCreated, Date timeUpdated, int status, boolean likeInProgress) {
         this.feedId = feedId;
         this.fromUserId = fromUserId;
         this.photos = photos;
         this.commentCount = commentCount;
         this.latestCommentId = latestCommentId;
         this.likeCount = likeCount;
+        this.isLiked = isLiked;
         this.content = content;
         this.timeCreated = timeCreated;
         this.timeUpdated = timeUpdated;
@@ -99,6 +102,15 @@ public class FeedEntity {
 
     public void setLikeCount(int likeCount) {
         this.likeCount = likeCount;
+    }
+
+    @Exclude
+    public boolean isLiked() {
+        return isLiked;
+    }
+
+    public void setLiked(boolean liked) {
+        isLiked = liked;
     }
 
     public Date getTimeCreated() {

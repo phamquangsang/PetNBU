@@ -110,6 +110,7 @@ public class FeedsFragment extends Fragment {
             public void onLikeClicked(String feedId) {
                 if (mLikeClickLimiter.shouldFetch(feedId)) {
                     Timber.i("like clicked");
+                    mFeedsViewModel.likeClicked(mUserId, feedId);
                 }
             }
 

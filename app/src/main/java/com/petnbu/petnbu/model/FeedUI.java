@@ -12,6 +12,8 @@ public class FeedUI {
     public List<Photo> photos;
     public Date timeCreated;
     public int likeCount;
+    public boolean isLiked;
+    public boolean likeInProgress;
     public int commentCount;
     public String feedContent;
     public String commentOwnerId;
@@ -104,6 +106,8 @@ public class FeedUI {
         FeedUI feedUI = (FeedUI) o;
 
         if (likeCount != feedUI.likeCount) return false;
+        if (isLiked != feedUI.isLiked) return false;
+        if (likeInProgress != feedUI.likeInProgress) return false;
         if (commentCount != feedUI.commentCount) return false;
         if (status != feedUI.status) return false;
         if (feedId != null ? !feedId.equals(feedUI.feedId) : feedUI.feedId != null) return false;
@@ -136,6 +140,8 @@ public class FeedUI {
         result = 31 * result + (photos != null ? photos.hashCode() : 0);
         result = 31 * result + (timeCreated != null ? timeCreated.hashCode() : 0);
         result = 31 * result + likeCount;
+        result = 31 * result + (isLiked ? 1 : 0);
+        result = 31 * result + (likeInProgress ? 1 : 0);
         result = 31 * result + commentCount;
         result = 31 * result + (feedContent != null ? feedContent.hashCode() : 0);
         result = 31 * result + (commentOwnerId != null ? commentOwnerId.hashCode() : 0);
