@@ -13,6 +13,7 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
@@ -239,21 +240,20 @@ public class FirebaseService implements WebService {
     public LiveData<ApiResponse<Feed>> likeFeed(String userId, String feedId) {
         MutableLiveData<ApiResponse<Feed>> result = new MutableLiveData<>();
         mDb.runTransaction(transaction -> {
+            Timber.i("like feed transaction");
             ApiResponse<Feed> transactionResult;
             Feed feed = transaction.get(mDb.document("global_feeds/" + feedId)).toObject(Feed.class);
             if (feed == null) {
-                transactionResult = new ApiResponse<>(null, false, String.format("Feed Id %s not found", feedId));
-                return transactionResult;
+                throw new FirebaseFirestoreException("Feed not found", FirebaseFirestoreException.Code.NOT_FOUND);
             }
-
-            DocumentReference likeByUsers = mDb.collection("global_feeds").document(feedId).collection("likedByUsers").document(userId);
-            if (transaction.get(likeByUsers).exists()) {//user already like this feed
-                return new ApiResponse<>(feed, true, null);
-            }
-
 
             Map<String, Object> updates = new HashMap<>();
+            DocumentReference likeByUsers = mDb.collection("global_feeds").document(feedId).collection("likedByUsers").document(userId);
             int newLikeCount = feed.getLikeCount() + 1;
+            if (transaction.get(likeByUsers).exists()) {//user already like this feed
+                Timber.i("user already like this feed");
+                newLikeCount --;
+            }
             updates.put("likeCount", newLikeCount);
             updateFeedTransaction(transaction, feed, updates);
 
@@ -280,21 +280,21 @@ public class FirebaseService implements WebService {
             ApiResponse<Feed> transactionResult;
             Feed feed = transaction.get(mDb.document("global_feeds/" + feedId)).toObject(Feed.class);
             if (feed == null) {
-                return new ApiResponse<Feed>(null, false, String.format("Feed Id %s not found", feedId));
+                throw new FirebaseFirestoreException("Feed not found", FirebaseFirestoreException.Code.NOT_FOUND);
             }
 
             DocumentReference likeByUsers = mDb.collection("global_feeds").document(feedId)
                     .collection("likedByUsers").document(userId);
-            if (!transaction.get(likeByUsers).exists()) { // user already unlike this feed
-                return new ApiResponse<>(feed, true, null);
-            }
+
 
             Map<String, Object> updates = new HashMap<>();
             int newLikeCount = feed.getLikeCount() - 1;
+            if (!transaction.get(likeByUsers).exists()) { // user already unlike this feed
+                newLikeCount ++;
+            }
             if (newLikeCount < 0) {
-                transactionResult = new ApiResponse<>(null, false,
-                        "unlike should never cause like count less than zero");
-                return transactionResult;
+                throw new FirebaseFirestoreException("unlike should never cause like count less than zero",
+                        FirebaseFirestoreException.Code.OUT_OF_RANGE);
             }
             updates.put("likeCount", newLikeCount);
             updateFeedTransaction(transaction, feed, updates);
