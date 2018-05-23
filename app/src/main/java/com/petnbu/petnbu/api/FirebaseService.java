@@ -20,6 +20,7 @@ import com.google.firebase.firestore.Transaction;
 import com.google.firebase.firestore.WriteBatch;
 import com.petnbu.petnbu.model.Comment;
 import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.Paging;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.UserEntity;
 

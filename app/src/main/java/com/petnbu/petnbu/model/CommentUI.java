@@ -30,6 +30,7 @@ public class CommentUI {
     public String latestCommentOwnerId;
     public String latestCommentOwnerName;
     public Photo latestCommentOwnerAvatar;
+    public Photo latestCommentPhoto;
 
     @NonNull
     public String getId() {
@@ -92,6 +93,10 @@ public class CommentUI {
         return latestCommentOwnerAvatar;
     }
 
+    public Photo getLatestCommentPhoto() {
+        return latestCommentPhoto;
+    }
+
     public void setId(@NonNull String id) {
         this.id = id;
     }
@@ -152,6 +157,31 @@ public class CommentUI {
         this.latestCommentOwnerAvatar = latestCommentOwnerAvatar;
     }
 
+    public void setLatestCommentPhoto(Photo latestCommentPhoto) {
+        this.latestCommentPhoto = latestCommentPhoto;
+    }
+
+    @Override
+    public String toString() {
+        return "CommentUI{" +
+                "id='" + id + '\'' +
+                ", owner=" + owner +
+                ", content='" + content + '\'' +
+                ", photo=" + photo +
+                ", likeCount=" + likeCount +
+                ", commentCount=" + commentCount +
+                ", parentCommentId='" + parentCommentId + '\'' +
+                ", parentFeedId='" + parentFeedId + '\'' +
+                ", localStatus=" + localStatus +
+                ", timeCreated=" + timeCreated +
+                ", latestCommentId='" + latestCommentId + '\'' +
+                ", latestCommentContent='" + latestCommentContent + '\'' +
+                ", latestCommentOwnerId='" + latestCommentOwnerId + '\'' +
+                ", latestCommentOwnerName='" + latestCommentOwnerName + '\'' +
+                ", latestCommentOwnerAvatar=" + latestCommentOwnerAvatar +
+                '}';
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -181,7 +211,9 @@ public class CommentUI {
             return false;
         if (latestCommentOwnerName != null ? !latestCommentOwnerName.equals(commentUI.latestCommentOwnerName) : commentUI.latestCommentOwnerName != null)
             return false;
-        return latestCommentOwnerAvatar != null ? latestCommentOwnerAvatar.equals(commentUI.latestCommentOwnerAvatar) : commentUI.latestCommentOwnerAvatar == null;
+        if (latestCommentOwnerAvatar != null ? !latestCommentOwnerAvatar.equals(commentUI.latestCommentOwnerAvatar) : commentUI.latestCommentOwnerAvatar != null)
+            return false;
+        return latestCommentPhoto != null ? latestCommentPhoto.equals(commentUI.latestCommentPhoto) : commentUI.latestCommentPhoto == null;
     }
 
     @Override
@@ -201,27 +233,7 @@ public class CommentUI {
         result = 31 * result + (latestCommentOwnerId != null ? latestCommentOwnerId.hashCode() : 0);
         result = 31 * result + (latestCommentOwnerName != null ? latestCommentOwnerName.hashCode() : 0);
         result = 31 * result + (latestCommentOwnerAvatar != null ? latestCommentOwnerAvatar.hashCode() : 0);
+        result = 31 * result + (latestCommentPhoto != null ? latestCommentPhoto.hashCode() : 0);
         return result;
-    }
-
-    @Override
-    public String toString() {
-        return "CommentUI{" +
-                "id='" + id + '\'' +
-                ", owner=" + owner +
-                ", content='" + content + '\'' +
-                ", photo=" + photo +
-                ", likeCount=" + likeCount +
-                ", commentCount=" + commentCount +
-                ", parentCommentId='" + parentCommentId + '\'' +
-                ", parentFeedId='" + parentFeedId + '\'' +
-                ", localStatus=" + localStatus +
-                ", timeCreated=" + timeCreated +
-                ", latestCommentId='" + latestCommentId + '\'' +
-                ", latestCommentContent='" + latestCommentContent + '\'' +
-                ", latestCommentOwnerId='" + latestCommentOwnerId + '\'' +
-                ", latestCommentOwnerName='" + latestCommentOwnerName + '\'' +
-                ", latestCommentOwnerAvatar=" + latestCommentOwnerAvatar +
-                '}';
     }
 }

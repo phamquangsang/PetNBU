@@ -1,5 +1,6 @@
 package com.petnbu.petnbu.feed;
 
+import android.Manifest;
 import android.app.ProgressDialog;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.ClipData;
@@ -14,6 +15,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -29,8 +31,10 @@ import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.BitmapImageViewTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.github.ybq.android.spinkit.style.FadingCircle;
-import com.petnbu.petnbu.BaseActivity;
+import com.petnbu.petnbu.GlideApp;
 import com.petnbu.petnbu.R;
+import com.petnbu.petnbu.util.NavigationUtils;
+import com.petnbu.petnbu.util.PermissionUtils;
 import com.petnbu.petnbu.util.Utils;
 import com.petnbu.petnbu.databinding.ActivityCreateFeedBinding;
 import com.petnbu.petnbu.model.Photo;
@@ -41,13 +45,14 @@ import java.util.ArrayList;
 
 import timber.log.Timber;
 
-public class CreateFeedActivity extends BaseActivity {
+public class CreateFeedActivity extends AppCompatActivity {
 
     public static final String EXTRA_EDIT_FEED_ID = "EDIT_FEED_ID";
+    private final int REQUEST_READ_EXTERNAL_PERMISSIONS = 1;
+    private final int OPEN_GALLERY_REQUEST_CODE = 1;
 
     private ActivityCreateFeedBinding mBinding;
     private CreateEditFeedViewModel mCreateEditFeedViewModel;
-    private RequestManager mRequestManager;
 
     private ProgressDialog mProgressDialog;
     private MenuItem mPostMenuItem;
@@ -83,7 +88,6 @@ public class CreateFeedActivity extends BaseActivity {
         }
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        mRequestManager = Glide.with(this);
         mCreateEditFeedViewModel = ViewModelProviders.of(this).get(CreateEditFeedViewModel.class);
         mCreateEditFeedViewModel.loadFeed(feedId).observe(this, feed -> {
             if (feed != null) {
@@ -101,7 +105,7 @@ public class CreateFeedActivity extends BaseActivity {
         mCreateEditFeedViewModel.loadUserInfo().observe(this, user -> {
             if (user != null) {
                 Timber.i("user : %s", user.toString());
-                mRequestManager.asBitmap()
+                GlideApp.with(this).asBitmap()
                         .load(user.getAvatar().getOriginUrl())
                         .apply(RequestOptions.centerCropTransform())
                         .into(new BitmapImageViewTarget(mBinding.imgProfile) {
@@ -143,7 +147,7 @@ public class CreateFeedActivity extends BaseActivity {
         });
 
         int imageSize = Utils.getDeviceWidth(this) * 9 / 16;
-        mPhotosAdapter = new PhotosAdapter(mRequestManager, mSelectedPhotos, new PhotosAdapter.ItemClickListener() {
+        mPhotosAdapter = new PhotosAdapter(this, mSelectedPhotos, new PhotosAdapter.ItemClickListener() {
             @Override
             public void onCameraIconClicked() {
                 mCameraClicked = true;
@@ -180,9 +184,10 @@ public class CreateFeedActivity extends BaseActivity {
     }
 
     private void checkToRequestReadExternalPermission() {
-        if (!requestReadExternalPermission()) {
+        String[] permissions = {Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
+        if (!PermissionUtils.requestPermissions(this, REQUEST_READ_EXTERNAL_PERMISSIONS, permissions)) {
             if (mCameraClicked) {
-                openPhotoGallery(true);
+                NavigationUtils.openPhotoGallery(this, true, OPEN_GALLERY_REQUEST_CODE);
                 mCameraClicked = false;
             }
         }
@@ -220,7 +225,7 @@ public class CreateFeedActivity extends BaseActivity {
         switch (requestCode) {
             case REQUEST_READ_EXTERNAL_PERMISSIONS:
                 if (mCameraClicked) {
-                    openPhotoGallery(true);
+                    NavigationUtils.openPhotoGallery(this, true, OPEN_GALLERY_REQUEST_CODE);
                     mCameraClicked = false;
                 }
                 break;
@@ -231,11 +236,11 @@ public class CreateFeedActivity extends BaseActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == GALLERY_INTENT_CALLED || requestCode == GALLERY_KITKAT_INTENT_CALLED) {
+        if (requestCode == OPEN_GALLERY_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
                 if (data.getData() != null) {
                     Uri uri = data.getData();
-                    requestPersistablePermission(data, uri);
+                    PermissionUtils.requestPersistablePermission(this, data, uri);
 
                     Photo photo = new Photo();
                     photo.setOriginUrl(uri.toString());
@@ -247,7 +252,7 @@ public class CreateFeedActivity extends BaseActivity {
                         for (int i = 0; i < clipData.getItemCount(); i++) {
                             ClipData.Item item = clipData.getItemAt(i);
                             Uri uri = item.getUri();
-                            requestPersistablePermission(data, uri);
+                            PermissionUtils.requestPersistablePermission(this, data, uri);
 
                             Photo photo = new Photo();
                             photo.setOriginUrl(uri.toString());

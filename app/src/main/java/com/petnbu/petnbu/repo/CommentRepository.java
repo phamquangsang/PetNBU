@@ -79,7 +79,7 @@ public class CommentRepository {
         mApplication = application;
     }
 
-    public void createNewFeedComment(Comment comment) {
+    public void createComment(Comment comment) {
         mAppExecutors.diskIO().execute(() -> {
             mPetDb.runInTransaction(() -> {
                 UserEntity userEntity = mUserDao.findUserById(SharedPrefUtil.getUserId());
@@ -93,15 +93,6 @@ public class CommentRepository {
             });
             TraceUtils.begin("scheduleSaveComment", () -> scheduleSaveCommentWorker(comment));
         });
-    }
-
-    private CommentUI createCommentUIFromFeed(Feed feed) {
-        CommentUI comment = new CommentUI();
-        comment.setId(feed.getFeedId());
-        comment.setOwner(feed.getFeedUser());
-        comment.setContent(feed.getContent());
-        comment.setTimeCreated(feed.getTimeCreated());
-        return comment;
     }
 
     public LiveData<Resource<Feed>> loadFeedById(String feedId){
@@ -138,7 +129,6 @@ public class CommentRepository {
     }
 
     public LiveData<Resource<List<CommentUI>>> getFeedCommentsIncludeFeedContentHeader(String feedId, long after, int limit) {
-
         LiveData<Resource<Feed>> feedSource = loadFeedById(feedId);
         MediatorLiveData<Resource<List<CommentUI>>> mediatorLiveData = new MediatorLiveData<>();
         mediatorLiveData.addSource(feedSource, feedResource -> {
@@ -158,8 +148,15 @@ public class CommentRepository {
             }
         });
         return mediatorLiveData;
+    }
 
-
+    private CommentUI createCommentUIFromFeed(Feed feed) {
+        CommentUI comment = new CommentUI();
+        comment.setId(feed.getFeedId());
+        comment.setOwner(feed.getFeedUser());
+        comment.setContent(feed.getContent());
+        comment.setTimeCreated(feed.getTimeCreated());
+        return comment;
     }
 
     public LiveData<Resource<List<CommentUI>>> getFeedComments(String feedId, long after, int limit) {
@@ -222,7 +219,6 @@ public class CommentRepository {
                 return mWebService.getFeedComments(feedId, after, limit);
             }
         }.asLiveData();
-
     }
 
     public LiveData<Resource<List<CommentUI>>> getSubComments(String parentCommentId, long after, int limit) {
@@ -230,7 +226,6 @@ public class CommentRepository {
         return new NetworkBoundResource<List<CommentUI>, List<Comment>>(mAppExecutors) {
             @Override
             protected void saveCallResult(@NonNull List<Comment> items) {
-
                 List<String> listId = new ArrayList<>(items.size());
                 String pagingId = Paging.subCommentsPagingId(parentCommentId);
                 for (Comment item : items) {
@@ -285,7 +280,6 @@ public class CommentRepository {
                 return mWebService.getSubComments(parentCommentId, after, limit);
             }
         }.asLiveData();
-
     }
 
     public LiveData<Resource<Boolean>> fetchCommentsNextPage(String feedId, String pagingId) {

@@ -1,5 +1,6 @@
 package com.petnbu.petnbu.feed;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -8,6 +9,8 @@ import android.view.ViewGroup;
 
 import com.bumptech.glide.RequestManager;
 import com.petnbu.petnbu.BaseBindingViewHolder;
+import com.petnbu.petnbu.GlideApp;
+import com.petnbu.petnbu.GlideRequests;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.databinding.ViewCreateFeedCameraBinding;
 import com.petnbu.petnbu.databinding.ViewCreateFeedPhotosSelectedBinding;
@@ -21,14 +24,14 @@ public class PhotosAdapter extends RecyclerView.Adapter<BaseBindingViewHolder> {
     private final int VIEW_TYPE_PHOTO = 2;
 
     private ArrayList<Photo> mPhotos;
-    private RequestManager mRequestManager;
+    private GlideRequests mGlideRequests;
     private final int mImageSize;
     private final ItemClickListener mItemClickListener;
 
-    public PhotosAdapter(RequestManager requestManager, ArrayList<Photo> photos,
+    public PhotosAdapter(Context context, ArrayList<Photo> photos,
                          ItemClickListener itemClickListener, int imageSize) {
         mPhotos = photos;
-        mRequestManager = requestManager;
+        mGlideRequests = GlideApp.with(context);
         mImageSize = imageSize;
         mItemClickListener = itemClickListener;
     }
@@ -101,9 +104,7 @@ public class PhotosAdapter extends RecyclerView.Adapter<BaseBindingViewHolder> {
 
         @Override
         public void bindData(Photo photo) {
-            mRequestManager
-                    .load(photo.getOriginUrl())
-                    .into(mBinding.imgContent);
+            mGlideRequests.load(photo.getOriginUrl()).into(mBinding.imgContent);
         }
     }
 

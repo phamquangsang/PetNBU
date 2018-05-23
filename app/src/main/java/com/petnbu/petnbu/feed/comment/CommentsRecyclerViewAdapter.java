@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
@@ -55,6 +56,7 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
     private CommentsViewModel mCommentsViewModel;
     private String mFeedId;
     private GlideRequests mGlideRequests;
+    private Handler mMainHandler = new Handler();
 
     private int mDataVersion;
     private boolean mAddLoadMore;
@@ -110,9 +112,11 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
         if (mAddLoadMore != addLoadMore) {
             if (addLoadMore) {
                 mAddLoadMore = addLoadMore;
-                notifyItemInserted(getLoadingMoreItemPosition());
+                int insertedPosition = getLoadingMoreItemPosition();
+                mMainHandler.post(() -> notifyItemInserted(insertedPosition));
             } else {
-                notifyItemRemoved(getLoadingMoreItemPosition());
+                int removedPosition = getLoadingMoreItemPosition();
+                mMainHandler.post(() -> notifyItemRemoved(removedPosition));
                 mAddLoadMore = addLoadMore;
             }
         }
@@ -146,16 +150,19 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
     protected class ViewHolder extends BaseBindingViewHolder<ViewCommentBinding, CommentUI> {
 
         private CommentUI mComment;
+        private final View.OnClickListener mOpenRepliesClickListener = (v) -> {
+            if (getAdapterPosition() != RecyclerView.NO_POSITION) {
+                CommentUI commentUI = mComments.get(getAdapterPosition());
+                if (commentUI.getLocalStatus() != LocalStatus.STATUS_UPLOADING)
+                    mCommentsViewModel.openRepliesForComment(commentUI.getId());
+            }
+        };
 
         public ViewHolder(View itemView) {
             super(itemView);
-            mBinding.tvReply.setOnClickListener(v -> {
-                if (getAdapterPosition() != RecyclerView.NO_POSITION) {
-                    CommentUI commentUI = mComments.get(getAdapterPosition());
-                    if (commentUI.getLocalStatus() != LocalStatus.STATUS_UPLOADING)
-                        mCommentsViewModel.openRepliesForComment(commentUI.getId());
-                }
-            });
+            mBinding.tvReply.setOnClickListener(mOpenRepliesClickListener);
+            mBinding.tvLatestComment.setOnClickListener(mOpenRepliesClickListener);
+            mBinding.tvPreviousReplies.setOnClickListener(mOpenRepliesClickListener);
 
             mBinding.imgProfile.setOnClickListener(v -> {
                 if (getAdapterPosition() != RecyclerView.NO_POSITION) {
@@ -235,7 +242,7 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
                 }
 
                 if (mComment.getLocalStatus() == LocalStatus.STATUS_UPLOADING) {
-                    mBinding.layoutLike.setVisibility(View.GONE);
+                    mBinding.layoutLike.setVisibility(View.INVISIBLE);
                     mBinding.progressBar.setVisibility(View.VISIBLE);
                 } else {
                     mBinding.layoutLike.setVisibility(View.VISIBLE);
@@ -270,10 +277,16 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
                 builder.append("  ");
 
                 start = builder.length();
-                builder.append(mComment.getLatestCommentContent());
+                builder.append(mComment.getLatestCommentPhoto() != null ? "replied" : mComment.getLatestCommentContent());
                 builder.setSpan(new ForegroundColorSpan(ColorUtils.modifyAlpha(Color.BLACK, 0.8f)), start, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                 mBinding.tvLatestComment.setText(builder);
-                mBinding.tvPreviousReplies.setText(context.getString(R.string.feed_view_previous_replies, mComment.getCommentCount() - 1));
+
+                if(mComment.getCommentCount() > 1) {
+                    mBinding.tvPreviousReplies.setVisibility(View.VISIBLE);
+                    mBinding.tvPreviousReplies.setText(context.getString(R.string.feed_view_previous_replies, mComment.getCommentCount() - 1));
+                } else {
+                    mBinding.tvPreviousReplies.setVisibility(View.GONE);
+                }
 
                 mGlideRequests.asBitmap()
                         .load(mComment.getLatestCommentOwnerAvatar().getOriginUrl())

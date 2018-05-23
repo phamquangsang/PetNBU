@@ -117,9 +117,14 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
 
         private ViewFeedBinding mBinding;
         private FeedUI mFeed;
-        private final View.OnClickListener profileClickListener = v -> {
+        private final View.OnClickListener mOpenProfileClickListener = v -> {
             if (getAdapterPosition() != RecyclerView.NO_POSITION) {
                 mFeedsViewModel.openUserProfile(mFeeds.get(getAdapterPosition()).ownerId);
+            }
+        };
+        private final View.OnClickListener mOpenCommentsClickListener = v -> {
+            if (getAdapterPosition() != RecyclerView.NO_POSITION) {
+                mFeedsViewModel.openComments(mFeeds.get(getAdapterPosition()).feedId);
             }
         };
 
@@ -127,23 +132,17 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
             super(itemView);
             mBinding = DataBindingUtil.bind(itemView);
 
-            mBinding.imgProfile.setOnClickListener(profileClickListener);
-            mBinding.tvName.setOnClickListener(profileClickListener);
+            mBinding.imgProfile.setOnClickListener(mOpenProfileClickListener);
+            mBinding.tvName.setOnClickListener(mOpenProfileClickListener);
             mBinding.imgLike.setOnClickListener(v -> {
                 if (mOnItemClickListener != null && getAdapterPosition() != RecyclerView.NO_POSITION) {
                     mOnItemClickListener.onLikeClicked(mFeeds.get(getAdapterPosition()).feedId);
                 }
             });
-            mBinding.imgComment.setOnClickListener(v -> {
-                if (getAdapterPosition() != RecyclerView.NO_POSITION) {
-                    mFeedsViewModel.openComments(mFeeds.get(getAdapterPosition()).feedId);
-                }
-            });
-            mBinding.tvViewComments.setOnClickListener(v -> {
-                if (getAdapterPosition() != RecyclerView.NO_POSITION) {
-                    mFeedsViewModel.openComments(mFeeds.get(getAdapterPosition()).feedId);
-                }
-            });
+            mBinding.imgComment.setOnClickListener(mOpenCommentsClickListener);
+            mBinding.tvViewComments.setOnClickListener(mOpenCommentsClickListener);
+            mBinding.tvContent.setOnClickListener(mOpenCommentsClickListener);
+
             mBinding.imgOptions.setOnClickListener(v -> {
                 if (mOnItemClickListener != null && getAdapterPosition() != RecyclerView.NO_POSITION) {
                     mOnItemClickListener.onOptionClicked(v, mFeeds.get(getAdapterPosition()));
@@ -287,7 +286,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
                 builder.append("  ");
                 builder.append(mFeed.feedContent);
             }
-            if(!TextUtils.isEmpty(mFeed.commentContent)) {
+            if(!TextUtils.isEmpty(mFeed.commentContent) || mFeed.commentPhoto != null) {
                 if(!TextUtils.isEmpty(builder)) {
                     builder.append("\n");
                 }
@@ -296,10 +295,17 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
                 builder.setSpan(new StyleSpan(Typeface.BOLD), builder.length() - commentUserName.length()
                         , builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                 builder.append("  ");
-                builder.append(mFeed.commentContent);
+                builder.append(TextUtils.isEmpty(mFeed.commentContent) ? "replied" : mFeed.commentContent);
             }
             mBinding.tvContent.setVisibility(TextUtils.isEmpty(builder) ? View.GONE : View.VISIBLE);
             mBinding.tvContent.setText(builder);
+
+            if(mFeed.getCommentCount() > 1) {
+                mBinding.tvViewComments.setVisibility(View.VISIBLE);
+                mBinding.tvViewComments.setText(String.format("View all %d comments", mFeed.getCommentCount()));
+            } else {
+                mBinding.tvViewComments.setVisibility(View.GONE);
+            }
         }
     }
 
