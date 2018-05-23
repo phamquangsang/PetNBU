@@ -289,7 +289,7 @@ public class CommentRepository {
     }
 
     public LiveData<Resource<Boolean>> fetchSubCommentsNextPage(String commentid, String pagingId) {
-        FetchNextPageFeedComment fetchNextPageTask = new FetchNextPageFeedComment(commentid, pagingId, mWebService, mPetDb, mAppExecutors);
+        FetchNextPageSubComment fetchNextPageTask = new FetchNextPageSubComment(commentid, pagingId, mWebService, mPetDb, mAppExecutors);
         mAppExecutors.networkIO().execute(fetchNextPageTask);
         return fetchNextPageTask.getLiveData();
     }

@@ -26,7 +26,9 @@ public interface WebService {
 
     LiveData<ApiResponse<UserEntity>> createUser(UserEntity userEntity);
 
-    LiveData<ApiResponse<Feed>> likeFeed(String feedId);
+    LiveData<ApiResponse<Feed>> likeFeed(String userId , String feedId);
+
+    LiveData<ApiResponse<Feed>> unLikeFeed(String userId , String feedId);
 
     LiveData<ApiResponse<UserEntity>> getUser(String userId);
 
