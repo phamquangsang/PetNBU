@@ -25,8 +25,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.BitmapImageViewTarget;
 import com.bumptech.glide.request.transition.Transition;
@@ -45,7 +43,7 @@ import java.util.ArrayList;
 
 import timber.log.Timber;
 
-public class CreateFeedActivity extends AppCompatActivity {
+public class CreateEditFeedActivity extends AppCompatActivity {
 
     public static final String EXTRA_EDIT_FEED_ID = "EDIT_FEED_ID";
     private final int REQUEST_READ_EXTERNAL_PERMISSIONS = 1;
@@ -63,7 +61,7 @@ public class CreateFeedActivity extends AppCompatActivity {
     private String mPostMenuTitle;
 
     public static Intent newIntent(Context context, String feedId) {
-        Intent intent = new Intent(context, CreateFeedActivity.class);
+        Intent intent = new Intent(context, CreateEditFeedActivity.class);
         intent.putExtra(EXTRA_EDIT_FEED_ID, feedId);
         return intent;
     }

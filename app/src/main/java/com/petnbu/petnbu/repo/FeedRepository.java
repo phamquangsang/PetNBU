@@ -4,6 +4,7 @@ import android.app.Application;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.Transformations;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -11,12 +12,10 @@ import com.petnbu.petnbu.AppExecutors;
 import com.petnbu.petnbu.SharedPrefUtil;
 import com.petnbu.petnbu.api.ApiResponse;
 import com.petnbu.petnbu.api.WebService;
-import com.petnbu.petnbu.db.CommentDao;
-import com.petnbu.petnbu.db.FeedDao;
 import com.petnbu.petnbu.db.PetDb;
-import com.petnbu.petnbu.db.UserDao;
 import com.petnbu.petnbu.jobs.CompressPhotoWorker;
 import com.petnbu.petnbu.jobs.CreateEditFeedWorker;
+import com.petnbu.petnbu.jobs.PhotoWorker;
 import com.petnbu.petnbu.jobs.UploadPhotoWorker;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedEntity;
@@ -39,6 +38,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import androidx.work.Constraints;
+import androidx.work.Data;
 import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkContinuation;
@@ -270,43 +270,39 @@ public class FeedRepository {
     }
 
     private void scheduleSaveFeedWorker(Feed feed, boolean isUpdating) {
-        ArrayList<WorkContinuation> workContinuations = new ArrayList<>(feed.getPhotos().size());
+        ArrayList<OneTimeWorkRequest> uploadWorks = new ArrayList<>(feed.getPhotos().size());
         // Constraints that defines when the task should run
         Constraints uploadConstraints = new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build();
 
+        OneTimeWorkRequest compressionWork =
+                new OneTimeWorkRequest.Builder(CompressPhotoWorker.class)
+                        .setInputData(CompressPhotoWorker.data(feed.getPhotos()))
+                        .build();
+
         for (Photo photo : feed.getPhotos()) {
-            OneTimeWorkRequest compressionWork =
-                    new OneTimeWorkRequest.Builder(CompressPhotoWorker.class)
-                            .setInputData(CompressPhotoWorker.data(photo))
-                            .build();
+            String key = Uri.parse(photo.getOriginUrl()).getLastPathSegment();
             OneTimeWorkRequest uploadWork =
                     new OneTimeWorkRequest.Builder(UploadPhotoWorker.class)
                             .setConstraints(uploadConstraints)
+                            .setInputData(new Data.Builder().putString(PhotoWorker.KEY_PHOTO, key).build())
                             .build();
-            WorkContinuation continuation = WorkManager.getInstance()
-                    .beginWith(compressionWork)
-                    .then(uploadWork);
-            workContinuations.add(continuation);
+            uploadWorks.add(uploadWork);
         }
-        if (!workContinuations.isEmpty()) {
+
+        if (!uploadWorks.isEmpty()) {
             OneTimeWorkRequest createFeedWork =
                     new OneTimeWorkRequest.Builder(CreateEditFeedWorker.class)
                             .setConstraints(uploadConstraints)
                             .setInputData(CreateEditFeedWorker.data(feed, isUpdating))
                             .build();
 
-            if (workContinuations.size() > 1) {
-                WorkContinuation
-                        .combine(workContinuations)
-                        .then(createFeedWork)
-                        .enqueue();
-            } else {
-                workContinuations.get(0)
-                        .then(createFeedWork)
-                        .enqueue();
-            }
+            WorkManager.getInstance()
+                    .beginWith(compressionWork)
+                    .then(uploadWorks)
+                    .then(createFeedWork)
+                    .enqueue();
         }
     }
 

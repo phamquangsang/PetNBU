@@ -15,29 +15,32 @@ import java.util.concurrent.CountDownLatch;
 
 import androidx.work.Data;
 
-public class UploadPhotoWorker extends PhotoWorkder {
+public class UploadPhotoWorker extends PhotoWorker {
 
     @NonNull
     @Override
     public WorkerResult doWork() {
         WorkerResult workerResult = WorkerResult.FAILURE;
 
-        String photoJson = getInputData().getString(KEY_PHOTO, "");
-        if(!TextUtils.isEmpty(photoJson)) {
-            Photo photo = fromJson(photoJson);
+        String photoName = getInputData().getString(KEY_PHOTO, "");
+        if(!TextUtils.isEmpty(photoName)) {
+            String jsonPhoto = getInputData().getString(photoName, "");
             try {
-                if (!URLUtil.isHttpUrl(photo.getOriginUrl()) && !URLUtil.isHttpsUrl(photo.getOriginUrl())) {
-                    CountDownLatch countDownLatch = new CountDownLatch(1);
-                    uploadPhoto(photo, countDownLatch);
-                    countDownLatch.await();
-                } else {
-                    String key = Uri.parse(photo.getOriginUrl()).getLastPathSegment();
-                    Data data = new Data.Builder()
-                            .putString(key, toJson(photo))
-                            .build();
-                    setOutputData(data);
+                if(!TextUtils.isEmpty(jsonPhoto)) {
+                    Photo photo = fromJson(jsonPhoto);
+                    if (!URLUtil.isHttpUrl(photo.getOriginUrl()) && !URLUtil.isHttpsUrl(photo.getOriginUrl())) {
+                        CountDownLatch countDownLatch = new CountDownLatch(1);
+                        uploadPhoto(photo, countDownLatch);
+                        countDownLatch.await();
+                    } else {
+                        String key = Uri.parse(photo.getOriginUrl()).getLastPathSegment();
+                        Data data = new Data.Builder()
+                                .putString(key, toJson(photo))
+                                .build();
+                        setOutputData(data);
+                    }
+                    workerResult = WorkerResult.SUCCESS;
                 }
-                workerResult = WorkerResult.SUCCESS;
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

@@ -3,16 +3,25 @@ package com.petnbu.petnbu.jobs;
 import com.google.gson.Gson;
 import com.petnbu.petnbu.model.Photo;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import androidx.work.Data;
 import androidx.work.Worker;
 
-public abstract class PhotoWorkder extends Worker {
+public abstract class PhotoWorker extends Worker {
 
     public static final String KEY_PHOTO = "key-photo";
 
     public static Data data(Photo photo) {
+        List<Photo> photos = new ArrayList<>(1);
+        photos.add(photo);
+        return data(photos);
+    }
+
+    public static Data data(List<Photo> photos) {
         Data data = new Data.Builder()
-                .putString(KEY_PHOTO, toJson(photo))
+                .putString(KEY_PHOTO, new Gson().toJson(photos))
                 .build();
         return data;
     }
