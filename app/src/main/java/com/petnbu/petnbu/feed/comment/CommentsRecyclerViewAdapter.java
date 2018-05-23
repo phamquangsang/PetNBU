@@ -56,7 +56,6 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
     private CommentsViewModel mCommentsViewModel;
     private String mFeedId;
     private GlideRequests mGlideRequests;
-    private Handler mMainHandler = new Handler();
 
     private int mDataVersion;
     private boolean mAddLoadMore;
@@ -112,11 +111,9 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
         if (mAddLoadMore != addLoadMore) {
             if (addLoadMore) {
                 mAddLoadMore = addLoadMore;
-                int insertedPosition = getLoadingMoreItemPosition();
-                mMainHandler.post(() -> notifyItemInserted(insertedPosition));
+                notifyItemInserted(getLoadingMoreItemPosition());
             } else {
-                int removedPosition = getLoadingMoreItemPosition();
-                mMainHandler.post(() -> notifyItemRemoved(removedPosition));
+                notifyItemRemoved(getLoadingMoreItemPosition());
                 mAddLoadMore = addLoadMore;
             }
         }
