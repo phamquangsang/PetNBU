@@ -104,7 +104,10 @@ public class CommentRepository {
             protected void saveCallResult(@NonNull Feed item) {
                 mFeedDao.insertFromFeed(item);
                 mUserDao.insert(item.getFeedUser());
-                mCommentDao.insertFromComment(item.getLatestComment());
+                if(item.getLatestComment() != null){
+                    mCommentDao.insertFromComment(item.getLatestComment());
+                    mUserDao.insert(item.getLatestComment().getFeedUser());
+                }
             }
 
             @Override
@@ -180,7 +183,10 @@ public class CommentRepository {
                     mCommentDao.insertListComment(items);
                     for (Comment item : items) {
                         mUserDao.insert(item.getFeedUser());
-                        mCommentDao.insertFromComment(item.getLatestComment());
+                        if(item.getLatestComment() != null){
+                            mCommentDao.insertFromComment(item.getLatestComment());
+                            mUserDao.insert(item.getLatestComment().getFeedUser());
+                        }
                     }
                     mPetDb.pagingDao().insert(paging);
                 });
@@ -241,7 +247,11 @@ public class CommentRepository {
                     mCommentDao.insertListComment(items);
                     for (Comment item : items) {
                         mUserDao.insert(item.getFeedUser());
-                        mCommentDao.insertFromComment(item.getLatestComment());
+                        if(item.getLatestComment() != null){
+                            mCommentDao.insertFromComment(item.getLatestComment());
+                            mUserDao.insert(item.getLatestComment().getFeedUser());
+                        }
+
                     }
                     mPetDb.pagingDao().insert(paging);
                 });

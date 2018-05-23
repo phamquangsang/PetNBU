@@ -92,7 +92,10 @@ public class FeedRepository {
                     mPetDb.feedDao().insertFromFeedList(items);
                     for (Feed item : items) {
                         mPetDb.userDao().insert(item.getFeedUser());
-                        mPetDb.commentDao().insertFromComment(item.getLatestComment());
+                        if(item.getLatestComment()!= null){
+                            mPetDb.commentDao().insertFromComment(item.getLatestComment());
+                            mPetDb.userDao().insert(item.getLatestComment().getFeedUser());
+                        }
                     }
                     mPetDb.pagingDao().insert(paging);
                 });
@@ -142,7 +145,10 @@ public class FeedRepository {
             protected void saveCallResult(@NonNull Feed item) {
                 mPetDb.feedDao().insertFromFeed(item);
                 mPetDb.userDao().insert(item.getFeedUser());
-                mPetDb.commentDao().insertFromComment(item.getLatestComment());
+                if(item.getLatestComment()!= null){
+                    mPetDb.commentDao().insertFromComment(item.getLatestComment());
+                    mPetDb.userDao().insert(item.getLatestComment().getFeedUser());
+                }
             }
 
             @Override
@@ -185,7 +191,10 @@ public class FeedRepository {
                     mPetDb.feedDao().insertFromFeedList(items);
                     for (Feed item : items) {
                         mPetDb.userDao().insert(item.getFeedUser());
-                        mPetDb.commentDao().insertFromComment(item.getLatestComment());
+                        if(item.getLatestComment()!= null){
+                            mPetDb.commentDao().insertFromComment(item.getLatestComment());
+                            mPetDb.userDao().insert(item.getLatestComment().getFeedUser());
+                        }
                     }
                     mPetDb.pagingDao().insert(paging);
                 });
@@ -328,7 +337,10 @@ public class FeedRepository {
                     mPetDb.feedDao().insertFromFeedList(items);
                     for (Feed feedItem : items) {
                         mPetDb.userDao().insert(feedItem.getFeedUser());
-                        mPetDb.commentDao().insertFromComment(feedItem.getLatestComment());
+                        if(feedItem.getLatestComment()!= null){
+                            mPetDb.commentDao().insertFromComment(feedItem.getLatestComment());
+                            mPetDb.userDao().insert(feedItem.getLatestComment().getFeedUser());
+                        }
                     }
                     mPetDb.pagingDao().insert(paging);
                 });
