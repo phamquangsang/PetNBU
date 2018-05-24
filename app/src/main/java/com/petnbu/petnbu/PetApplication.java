@@ -28,7 +28,7 @@ public class PetApplication  extends Application{
         if (BuildConfig.DEBUG) {
             Timber.plant(new Timber.DebugTree());
             StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
-                    .detectNetwork().detectDiskReads().detectDiskWrites()
+                    .detectNetwork().detectAll()
                     .penaltyLog()
                     .penaltyDeath().build());
         }
