@@ -64,19 +64,24 @@ public class FeedsFragment extends Fragment {
         if (activity != null) {
             mUserId = SharedPrefUtil.getUserId();
             mFeedsViewModel = ViewModelProviders.of(getActivity()).get(FeedsViewModel.class);
-            mFeedsViewModel.getFeeds(Paging.GLOBAL_FEEDS_PAGING_ID, SharedPrefUtil.getUserId()).observe(this, feeds -> {
-                Timber.i("feeds: %s", feeds);
-                if (feeds != null) {
-                    if (feeds.status == Status.LOADING) {
-                        mBinding.pullToRefresh.setRefreshing(true);
-                    } else {
-                        mBinding.pullToRefresh.setRefreshing(false);
-                    }
-                    if(feeds.status == Status.ERROR){
-                        Snackbar.make(mBinding.getRoot(), feeds.message, Snackbar.LENGTH_LONG).show();
-                    }
-                    if(feeds.data != null){
-                        mAdapter.setFeeds(feeds.data);
+            mFeedsViewModel.getFeeds(Paging.GLOBAL_FEEDS_PAGING_ID, SharedPrefUtil.getUserId()).observe(this, new Observer<Resource<List<FeedUI>>>() {
+                @Override
+                public void onChanged(@Nullable Resource<List<FeedUI>> feeds) {
+                    Timber.i("onChanged: global feeds");
+                    if (feeds != null) {
+                        Timber.i("status: %s", feeds.status);
+                        if (feeds.status == Status.LOADING) {
+                            mBinding.pullToRefresh.setRefreshing(true);
+                        } else {
+                            mBinding.pullToRefresh.setRefreshing(false);
+                        }
+                        if (feeds.status == Status.ERROR) {
+                            Snackbar.make(mBinding.getRoot(), feeds.message, Snackbar.LENGTH_LONG).show();
+                        }
+                        if (feeds.data != null) {
+                            Timber.i("global feeds set data");
+                            mAdapter.setFeeds(feeds.data);
+                        }
                     }
                 }
             });

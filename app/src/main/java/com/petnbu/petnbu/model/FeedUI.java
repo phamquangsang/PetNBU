@@ -86,15 +86,23 @@ public class FeedUI {
     @Override
     public String toString() {
         return "FeedUI{" +
-                "name='" + name + '\'' +
+                "feedId='" + feedId + '\'' +
+                ", ownerId='" + ownerId + '\'' +
+                ", name='" + name + '\'' +
                 ", avatar=" + avatar +
+                ", photos=" + photos +
                 ", timeCreated=" + timeCreated +
                 ", likeCount=" + likeCount +
+                ", isLiked=" + isLiked +
+                ", likeInProgress=" + likeInProgress +
                 ", commentCount=" + commentCount +
                 ", feedContent='" + feedContent + '\'' +
+                ", commentOwnerId='" + commentOwnerId + '\'' +
                 ", commentOwnerName='" + commentOwnerName + '\'' +
                 ", commentUserAvatar=" + commentUserAvatar +
                 ", commentContent='" + commentContent + '\'' +
+                ", commentPhoto=" + commentPhoto +
+                ", status=" + status +
                 '}';
     }
 

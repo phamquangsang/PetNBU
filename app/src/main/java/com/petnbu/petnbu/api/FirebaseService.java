@@ -1,20 +1,16 @@
 package com.petnbu.petnbu.api;
 
-import android.arch.core.util.Function;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.Transformations;
-import android.support.annotation.NonNull;
 
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.firestore.Transaction;
 import com.google.firebase.firestore.WriteBatch;
@@ -85,7 +81,7 @@ public class FirebaseService implements WebService {
     @Override
     public LiveData<ApiResponse<Feed>> updateFeed(Feed feed) {
         MutableLiveData<ApiResponse<Feed>> result = new MutableLiveData<>();
-        if (feed.getFeedId() == null || feed.getFeedUser() == null) {
+        if (feed.getFeedUser() == null) {
             result.setValue(new ApiResponse<>(null, false,
                     "to update Feed. It is required feedId, feedUser, feedUserId must not null!"));
             return result;
@@ -188,7 +184,7 @@ public class FirebaseService implements WebService {
                     }
                     result.postValue(new ApiResponse<>(feedRespons, true, null));
                 })).addOnFailureListener(e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
-        return result;
+        return processUserLikeFeeds(result, userId);
     }
 
     @Override
@@ -216,7 +212,7 @@ public class FirebaseService implements WebService {
 
                 })).addOnFailureListener(e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
 
-        return result;
+        return processUserLikeFeeds(result, userId);
     }
 
     @Override
@@ -239,21 +235,20 @@ public class FirebaseService implements WebService {
     public LiveData<ApiResponse<Feed>> likeFeed(String userId, String feedId) {
         MutableLiveData<ApiResponse<Feed>> result = new MutableLiveData<>();
         mDb.runTransaction(transaction -> {
+            Timber.i("like feed transaction");
             ApiResponse<Feed> transactionResult;
             Feed feed = transaction.get(mDb.document("global_feeds/" + feedId)).toObject(Feed.class);
             if (feed == null) {
-                transactionResult = new ApiResponse<>(null, false, String.format("Feed Id %s not found", feedId));
-                return transactionResult;
+                throw new FirebaseFirestoreException("Feed not found", FirebaseFirestoreException.Code.NOT_FOUND);
             }
-
-            DocumentReference likeByUsers = mDb.collection("global_feeds").document(feedId).collection("likedByUsers").document(userId);
-            if (transaction.get(likeByUsers).exists()) {//user already like this feed
-                return new ApiResponse<>(feed, true, null);
-            }
-
 
             Map<String, Object> updates = new HashMap<>();
+            DocumentReference likeByUsers = mDb.collection("global_feeds").document(feedId).collection("likedByUsers").document(userId);
             int newLikeCount = feed.getLikeCount() + 1;
+            if (transaction.get(likeByUsers).exists()) {//user already like this feed
+                Timber.i("user already like this feed");
+                newLikeCount --;
+            }
             updates.put("likeCount", newLikeCount);
             updateFeedTransaction(transaction, feed, updates);
 
@@ -280,21 +275,21 @@ public class FirebaseService implements WebService {
             ApiResponse<Feed> transactionResult;
             Feed feed = transaction.get(mDb.document("global_feeds/" + feedId)).toObject(Feed.class);
             if (feed == null) {
-                return new ApiResponse<Feed>(null, false, String.format("Feed Id %s not found", feedId));
+                throw new FirebaseFirestoreException("Feed not found", FirebaseFirestoreException.Code.NOT_FOUND);
             }
 
             DocumentReference likeByUsers = mDb.collection("global_feeds").document(feedId)
                     .collection("likedByUsers").document(userId);
-            if (!transaction.get(likeByUsers).exists()) { // user already unlike this feed
-                return new ApiResponse<>(feed, true, null);
-            }
+
 
             Map<String, Object> updates = new HashMap<>();
             int newLikeCount = feed.getLikeCount() - 1;
+            if (!transaction.get(likeByUsers).exists()) { // user already unlike this feed
+                newLikeCount ++;
+            }
             if (newLikeCount < 0) {
-                transactionResult = new ApiResponse<>(null, false,
-                        "unlike should never cause like count less than zero");
-                return transactionResult;
+                throw new FirebaseFirestoreException("unlike should never cause like count less than zero",
+                        FirebaseFirestoreException.Code.OUT_OF_RANGE);
             }
             updates.put("likeCount", newLikeCount);
             updateFeedTransaction(transaction, feed, updates);
@@ -379,8 +374,8 @@ public class FirebaseService implements WebService {
             DocumentReference feedRef = mDb.collection(GLOBAL_FEEDS).document(feedId);
             Feed feed = transaction.get(feedRef).toObject(Feed.class);
             if (feed == null) {
-                transResult = new ApiResponse<>(null, false, "the feedID " + feedId + " does not found ");
-                return transResult;
+                throw new FirebaseFirestoreException(String.format("feed Id %s does not found", feedId),
+                        FirebaseFirestoreException.Code.NOT_FOUND);
             }
 
             Double newCommentCount = (double) (feed.getCommentCount() + 1);
@@ -426,24 +421,25 @@ public class FirebaseService implements WebService {
     public LiveData<ApiResponse<Comment>> createReplyComment(Comment subComment, String parentCommentId) {
         MutableLiveData<ApiResponse<Comment>> result = new MutableLiveData<>();
         final String oldId = subComment.getId();
-        mDb.runTransaction((Transaction.Function<ApiResponse<Comment>>) transaction -> {
+        mDb.runTransaction(transaction -> {
             DocumentReference parentCommentRef = mDb.document(String.format("comments/%s", parentCommentId));
             Comment parentComment = transaction.get(parentCommentRef).toObject(Comment.class);
             if (parentComment == null) {
-                return new ApiResponse<>(null, false,
-                        "the parentComment " + parentCommentId + " does not found ");
+                throw new FirebaseFirestoreException("the parentComment " + parentCommentId + " does not found",
+                        FirebaseFirestoreException.Code.NOT_FOUND);
             }
+
             if (parentComment.getParentFeedId() == null) {
-                return new ApiResponse<>(null, false,
-                        "this comment missing parent feed id");
+                throw new FirebaseFirestoreException("this comment missing parent feed id",
+                        FirebaseFirestoreException.Code.DATA_LOSS);
             }
 
             DocumentReference feedContainerRef = mDb.document("global_feeds/" + parentComment.getParentFeedId());
             Feed feedContainer = transaction.get(feedContainerRef).toObject(Feed.class);
 
             if (feedContainer == null) {
-                return new ApiResponse<>(null, false,
-                        "the feed you're trying to comment does not exist");
+                throw new FirebaseFirestoreException("the feed you're trying to comment does not exist",
+                        FirebaseFirestoreException.Code.NOT_FOUND);
             }
 
             Double newCommentCount = (double) (parentComment.getCommentCount() + 1);
@@ -582,38 +578,35 @@ public class FirebaseService implements WebService {
     }
 
     private LiveData<ApiResponse<List<Feed>>> processUserLikeFeeds(LiveData<ApiResponse<List<Feed>>> feedsResponse, String userId) {
-        return Transformations.switchMap(feedsResponse, new Function<ApiResponse<List<Feed>>, LiveData<ApiResponse<List<Feed>>>>() {
-            @Override
-            public LiveData<ApiResponse<List<Feed>>> apply(ApiResponse<List<Feed>> input) {
-                MutableLiveData<ApiResponse<List<Feed>>> result = new MutableLiveData<>();
-                if (input.isSucceed) {
-                    List<Feed> inputFeeds = input.body;
-                    if (inputFeeds == null || inputFeeds.isEmpty()) {
-                        result.setValue(input);
-                        return result;
-                    }
-
-                    CollectionReference userLikePosts = mDb.collection("users").document(userId)
-                            .collection("likePosts");
-
-                    userLikePosts.orderBy("timeCreated").startAt(inputFeeds.get(inputFeeds.size() - 1).getTimeCreated()).get()
-                            .addOnSuccessListener(queryDocumentSnapshots -> mExecutors.networkIO().execute(() -> {
-                                Map<String, Object> likedFeeds = new HashMap<>();
-                                for (DocumentSnapshot item : queryDocumentSnapshots) {
-                                    likedFeeds.put(item.getId(), item.get("timeCreated"));
-                                }
-                                for (Feed feed : inputFeeds) {
-                                    if (likedFeeds.containsKey(feed.getFeedId())) {
-                                        feed.setLiked(true);
-                                    }
-                                }
-                                result.postValue(new ApiResponse<>(inputFeeds, true, null));
-                            })).addOnFailureListener(e -> result.setValue(new ApiResponse<>(inputFeeds, false, e.getMessage())));
-                } else {
-                    result.setValue(new ApiResponse<>(null, false, input.errorMessage));
+        return Transformations.switchMap(feedsResponse, input -> {
+            MutableLiveData<ApiResponse<List<Feed>>> result = new MutableLiveData<>();
+            if (input.isSucceed) {
+                List<Feed> inputFeeds = input.body;
+                if (inputFeeds == null || inputFeeds.isEmpty()) {
+                    result.setValue(input);
+                    return result;
                 }
-                return result;
+
+                CollectionReference userLikePosts = mDb.collection("users").document(userId)
+                        .collection("likePosts");
+
+                userLikePosts.orderBy("timeCreated").startAt(inputFeeds.get(inputFeeds.size() - 1).getTimeCreated()).get()
+                        .addOnSuccessListener(queryDocumentSnapshots -> mExecutors.networkIO().execute(() -> {
+                            Map<String, Object> likedFeeds = new HashMap<>();
+                            for (DocumentSnapshot item : queryDocumentSnapshots) {
+                                likedFeeds.put(item.getId(), item.get("timeCreated"));
+                            }
+                            for (Feed feed : inputFeeds) {
+                                if (likedFeeds.containsKey(feed.getFeedId())) {
+                                    feed.setLiked(true);
+                                }
+                            }
+                            result.postValue(new ApiResponse<>(inputFeeds, true, null));
+                        })).addOnFailureListener(e -> result.setValue(new ApiResponse<>(inputFeeds, false, e.getMessage())));
+            } else {
+                result.setValue(new ApiResponse<>(null, false, input.errorMessage));
             }
+            return result;
         });
     }
 }

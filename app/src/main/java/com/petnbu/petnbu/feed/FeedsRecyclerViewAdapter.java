@@ -45,6 +45,8 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
+import timber.log.Timber;
+
 import static com.petnbu.petnbu.model.LocalStatus.STATUS_DONE;
 import static com.petnbu.petnbu.model.LocalStatus.STATUS_ERROR;
 import static com.petnbu.petnbu.model.LocalStatus.STATUS_UPLOADING;
@@ -81,7 +83,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        TraceUtils.begin("onBindFeed", () -> holder.bindData(mFeeds.get(position)));
+        holder.bindData(mFeeds.get(position));
     }
 
     @Override
@@ -178,11 +180,8 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
         }
 
         public void bindData(FeedUI feed) {
+            Timber.i("bind feed: %s", feed.toString());
             mFeed = feed;
-            displayUserInfo();
-            displayTime();
-            displayPhotos();
-            displayText();
 
             if (feed.status == STATUS_UPLOADING) {
                 mBinding.layoutRoot.setShouldInterceptEvents(true);
@@ -218,6 +217,11 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
                     mBinding.imgLikeInProgress.setVisibility(View.GONE);
                 }
             }
+
+            displayUserInfo();
+            displayTime();
+            displayPhotos();
+            displayText();
 
             if(feed.isLiked){
                 mBinding.imgLike.setImageResource(R.drawable.ic_favorite_red_24dp);
