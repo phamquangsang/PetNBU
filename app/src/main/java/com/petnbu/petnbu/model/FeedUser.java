@@ -1,11 +1,15 @@
 package com.petnbu.petnbu.model;
 
 import android.arch.persistence.room.Ignore;
+import android.arch.persistence.room.TypeConverters;
 import android.support.annotation.NonNull;
+
+import com.petnbu.petnbu.db.PhotoConverters;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@TypeConverters(PhotoConverters.class)
 public class FeedUser {
     @NonNull
     private String userId;

@@ -59,7 +59,7 @@ android {
 
 dependencies {
     def work_version = "1.0.0-alpha01"
-    def room_version = "1.1.0"
+    def room_version = "1.1.1-rc1"
 
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"

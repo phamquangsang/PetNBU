@@ -88,7 +88,7 @@ public class FeedsViewModel extends ViewModel {
     }
 
     public void likeClicked(String userId, String feedId) {
-        mFeedRepository.likeFeed(userId, feedId);
+        mFeedRepository.likeFeedHandler(userId, feedId);
     }
 
     static class LoadMoreHandler implements Observer<Resource<Boolean>> {

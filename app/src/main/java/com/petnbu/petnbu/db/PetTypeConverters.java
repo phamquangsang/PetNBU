@@ -16,28 +16,10 @@ import com.petnbu.petnbu.model.Photo;
 import java.util.Date;
 import java.util.List;
 
+import timber.log.Timber;
+
 public class PetTypeConverters {
     public static Gson gson = PetApplication.getAppComponent().getGson();
-    @TypeConverter
-    public static String listPhotosToJson(List<Photo> photos){
-        return gson.toJson(photos);
-    }
-
-    @TypeConverter
-    public static List<Photo> jsonToListPhoto(String photosJson){
-        return gson.fromJson(photosJson, new TypeToken<List<Photo>>(){}.getType());
-    }
-
-    @TypeConverter
-    public static String photoToJson(Photo photo){
-        Gson gson = new Gson();
-        return gson.toJson(photo);
-    }
-
-    @TypeConverter
-    public static Photo jsonToPhoto(String photoJson){
-        return gson.fromJson(photoJson, Photo.class);
-    }
 
     @TypeConverter
     public static Long dateToLong(Date date){

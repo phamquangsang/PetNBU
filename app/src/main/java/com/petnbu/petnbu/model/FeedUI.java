@@ -1,9 +1,15 @@
 package com.petnbu.petnbu.model;
 
+import android.arch.persistence.room.TypeConverters;
+
+import com.petnbu.petnbu.db.ListPhotoConverters;
+import com.petnbu.petnbu.db.PhotoConverters;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
+@TypeConverters(value = {ListPhotoConverters.class, PhotoConverters.class})
 public class FeedUI {
     public String feedId;
     public String ownerId;

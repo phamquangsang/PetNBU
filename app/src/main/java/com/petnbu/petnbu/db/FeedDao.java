@@ -52,9 +52,14 @@ public abstract class FeedDao {
     @Update(onConflict = OnConflictStrategy.REPLACE)
     public abstract void update(List<FeedEntity> feedList);
 
-    @Query("UPDATE feeds SET photos = :photos, content = :content, timeUpdated = :timeUpdate " +
+
+    @Query("UPDATE feeds SET photos = (:photos), content = :content, timeUpdated = :timeUpdated " +
             "WHERE feedId = :feedId")
-    public abstract void updateFeed(String feedId, String content, List<Photo> photos, Date timeUpdate);
+    @TypeConverters(ListPhotoConverters.class)
+    public abstract void updateFeed(List<Photo> photos, String content, String feedId, Date timeUpdated);
+
+    @Query("UPDATE feeds set status = :status where feedId = :feedId")
+    public abstract void updateFeedLocalStatus(int status, String feedId);
 
     @Query("UPDATE feeds set feedId = :newId where feedId = :feedId")
     public abstract void updateFeedId(String feedId, String newId);
