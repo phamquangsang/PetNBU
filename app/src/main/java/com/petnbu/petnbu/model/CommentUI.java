@@ -19,6 +19,10 @@ public class CommentUI {
     public String content;
     public Photo photo;
     public int likeCount;
+    @Exclude
+    public boolean isLiked;
+    @Exclude
+    public boolean likeInProgress;
     public int commentCount;
     public String parentCommentId;
     public String parentFeedId;
@@ -164,6 +168,24 @@ public class CommentUI {
         this.latestCommentPhoto = latestCommentPhoto;
     }
 
+    @Exclude
+    public boolean isLiked() {
+        return isLiked;
+    }
+
+    public void setLiked(boolean liked) {
+        isLiked = liked;
+    }
+
+    @Exclude
+    public boolean isLikeInProgress() {
+        return likeInProgress;
+    }
+
+    public void setLikeInProgress(boolean likeInProgress) {
+        this.likeInProgress = likeInProgress;
+    }
+
     @Override
     public String toString() {
         return "CommentUI{" +
@@ -193,6 +215,8 @@ public class CommentUI {
         CommentUI commentUI = (CommentUI) o;
 
         if (likeCount != commentUI.likeCount) return false;
+        if (isLiked != commentUI.isLiked) return false;
+        if (likeInProgress != commentUI.likeInProgress) return false;
         if (commentCount != commentUI.commentCount) return false;
         if (localStatus != commentUI.localStatus) return false;
         if (!id.equals(commentUI.id)) return false;
@@ -226,6 +250,8 @@ public class CommentUI {
         result = 31 * result + (content != null ? content.hashCode() : 0);
         result = 31 * result + (photo != null ? photo.hashCode() : 0);
         result = 31 * result + likeCount;
+        result = 31 * result + (isLiked ? 1 : 0);
+        result = 31 * result + (likeInProgress ? 1 : 0);
         result = 31 * result + commentCount;
         result = 31 * result + (parentCommentId != null ? parentCommentId.hashCode() : 0);
         result = 31 * result + (parentFeedId != null ? parentFeedId.hashCode() : 0);

@@ -19,6 +19,10 @@ public class Comment {
     private String content;
     private Photo photo;
     private int likeCount;
+    @Exclude
+    private boolean isLiked;
+    @Exclude
+    private boolean likeInProgress;
     private int commentCount;
     @Nullable
     private Comment latestComment;
@@ -141,6 +145,24 @@ public class Comment {
     }
 
     @Exclude
+    public boolean isLiked() {
+        return isLiked;
+    }
+
+    public void setLiked(boolean liked) {
+        isLiked = liked;
+    }
+
+    @Exclude
+    public boolean isLikeInProgress() {
+        return likeInProgress;
+    }
+
+    public void setLikeInProgress(boolean likeInProgress) {
+        this.likeInProgress = likeInProgress;
+    }
+
+    @Exclude
     @LocalStatus.LOCAL_STATUS
     public int getLocalStatus() {
         return localStatus;
@@ -232,7 +254,7 @@ public class Comment {
     }
 
     public CommentEntity toEntity() {
-        return new CommentEntity(id, feedUser.getUserId(), content, photo, likeCount, commentCount,
+        return new CommentEntity(id, feedUser.getUserId(), content, photo, likeCount, isLiked(), isLikeInProgress() ,commentCount,
                 parentCommentId, parentFeedId, latestComment == null ? null : latestComment.getId(), localStatus, timeCreated, timeUpdated);
     }
 }

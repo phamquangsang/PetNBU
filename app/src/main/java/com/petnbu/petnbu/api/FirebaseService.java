@@ -308,6 +308,7 @@ public class FirebaseService implements WebService {
         return result;
     }
 
+    @Override
     public LiveData<ApiResponse<Comment>> likeComment(String userId, String commentId) {
         MutableLiveData<ApiResponse<Comment>> result = new MutableLiveData<>();
         mDb.runTransaction(transaction -> {
@@ -319,7 +320,8 @@ public class FirebaseService implements WebService {
                 throw new FirebaseFirestoreException("comment not found", FirebaseFirestoreException.Code.NOT_FOUND);
             }
 
-            Feed feedContainer = transaction.get(mDb.document("global_feeds/" + comment.getParentFeedId())).toObject(Feed.class);
+            DocumentReference feedContainerRef = mDb.document("global_feeds/" + comment.getParentFeedId());
+            Feed feedContainer = transaction.get(feedContainerRef).toObject(Feed.class);
             if (feedContainer == null) {
                 throw new FirebaseFirestoreException("the feed contain this comment is not found", FirebaseFirestoreException.Code.NOT_FOUND);
             }
@@ -341,7 +343,9 @@ public class FirebaseService implements WebService {
             updates.put("likeCount", newLikeCount);
             updateCommentTransaction(transaction, feedContainer, comment, updates);
 
-            //todo set liked = true
+            transaction.set(feedContainerRef, feedContainer);
+
+            comment.setLiked(true);
             comment.setLikeCount(newLikeCount);
             transactionResult = new ApiResponse<>(comment, true, null);
             return transactionResult;
@@ -351,6 +355,7 @@ public class FirebaseService implements WebService {
         return result;
     }
 
+    @Override
     public LiveData<ApiResponse<Comment>> unLikeComment(String userId, String commentId) {
         MutableLiveData<ApiResponse<Comment>> result = new MutableLiveData<>();
         mDb.runTransaction(transaction -> {
@@ -362,7 +367,8 @@ public class FirebaseService implements WebService {
                 throw new FirebaseFirestoreException("comment not found", FirebaseFirestoreException.Code.NOT_FOUND);
             }
 
-            Feed feedContainer = transaction.get(mDb.document("global_feeds/" + comment.getParentFeedId())).toObject(Feed.class);
+            DocumentReference feedContainerRef = mDb.document("global_feeds/" + comment.getParentFeedId());
+            Feed feedContainer = transaction.get(feedContainerRef).toObject(Feed.class);
             if (feedContainer == null) {
                 throw new FirebaseFirestoreException("the feed contain this comment is not found", FirebaseFirestoreException.Code.NOT_FOUND);
             }
@@ -383,7 +389,10 @@ public class FirebaseService implements WebService {
             }
             updates.put("likeCount", newLikeCount);
             updateCommentTransaction(transaction, feedContainer, comment, updates);
-            //todo set liked = true
+
+            transaction.set(feedContainerRef, feedContainer);
+
+            comment.setLiked(false);
             comment.setLikeCount(newLikeCount);
             transactionResult = new ApiResponse<>(comment, true, null);
             return transactionResult;

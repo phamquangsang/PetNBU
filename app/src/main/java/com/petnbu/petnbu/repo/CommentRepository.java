@@ -4,6 +4,7 @@ import android.app.Application;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MediatorLiveData;
 import android.arch.lifecycle.MutableLiveData;
+import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.Transformations;
 import android.net.Uri;
 import android.support.annotation.NonNull;
@@ -22,6 +23,7 @@ import com.petnbu.petnbu.jobs.CreateCommentWorker;
 import com.petnbu.petnbu.jobs.PhotoWorker;
 import com.petnbu.petnbu.jobs.UploadPhotoWorker;
 import com.petnbu.petnbu.model.Comment;
+import com.petnbu.petnbu.model.CommentEntity;
 import com.petnbu.petnbu.model.CommentUI;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedUser;
@@ -32,6 +34,7 @@ import com.petnbu.petnbu.model.Status;
 import com.petnbu.petnbu.model.UserEntity;
 import com.petnbu.petnbu.util.IdUtil;
 import com.petnbu.petnbu.util.RateLimiter;
+import com.petnbu.petnbu.util.Toaster;
 import com.petnbu.petnbu.util.TraceUtils;
 
 import java.util.ArrayList;
@@ -47,7 +50,6 @@ import timber.log.Timber;
 import androidx.work.Constraints;
 import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
-import androidx.work.WorkContinuation;
 import androidx.work.WorkManager;
 
 @Singleton
@@ -69,10 +71,12 @@ public class CommentRepository {
 
     private final Application mApplication;
 
+    private Toaster mToaster;
+
     private final RateLimiter<String> mRateLimiter = new RateLimiter<>(10, TimeUnit.MINUTES);
 
     @Inject
-    public CommentRepository(PetDb petDb, FeedDao feedDao, UserDao userDao, CommentDao commentDao, AppExecutors appExecutors, WebService webService, Application application) {
+    public CommentRepository(PetDb petDb, FeedDao feedDao, UserDao userDao, CommentDao commentDao, AppExecutors appExecutors, WebService webService, Application application, Toaster toaster) {
         mPetDb = petDb;
         mFeedDao = feedDao;
         mUserDao = userDao;
@@ -80,6 +84,7 @@ public class CommentRepository {
         mAppExecutors = appExecutors;
         mWebService = webService;
         mApplication = application;
+        mToaster = toaster;
     }
 
     public void createComment(Comment comment) {
@@ -98,13 +103,13 @@ public class CommentRepository {
         });
     }
 
-    public LiveData<Resource<Feed>> loadFeedById(String feedId){
-        return new NetworkBoundResource<Feed, Feed>(mAppExecutors){
+    public LiveData<Resource<Feed>> loadFeedById(String feedId) {
+        return new NetworkBoundResource<Feed, Feed>(mAppExecutors) {
             @Override
             protected void saveCallResult(@NonNull Feed item) {
                 mFeedDao.insertFromFeed(item);
                 mUserDao.insert(item.getFeedUser());
-                if(item.getLatestComment() != null){
+                if (item.getLatestComment() != null) {
                     mCommentDao.insertFromComment(item.getLatestComment());
                     mUserDao.insert(item.getLatestComment().getFeedUser());
                 }
@@ -138,14 +143,14 @@ public class CommentRepository {
         LiveData<Resource<Feed>> feedSource = loadFeedById(feedId);
         MediatorLiveData<Resource<List<CommentUI>>> mediatorLiveData = new MediatorLiveData<>();
         mediatorLiveData.addSource(feedSource, feedResource -> {
-            if(feedResource != null){
-                if(feedResource.status == Status.SUCCESS && feedResource.data != null){
+            if (feedResource != null) {
+                if (feedResource.status == Status.SUCCESS && feedResource.data != null) {
                     mediatorLiveData.removeSource(feedSource);
                     CommentUI feedComment = createCommentUIFromFeed(feedResource.data);
                     LiveData<Resource<List<CommentUI>>> commentsLiveData = getFeedComments(feedId, after, limit);
                     mediatorLiveData.addSource(commentsLiveData, resourceComments -> {
-                        if(resourceComments != null) {
-                            if(resourceComments.data != null)
+                        if (resourceComments != null) {
+                            if (resourceComments.data != null)
                                 resourceComments.data.add(0, feedComment);
                             mediatorLiveData.setValue(Resource.success(resourceComments.data));
                         }
@@ -183,7 +188,7 @@ public class CommentRepository {
                     mCommentDao.insertListComment(items);
                     for (Comment item : items) {
                         mUserDao.insert(item.getFeedUser());
-                        if(item.getLatestComment() != null){
+                        if (item.getLatestComment() != null) {
                             mCommentDao.insertFromComment(item.getLatestComment());
                             mUserDao.insert(item.getLatestComment().getFeedUser());
                         }
@@ -247,7 +252,7 @@ public class CommentRepository {
                     mCommentDao.insertListComment(items);
                     for (Comment item : items) {
                         mUserDao.insert(item.getFeedUser());
-                        if(item.getLatestComment() != null){
+                        if (item.getLatestComment() != null) {
                             mCommentDao.insertFromComment(item.getLatestComment());
                             mUserDao.insert(item.getLatestComment().getFeedUser());
                         }
@@ -317,7 +322,7 @@ public class CommentRepository {
                         .setConstraints(uploadConstraints)
                         .build();
 
-        if(comment.getPhoto() != null) {
+        if (comment.getPhoto() != null) {
             OneTimeWorkRequest compressionWork =
                     new OneTimeWorkRequest.Builder(CompressPhotoWorker.class)
                             .setInputData(CompressPhotoWorker.data(comment.getPhoto()))
@@ -339,7 +344,69 @@ public class CommentRepository {
         }
     }
 
-    public void likeComment(String commentId) {
+    public void likeCommentHandler(String userId, String commentId) {
+        mAppExecutors.diskIO().execute(() -> {
+            CommentEntity comment = mPetDb.commentDao().getCommentById(commentId);
+            if (comment.isLikeInProgress()) {
+                return;
+            }
+            comment.setLikeInProgress(true);
+            mPetDb.commentDao().update(comment);
+            mAppExecutors.networkIO().execute(() -> {
+                if (comment.isLiked()) {
+                    unLikeComment(comment, userId, commentId);
+                } else {
+                    likeComment(comment, userId, commentId);
+                }
+            });
+        });
+    }
 
+    private void likeComment(CommentEntity comment, String userId, String commentId) {
+        LiveData<ApiResponse<Comment>> result = mWebService.likeComment(userId, commentId);
+        result.observeForever(new Observer<ApiResponse<Comment>>() {
+            @Override
+            public void onChanged(@Nullable ApiResponse<Comment> feedApiResponse) {
+                if (feedApiResponse != null) {
+                    result.removeObserver(this);
+                    mAppExecutors.diskIO().execute(() -> mPetDb.runInTransaction(() -> {
+                        if (feedApiResponse.isSucceed && feedApiResponse.body != null) {
+                            CommentEntity commentResult = feedApiResponse.body.toEntity();
+                            commentResult.setLikeInProgress(false);
+                            mPetDb.commentDao().update(commentResult);
+                        } else {
+                            mAppExecutors.mainThread().execute(() -> mToaster.makeText(feedApiResponse.errorMessage));
+                            comment.setLikeInProgress(false);
+                            mPetDb.commentDao().update(comment);
+                        }
+                    }));
+                }
+            }
+        });
+    }
+
+    private void unLikeComment(final CommentEntity feed, String userId, String commentId) {
+        LiveData<ApiResponse<Comment>> result = mWebService.unLikeComment(userId, commentId);
+        result.observeForever(new Observer<ApiResponse<Comment>>() {
+            @Override
+            public void onChanged(@Nullable ApiResponse<Comment> feedApiResponse) {
+                if (feedApiResponse != null) {
+                    result.removeObserver(this);
+                    mAppExecutors.diskIO().execute(() -> mPetDb.runInTransaction(() -> {
+                        if (feedApiResponse.isSucceed && feedApiResponse.body != null) {
+                            CommentEntity feedResult = feedApiResponse.body.toEntity();
+                            feedResult.setLikeInProgress(false);
+                            mPetDb.commentDao().update(feedResult);
+                        } else {
+                            mAppExecutors.mainThread().execute(() -> mToaster.makeText(feedApiResponse.errorMessage));
+                            feed.setLikeInProgress(false);
+                            mPetDb.commentDao().update(feed);
+                        }
+
+                    }));
+
+                }
+            }
+        });
     }
 }
