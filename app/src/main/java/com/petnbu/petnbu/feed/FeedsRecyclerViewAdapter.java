@@ -105,6 +105,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
                     holder.mBinding.imgLikeInProgress.setVisibility(View.GONE);
                 }
                 if(feed.getLikeCount() > 0) {
+                    holder.mBinding.tvLikesCount.setVisibility(View.VISIBLE);
                     holder.mBinding.tvLikesCount.setText(String.format("%d %s", feed.getLikeCount(), feed.getLikeCount() > 1 ? "likes" : "like"));
                 } else {
                     holder.mBinding.tvLikesCount.setVisibility(View.GONE);
@@ -190,7 +191,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
             if (feed.status == STATUS_UPLOADING) {
                 mBinding.layoutRoot.setShouldInterceptEvents(true);
                 mBinding.layoutDisable.setVisibility(View.VISIBLE);
-                mBinding.spinKit.setVisibility(View.VISIBLE);
+                mBinding.viewLoading.progressBar.setVisibility(View.VISIBLE);
 
                 mBinding.layoutError.setVisibility(View.GONE);
                 mBinding.imgLike.setVisibility(View.GONE);
@@ -204,7 +205,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
 
                 if (feed.status == STATUS_ERROR) {
                     mBinding.layoutError.setVisibility(View.VISIBLE);
-                    mBinding.spinKit.setVisibility(View.GONE);
+                    mBinding.viewLoading.progressBar.setVisibility(View.GONE);
                     mBinding.imgLike.setVisibility(View.GONE);
                     mBinding.imgComment.setVisibility(View.GONE);
                     mBinding.tvLikesCount.setVisibility(View.GONE);

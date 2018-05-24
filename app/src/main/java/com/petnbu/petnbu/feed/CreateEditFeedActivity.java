@@ -1,7 +1,6 @@
 package com.petnbu.petnbu.feed;
 
 import android.Manifest;
-import android.app.ProgressDialog;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.ClipData;
 import android.content.Context;
@@ -9,7 +8,6 @@ import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -20,7 +18,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -29,7 +26,6 @@ import android.view.ViewTreeObserver;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.BitmapImageViewTarget;
 import com.bumptech.glide.request.transition.Transition;
-import com.github.ybq.android.spinkit.style.FadingCircle;
 import com.petnbu.petnbu.GlideApp;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.util.NavigationUtils;
@@ -52,8 +48,6 @@ public class CreateEditFeedActivity extends AppCompatActivity {
 
     private ActivityCreateFeedBinding mBinding;
     private CreateEditFeedViewModel mCreateEditFeedViewModel;
-
-    private ProgressDialog mProgressDialog;
     private MenuItem mPostMenuItem;
 
     private PhotosAdapter mPhotosAdapter;
@@ -88,6 +82,8 @@ public class CreateEditFeedActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         mCreateEditFeedViewModel = ViewModelProviders.of(this).get(CreateEditFeedViewModel.class);
+        mBinding.setViewModel(mCreateEditFeedViewModel);
+
         mCreateEditFeedViewModel.loadFeed(feedId).observe(this, feed -> {
             if (feed != null) {
                 mSelectedPhotos.addAll(feed.getPhotos());
@@ -97,8 +93,6 @@ public class CreateEditFeedActivity extends AppCompatActivity {
             mPostMenuTitle = feed != null ? getString(R.string.menu_action_save_title) :
                     getString(R.string.menu_action_create_title);
         });
-        mCreateEditFeedViewModel.showLoadingEvent.observe(this, this::setLoadingVisibility);
-        mCreateEditFeedViewModel.showMessageDialogEvent.observe(this, message -> Log.d("WTF", message));
 
         setPlaceHolderLayoutVisibility(true);
         mCreateEditFeedViewModel.loadUserInfo().observe(this, user -> {
@@ -278,27 +272,6 @@ public class CreateEditFeedActivity extends AppCompatActivity {
 
     private void checkToEnablePostMenu() {
         Utils.enableMenuItem(this, mPostMenuItem, !mPhotosAdapter.getPhotos().isEmpty());
-    }
-
-    private void setLoadingVisibility(boolean visible) {
-        if (visible) {
-            if (mProgressDialog == null) {
-                mProgressDialog = new ProgressDialog(this);
-                FadingCircle fadingCircle = new FadingCircle();
-                fadingCircle.setColor(Color.BLACK);
-                mProgressDialog.setIndeterminateDrawable(fadingCircle);
-            }
-            if (!mProgressDialog.isShowing()) {
-                mProgressDialog.setMessage("Loading...");
-                mProgressDialog.setCancelable(false);
-                mProgressDialog.show();
-            }
-        } else {
-            if (mProgressDialog != null) {
-                mProgressDialog.setCancelable(true);
-                mProgressDialog.dismiss();
-            }
-        }
     }
 
     private void setPlaceHolderLayoutVisibility(boolean placeHolderLayoutVisibility) {

@@ -102,8 +102,6 @@ dependencies {
     annotationProcessor 'com.github.bumptech.glide:compiler:4.7.1'
     //Circular ImageView
     implementation 'de.hdodenhof:circleimageview:2.2.0'
-    //SpinKit
-    implementation 'com.github.ybq:Android-SpinKit:1.1.0'
     //Firebase JobDispatcher
     implementation 'com.firebase:firebase-jobdispatcher:0.8.5'
     implementation 'com.google.firebase:firebase-perf:15.0.0'
@@ -126,7 +124,6 @@ dependencies {
     implementation "android.arch.work:work-firebase:$work_version"
     // optional - Test helpers
     androidTestImplementation "android.arch.work:work-testing:$work_version"
-
 
     //Room Persistent
     implementation "android.arch.persistence.room:runtime:$room_version"

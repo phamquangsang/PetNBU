@@ -201,5 +201,6 @@ public class CommentsFragment extends Fragment {
         mBinding.layoutInputComment.layoutSelectedPhoto.setVisibility(View.GONE);
         mBinding.layoutInputComment.imgSelectedPhoto.setImageDrawable(null);
         mSelectedPhoto = null;
+        checkToEnablePostMenu();
     }
 }
