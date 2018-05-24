@@ -236,25 +236,9 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
             if (mFeed.avatar != null) {
                 String avatarUrl = !TextUtils.isEmpty(mFeed.avatar.getThumbnailUrl())
                         ? mFeed.avatar.getThumbnailUrl() : mFeed.avatar.getOriginUrl();
-                mGlideRequests.asBitmap()
-                        .load(avatarUrl)
-                        .fitCenter()
-                        .into(new BitmapImageViewTarget(mBinding.imgProfile) {
-                            @Override
-                            public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                                Context context = mBinding.imgProfile.getContext();
-                                if (ColorUtils.isDark(resource)) {
-                                    mBinding.imgProfile.setBorderWidth(0);
-                                } else {
-                                    mBinding.imgProfile.setBorderColor(ContextCompat.getColor(context, android.R.color.darker_gray));
-                                    mBinding.imgProfile.setBorderWidth(1);
-                                }
-                                getView().setImageBitmap(resource);
-                            }
-                        });
-//                mGlideRequests.load(avatarUrl)
-//                        .apply(RequestOptions.centerCropTransform())
-//                        .into(mBinding.imgProfile);
+                mGlideRequests.load(avatarUrl)
+                        .centerInside()
+                        .into(mBinding.imgProfile);
             }
         }
 
