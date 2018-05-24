@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <android.support.design.widget.CoordinatorLayout
         android:id="@+id/layoutRoot"
-        android:animateLayoutChanges="true"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:animateLayoutChanges="true">
 
         <android.support.v4.widget.SwipeRefreshLayout
             android:id="@+id/pullToRefresh"
@@ -18,8 +18,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:clipToPadding="false"
+                android:descendantFocusability="blocksDescendants"
                 android:paddingBottom="40dp"
-                app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
+                app:layout_behavior="@string/appbar_scrolling_view_behavior" />
         </android.support.v4.widget.SwipeRefreshLayout>
 
         <android.support.design.widget.FloatingActionButton
@@ -29,7 +30,7 @@
             android:layout_gravity="bottom|end"
             android:layout_margin="16dp"
             android:tint="#FFFFFF"
-            app:srcCompat="@drawable/ic_add_black_48dp"/>
+            app:srcCompat="@drawable/ic_add_black_48dp" />
 
         <ProgressBar
             android:id="@+id/progressBar"
@@ -37,6 +38,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|end"
-            android:indeterminate="true"/>
+            android:indeterminate="true" />
     </android.support.design.widget.CoordinatorLayout>
 </layout>
