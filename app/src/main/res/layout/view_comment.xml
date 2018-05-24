@@ -40,14 +40,14 @@
             app:layout_goneMarginRight="12dp"
             tools:text="Nhat Pham something" />
 
-        <FrameLayout
-            android:id="@+id/layoutPhoto"
+        <com.petnbu.petnbu.views.RatioImageView
+            android:id="@+id/imgPhoto"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
             android:layout_marginLeft="12dp"
             android:layout_marginTop="8dp"
-            android:visibility="gone"
+            android:scaleType="fitStart"
             app:layout_constraintEnd_toStartOf="@+id/layoutLike"
             app:layout_constraintLeft_toRightOf="@+id/imgProfile"
             app:layout_constraintRight_toLeftOf="@+id/layoutLike"
@@ -55,15 +55,7 @@
             app:layout_constraintTop_toBottomOf="@+id/tvContent"
             app:layout_goneMarginEnd="12dp"
             app:layout_goneMarginRight="12dp"
-            tools:layout_height="150dp"
-            tools:visibility="visible">
-
-            <ImageView
-                android:id="@+id/imgPhoto"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:scaleType="centerCrop" />
-        </FrameLayout>
+            tools:layout_height="150dp"/>
 
         <TextView
             android:id="@+id/tvDate"
@@ -76,7 +68,7 @@
             android:textSize="12sp"
             app:layout_constraintLeft_toRightOf="@+id/imgProfile"
             app:layout_constraintStart_toEndOf="@+id/imgProfile"
-            app:layout_constraintTop_toBottomOf="@+id/layoutPhoto"
+            app:layout_constraintTop_toBottomOf="@+id/imgPhoto"
             app:layout_goneMarginTop="4dp"
             tools:text="2h" />
 

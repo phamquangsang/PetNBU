@@ -201,47 +201,23 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
             mBinding.tvContent.setText(builder);
 
             if (mComment.getPhoto() != null) {
-                mBinding.layoutPhoto.setVisibility(View.VISIBLE);
+                mBinding.imgPhoto.setVisibility(View.VISIBLE);
                 Photo photo = mComment.getPhoto();
 
-                new ImageUtils.SizeDeterminer(mBinding.layoutPhoto).getSize((width, height) -> {
-                    float ratio = photo.getWidth() / (float) photo.getHeight();
+                float ratio = photo.getWidth() / (float) photo.getHeight();
+                if (photo.getWidth() > photo.getHeight()) {
+                    mBinding.imgPhoto.set(1.0f, 1/ratio);
+                } else {
+                    mBinding.imgPhoto.set(1.0f/2, 1/(2*ratio));
+                }
+                String photoUrl = TextUtils.isEmpty(mComment.getPhoto().getSmallUrl()) ?
+                        mComment.getPhoto().getOriginUrl() : mComment.getPhoto().getSmallUrl();
 
-                    ViewGroup.LayoutParams layoutParams = mBinding.imgPhoto.getLayoutParams();
-                    if (photo.getWidth() > photo.getHeight()) {
-                        layoutParams.width = width;
-                        layoutParams.height = (int) (layoutParams.width / ratio);
-                    } else {
-                        layoutParams.width = width / 2;
-                        layoutParams.height = (int) (layoutParams.width / ratio);
-                    }
-                    mBinding.imgPhoto.setLayoutParams(layoutParams);
-
-                    String photoUrl = TextUtils.isEmpty(mComment.getPhoto().getSmallUrl()) ?
-                            mComment.getPhoto().getOriginUrl() : mComment.getPhoto().getSmallUrl();
-
-                    mGlideRequests.asBitmap()
-                            .load(photoUrl)
-                            .placeholder(new ColorDrawable(Color.BLACK))
-                            .centerInside()
-                            .listener(new RequestListener<Bitmap>() {
-                                @Override
-                                public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {
-                                    return false;
-                                }
-
-                                @Override
-                                public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
-                                    RoundedBitmapDrawable roundedBitmapDrawable = RoundedBitmapDrawableFactory.create(itemView.getContext().getResources(), resource);
-                                    roundedBitmapDrawable.setAntiAlias(true);
-                                    roundedBitmapDrawable.setCornerRadius(8.0f);
-                                    mBinding.imgPhoto.setImageDrawable(roundedBitmapDrawable);
-                                    return false;
-                                }
-                            }).submit();
-                });
+                mGlideRequests.load(photoUrl)
+                        .centerInside()
+                        .into(mBinding.imgPhoto);
             } else {
-                mBinding.layoutPhoto.setVisibility(View.GONE);
+                mBinding.imgPhoto.setVisibility(View.GONE);
             }
         }
 
