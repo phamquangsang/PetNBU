@@ -12,6 +12,7 @@ import android.support.annotation.Nullable;
 import com.google.firebase.firestore.Exclude;
 import com.google.firebase.firestore.ServerTimestamp;
 import com.petnbu.petnbu.db.PetTypeConverters;
+import com.petnbu.petnbu.db.PhotoConverters;
 
 import java.util.Date;
 
@@ -25,6 +26,7 @@ public class CommentEntity {
     @ForeignKey(entity = UserEntity.class, parentColumns = {"userId"}, childColumns = "userId")
     private String ownerId;
     private String content;
+    @TypeConverters(PhotoConverters.class)
     private Photo photo;
     private int likeCount;
     private int commentCount;

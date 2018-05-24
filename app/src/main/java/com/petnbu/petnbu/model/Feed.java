@@ -8,18 +8,19 @@ import android.support.annotation.Nullable;
 
 import com.google.firebase.firestore.Exclude;
 import com.google.firebase.firestore.ServerTimestamp;
+import com.petnbu.petnbu.db.ListPhotoConverters;
 import com.petnbu.petnbu.db.PetTypeConverters;
 
 import java.util.Date;
 import java.util.List;
 
-@TypeConverters(value = PetTypeConverters.class)
 public class Feed {
 
     @NonNull
     private String feedId;
     @Embedded
     private FeedUser feedUser;
+    @TypeConverters(ListPhotoConverters.class)
     private List<Photo> photos;
     private int commentCount;
     private int likeCount;
@@ -42,18 +43,19 @@ public class Feed {
     }
 
     @Ignore
-    public Feed(String feedId, FeedUser feedUser, List<Photo> photos, int commentCount, @Nullable Comment latestComment, int likeCount, String content, Date timeCreated, Date timeUpdated, int status) {
+    public Feed(String feedId, FeedUser feedUser, List<Photo> photos, int commentCount, @Nullable Comment latestComment, int likeCount, boolean isLiked, boolean likeInProgress, String content, Date timeCreated, Date timeUpdated, int status) {
         this.feedId = feedId;
         this.feedUser = feedUser;
         this.photos = photos;
         this.commentCount = commentCount;
         this.latestComment = latestComment;
         this.likeCount = likeCount;
+        this.isLiked = isLiked;
         this.content = content;
         this.timeCreated = timeCreated;
         this.timeUpdated = timeUpdated;
         this.status = status;
-        this.likeInProgress = false;
+        this.likeInProgress = likeInProgress;
     }
 
     @NonNull

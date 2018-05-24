@@ -247,18 +247,18 @@ public class FirebaseService implements WebService {
             int newLikeCount = feed.getLikeCount() + 1;
             if (transaction.get(likeByUsers).exists()) {//user already like this feed
                 Timber.i("user already like this feed");
-                newLikeCount --;
+                newLikeCount--;
+            }else{
+                Map<String, Object> timeStamp = new HashMap<>();
+                timeStamp.put("timeCreated", FieldValue.serverTimestamp());
+                transaction.set(likeByUsers, timeStamp);
+                DocumentReference userLikePosts = mDb.collection("users").document(userId).collection("likePosts").document(feedId);
+                transaction.set(userLikePosts, timeStamp);
             }
             updates.put("likeCount", newLikeCount);
             updateFeedTransaction(transaction, feed, updates);
 
-            Map<String, Object> timeStamp = new HashMap<>();
-            timeStamp.put("timeCreated", FieldValue.serverTimestamp());
-            transaction.set(likeByUsers, timeStamp);
-
-            DocumentReference userLikePosts = mDb.collection("users").document(userId).collection("likePosts").document(feedId);
-            transaction.set(userLikePosts, timeStamp);
-
+            feed.setLiked(true);
             feed.setLikeCount(newLikeCount);
             transactionResult = new ApiResponse<>(feed, true, null);
             return transactionResult;
@@ -285,7 +285,12 @@ public class FirebaseService implements WebService {
             Map<String, Object> updates = new HashMap<>();
             int newLikeCount = feed.getLikeCount() - 1;
             if (!transaction.get(likeByUsers).exists()) { // user already unlike this feed
-                newLikeCount ++;
+                newLikeCount++;
+            } else {
+                transaction.delete(likeByUsers);
+                DocumentReference userLikePosts = mDb.collection("users").document(userId)
+                        .collection("likePosts").document(feedId);
+                transaction.delete(userLikePosts);
             }
             if (newLikeCount < 0) {
                 throw new FirebaseFirestoreException("unlike should never cause like count less than zero",
@@ -293,20 +298,98 @@ public class FirebaseService implements WebService {
             }
             updates.put("likeCount", newLikeCount);
             updateFeedTransaction(transaction, feed, updates);
-
-
-            transaction.delete(likeByUsers);
-
-            DocumentReference userLikePosts = mDb.collection("users").document(userId)
-                    .collection("likePosts").document(feedId);
-            transaction.delete(userLikePosts);
-
+            feed.setLiked(false);
             feed.setLikeCount(newLikeCount);
 
             transactionResult = new ApiResponse<>(feed, true, null);
             return transactionResult;
         }).addOnSuccessListener(result::setValue).addOnFailureListener(
                 e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
+        return result;
+    }
+
+    public LiveData<ApiResponse<Comment>> likeComment(String userId, String commentId) {
+        MutableLiveData<ApiResponse<Comment>> result = new MutableLiveData<>();
+        mDb.runTransaction(transaction -> {
+            Timber.i("like comment transaction");
+            ApiResponse<Comment> transactionResult;
+
+            Comment comment = transaction.get(mDb.document("comments/" + commentId)).toObject(Comment.class);
+            if (comment == null) {
+                throw new FirebaseFirestoreException("comment not found", FirebaseFirestoreException.Code.NOT_FOUND);
+            }
+
+            Feed feedContainer = transaction.get(mDb.document("global_feeds/" + comment.getParentFeedId())).toObject(Feed.class);
+            if (feedContainer == null) {
+                throw new FirebaseFirestoreException("the feed contain this comment is not found", FirebaseFirestoreException.Code.NOT_FOUND);
+            }
+
+            Map<String, Object> updates = new HashMap<>();
+            DocumentReference likeByUsers = mDb.collection("comments").document(commentId).collection("likedByUsers").document(userId);
+            int newLikeCount = comment.getLikeCount() + 1;
+            if (transaction.get(likeByUsers).exists()) {//user already like this comment
+                Timber.i("user already like this comment");
+                newLikeCount--;
+            } else {
+                Map<String, Object> timeStamp = new HashMap<>();
+                timeStamp.put("timeCreated", FieldValue.serverTimestamp());
+                transaction.set(likeByUsers, timeStamp);
+
+                DocumentReference userLikePosts = mDb.collection("users").document(userId).collection("likeComments").document(commentId);
+                transaction.set(userLikePosts, timeStamp);
+            }
+            updates.put("likeCount", newLikeCount);
+            updateCommentTransaction(transaction, feedContainer, comment, updates);
+
+            //todo set liked = true
+            comment.setLikeCount(newLikeCount);
+            transactionResult = new ApiResponse<>(comment, true, null);
+            return transactionResult;
+        }).addOnSuccessListener(result::setValue)
+                .addOnFailureListener(
+                        e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
+        return result;
+    }
+
+    public LiveData<ApiResponse<Comment>> unLikeComment(String userId, String commentId) {
+        MutableLiveData<ApiResponse<Comment>> result = new MutableLiveData<>();
+        mDb.runTransaction(transaction -> {
+            Timber.i("like comment transaction");
+            ApiResponse<Comment> transactionResult;
+
+            Comment comment = transaction.get(mDb.document("comments/" + commentId)).toObject(Comment.class);
+            if (comment == null) {
+                throw new FirebaseFirestoreException("comment not found", FirebaseFirestoreException.Code.NOT_FOUND);
+            }
+
+            Feed feedContainer = transaction.get(mDb.document("global_feeds/" + comment.getParentFeedId())).toObject(Feed.class);
+            if (feedContainer == null) {
+                throw new FirebaseFirestoreException("the feed contain this comment is not found", FirebaseFirestoreException.Code.NOT_FOUND);
+            }
+
+            Map<String, Object> updates = new HashMap<>();
+            DocumentReference likeByUsers = mDb.collection("comments").document(commentId).collection("likedByUsers").document(userId);
+            int newLikeCount = comment.getLikeCount() - 1;
+            if (!transaction.get(likeByUsers).exists()) {//user already like this comment
+                Timber.i("user did not like this comment yet");
+                newLikeCount++;
+            } else {
+                Map<String, Object> timeStamp = new HashMap<>();
+                timeStamp.put("timeCreated", FieldValue.serverTimestamp());
+                transaction.delete(likeByUsers);
+
+                DocumentReference userLikePosts = mDb.collection("users").document(userId).collection("likeComments").document(commentId);
+                transaction.delete(userLikePosts);
+            }
+            updates.put("likeCount", newLikeCount);
+            updateCommentTransaction(transaction, feedContainer, comment, updates);
+            //todo set liked = true
+            comment.setLikeCount(newLikeCount);
+            transactionResult = new ApiResponse<>(comment, true, null);
+            return transactionResult;
+        }).addOnSuccessListener(result::setValue)
+                .addOnFailureListener(
+                        e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
         return result;
     }
 

@@ -10,6 +10,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.google.firebase.firestore.Exclude;
+import com.petnbu.petnbu.db.ListPhotoConverters;
 import com.petnbu.petnbu.db.PetTypeConverters;
 
 import java.lang.annotation.Retention;
@@ -28,6 +29,7 @@ public class FeedEntity {
     private String feedId;
     @ForeignKey(entity = UserEntity.class, parentColumns = "userId", childColumns = "fromUserId")
     private String fromUserId;
+    @TypeConverters(ListPhotoConverters.class)
     private List<Photo> photos;
     private int commentCount;
     @Nullable

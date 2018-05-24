@@ -78,8 +78,10 @@ public class CreateEditFeedWorker extends Worker {
             if (feedEntity != null) {
                 UserEntity userEntity = mUserDao.findUserById(feedEntity.getFromUserId());
                 FeedUser feedUser = new FeedUser(userEntity.getUserId(), userEntity.getAvatar(), userEntity.getName());
-                Feed feed = new Feed(feedEntity.getFeedId(), feedUser, feedEntity.getPhotos(), feedEntity.getCommentCount(), null
-                        , feedEntity.getLikeCount(),feedEntity.getContent(), feedEntity.getTimeCreated()
+                Feed feed = new Feed(feedEntity.getFeedId(), feedUser, feedEntity.getPhotos(),
+                        feedEntity.getCommentCount(), null
+                        , feedEntity.getLikeCount(), feedEntity.isLiked(), feedEntity.isLikeInProgress()
+                        ,feedEntity.getContent(), feedEntity.getTimeCreated()
                         , feedEntity.getTimeUpdated(), feedEntity.getStatus());
 
                 if (feed.getStatus() == STATUS_UPLOADING) {
@@ -185,10 +187,12 @@ public class CreateEditFeedWorker extends Worker {
                     Feed newFeed = feedApiResponse.body;
                     newFeed.setStatus(STATUS_DONE);
 
-                    mAppExecutors.diskIO().execute(() -> {
-                        mFeedDao.update(newFeed.toEntity());
+                    mAppExecutors.diskIO().execute(() -> mPetDb.runInTransaction(() ->{
+                        Gson gson = new Gson();
+                        mFeedDao.updateFeed(newFeed.getPhotos(), newFeed.getContent(), newFeed.getFeedId(), newFeed.getTimeUpdated());
+                        mFeedDao.updateFeedLocalStatus(STATUS_DONE, newFeed.getFeedId());
                         countDownLatch.countDown();
-                    });
+                    }));
                     apiResponse.removeObserver(this);
                 } else {
                     Timber.e("update feed error %s", feedApiResponse.errorMessage);

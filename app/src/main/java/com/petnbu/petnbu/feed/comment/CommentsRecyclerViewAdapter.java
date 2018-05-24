@@ -169,6 +169,14 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
                         mCommentsViewModel.openUserProfile(commentUI.getOwner().getUserId());
                 }
             });
+
+            mBinding.layoutLike.setOnClickListener(view ->{
+                if (getAdapterPosition() != RecyclerView.NO_POSITION) {
+                    CommentUI commentUI = mComments.get(getAdapterPosition());
+                    if (commentUI.getLocalStatus() != LocalStatus.STATUS_UPLOADING)
+                        mCommentsViewModel.likeClicked(commentUI.getId());
+                }
+            });
         }
 
         @Override

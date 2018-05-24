@@ -338,4 +338,8 @@ public class CommentRepository {
             WorkManager.getInstance().enqueue(createCommentWork);
         }
     }
+
+    public void likeComment(String commentId) {
+
+    }
 }

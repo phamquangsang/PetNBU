@@ -8,6 +8,7 @@ import android.support.annotation.NonNull;
 
 import com.google.firebase.firestore.ServerTimestamp;
 import com.petnbu.petnbu.db.PetTypeConverters;
+import com.petnbu.petnbu.db.PhotoConverters;
 
 import java.util.Date;
 
@@ -18,6 +19,7 @@ public class UserEntity {
     @PrimaryKey @NonNull
     private String userId;
 
+    @TypeConverters(PhotoConverters.class)
     private Photo avatar;
 
     private String name;

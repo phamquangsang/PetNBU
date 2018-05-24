@@ -13,7 +13,7 @@ import com.petnbu.petnbu.model.SubCommentEntity;
 import com.petnbu.petnbu.model.UserEntity;
 
 @Database(entities = {UserEntity.class, FeedEntity.class, Paging.class, CommentEntity.class} , version = 14)
-@TypeConverters(value = PetTypeConverters.class)
+@TypeConverters(value = {PetTypeConverters.class})
 public abstract class PetDb extends RoomDatabase {
 
     abstract public FeedDao feedDao();

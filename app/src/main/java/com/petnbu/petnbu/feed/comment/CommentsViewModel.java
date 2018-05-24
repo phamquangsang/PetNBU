@@ -153,6 +153,10 @@ public class CommentsViewModel extends ViewModel {
         return mOpenUserProfileEvent;
     }
 
+    public void likeClicked(String commentId) {
+        mCommentRepository.likeComment(commentId);
+    }
+
     private static class LoadMoreHandler implements Observer<Resource<Boolean>> {
 
         private final CommentRepository commentRepo;

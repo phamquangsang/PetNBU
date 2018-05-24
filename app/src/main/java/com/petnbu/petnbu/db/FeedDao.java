@@ -18,6 +18,7 @@ import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.util.TraceUtils;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Dao
@@ -51,12 +52,14 @@ public abstract class FeedDao {
     @Update(onConflict = OnConflictStrategy.REPLACE)
     public abstract void update(List<FeedEntity> feedList);
 
-    @Query("UPDATE feeds SET content = :content WHERE feedId = :feedId")
-    public abstract void updateContent(String content, String feedId);
 
-    @TypeConverters(value = PetTypeConverters.class)
-    @Query("UPDATE feeds SET photos = :photos WHERE feedId = :feedId")
-    public abstract void updatePhotos(List<Photo> photos, String feedId);
+    @Query("UPDATE feeds SET photos = (:photos), content = :content, timeUpdated = :timeUpdated " +
+            "WHERE feedId = :feedId")
+    @TypeConverters(ListPhotoConverters.class)
+    public abstract void updateFeed(List<Photo> photos, String content, String feedId, Date timeUpdated);
+
+    @Query("UPDATE feeds set status = :status where feedId = :feedId")
+    public abstract void updateFeedLocalStatus(int status, String feedId);
 
     @Query("UPDATE feeds set feedId = :newId where feedId = :feedId")
     public abstract void updateFeedId(String feedId, String newId);
