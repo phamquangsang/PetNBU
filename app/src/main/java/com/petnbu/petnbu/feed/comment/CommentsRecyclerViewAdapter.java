@@ -48,6 +48,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+import timber.log.Timber;
+
 public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindingViewHolder> {
 
     private static final int VIEW_TYPE_COMMENT = 1;
@@ -245,12 +247,17 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
                     mBinding.tvLikesCount.setVisibility(View.GONE);
                 }
 
-                if (mComment.getLocalStatus() == LocalStatus.STATUS_UPLOADING) {
+                if (mComment.getLocalStatus() == LocalStatus.STATUS_UPLOADING || mComment.isLikeInProgress()) {
                     mBinding.layoutLike.setVisibility(View.INVISIBLE);
                     mBinding.progressBar.setVisibility(View.VISIBLE);
                 } else {
                     mBinding.layoutLike.setVisibility(View.VISIBLE);
                     mBinding.progressBar.setVisibility(View.GONE);
+                    if(mComment.isLiked){
+                        mBinding.layoutLike.setImageResource(R.drawable.ic_favorite_red_24dp);
+                    }else{
+                        mBinding.layoutLike.setImageResource(R.drawable.ic_favorite_border_black_24dp);
+                    }
                 }
             } else {
                 mBinding.tvLikesCount.setVisibility(View.GONE);

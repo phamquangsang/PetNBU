@@ -92,7 +92,7 @@ public class FeedRepository {
                     mPetDb.feedDao().insertFromFeedList(items);
                     for (Feed item : items) {
                         mPetDb.userDao().insert(item.getFeedUser());
-                        if(item.getLatestComment()!= null){
+                        if (item.getLatestComment() != null) {
                             mPetDb.commentDao().insertFromComment(item.getLatestComment());
                             mPetDb.userDao().insert(item.getLatestComment().getFeedUser());
                         }
@@ -145,7 +145,7 @@ public class FeedRepository {
             protected void saveCallResult(@NonNull Feed item) {
                 mPetDb.feedDao().insertFromFeed(item);
                 mPetDb.userDao().insert(item.getFeedUser());
-                if(item.getLatestComment()!= null){
+                if (item.getLatestComment() != null) {
                     mPetDb.commentDao().insertFromComment(item.getLatestComment());
                     mPetDb.userDao().insert(item.getLatestComment().getFeedUser());
                 }
@@ -191,7 +191,7 @@ public class FeedRepository {
                     mPetDb.feedDao().insertFromFeedList(items);
                     for (Feed item : items) {
                         mPetDb.userDao().insert(item.getFeedUser());
-                        if(item.getLatestComment()!= null){
+                        if (item.getLatestComment() != null) {
                             mPetDb.commentDao().insertFromComment(item.getLatestComment());
                             mPetDb.userDao().insert(item.getLatestComment().getFeedUser());
                         }
@@ -337,7 +337,7 @@ public class FeedRepository {
                     mPetDb.feedDao().insertFromFeedList(items);
                     for (Feed feedItem : items) {
                         mPetDb.userDao().insert(feedItem.getFeedUser());
-                        if(feedItem.getLatestComment()!= null){
+                        if (feedItem.getLatestComment() != null) {
                             mPetDb.commentDao().insertFromComment(feedItem.getLatestComment());
                             mPetDb.userDao().insert(feedItem.getLatestComment().getFeedUser());
                         }
@@ -380,7 +380,7 @@ public class FeedRepository {
     public void likeFeedHandler(String userId, String feedId) {
         mAppExecutors.diskIO().execute(() -> {
             FeedEntity feed = mPetDb.feedDao().findFeedEntityById(feedId);
-            if(feed.isLikeInProgress()){
+            if (feed.isLikeInProgress()) {
                 return;
             }
             feed.setLikeInProgress(true);
@@ -407,8 +407,8 @@ public class FeedRepository {
                             FeedEntity feedResult = feedApiResponse.body.toEntity();
                             feedResult.setLikeInProgress(false);
                             mPetDb.feedDao().update(feedResult);
-                        }else{
-                            mToaster.makeText(feedApiResponse.errorMessage);
+                        } else {
+                            mAppExecutors.mainThread().execute(() -> mToaster.makeText(feedApiResponse.errorMessage));
                             feed.setLikeInProgress(false);
                             mPetDb.feedDao().update(feed);
                         }
@@ -430,8 +430,8 @@ public class FeedRepository {
                             FeedEntity feedResult = feedApiResponse.body.toEntity();
                             feedResult.setLikeInProgress(false);
                             mPetDb.feedDao().update(feedResult);
-                        }else{
-                            mToaster.makeText(feedApiResponse.errorMessage);
+                        } else {
+                            mAppExecutors.mainThread().execute(() -> mToaster.makeText(feedApiResponse.errorMessage));
                             feed.setLikeInProgress(false);
                             mPetDb.feedDao().update(feed);
                         }

@@ -154,7 +154,7 @@ public class CommentsViewModel extends ViewModel {
     }
 
     public void likeClicked(String commentId) {
-        mCommentRepository.likeComment(commentId);
+        mCommentRepository.likeCommentHandler(SharedPrefUtil.getUserId(), commentId);
     }
 
     private static class LoadMoreHandler implements Observer<Resource<Boolean>> {

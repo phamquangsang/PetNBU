@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 14,
-    "identityHash": "37d97b45ee947758bf37c62006588e34",
+    "identityHash": "3f57a16e5ba2ccb98abd9dffc95e6ce1",
     "entities": [
       {
         "tableName": "users",
@@ -180,7 +180,7 @@
       },
       {
         "tableName": "comments",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `ownerId` TEXT, `content` TEXT, `photo` TEXT, `likeCount` INTEGER NOT NULL, `commentCount` INTEGER NOT NULL, `parentCommentId` TEXT, `parentFeedId` TEXT, `latestCommentId` TEXT, `localStatus` INTEGER NOT NULL, `timeCreated` INTEGER, `timeUpdated` INTEGER, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `ownerId` TEXT, `content` TEXT, `photo` TEXT, `likeCount` INTEGER NOT NULL, `isLiked` INTEGER NOT NULL, `likeInProgress` INTEGER NOT NULL, `commentCount` INTEGER NOT NULL, `parentCommentId` TEXT, `parentFeedId` TEXT, `latestCommentId` TEXT, `localStatus` INTEGER NOT NULL, `timeCreated` INTEGER, `timeUpdated` INTEGER, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -209,6 +209,18 @@
           {
             "fieldPath": "likeCount",
             "columnName": "likeCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isLiked",
+            "columnName": "isLiked",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "likeInProgress",
+            "columnName": "likeInProgress",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -267,7 +279,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"37d97b45ee947758bf37c62006588e34\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"3f57a16e5ba2ccb98abd9dffc95e6ce1\")"
     ]
   }
 }

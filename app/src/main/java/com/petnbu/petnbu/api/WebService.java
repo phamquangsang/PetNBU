@@ -40,6 +40,10 @@ public interface WebService {
 
     LiveData<ApiResponse<Comment>> createFeedComment(Comment comment, String feedId);
 
+    LiveData<ApiResponse<Comment>> likeComment(String userId, String commentId);
+
+    LiveData<ApiResponse<Comment>> unLikeComment(String userId, String commentId);
+
     LiveData<ApiResponse<Comment>> createReplyComment(Comment comment, String parentCommentId);
 
     LiveData<ApiResponse<List<Comment>>> getSubComments(String commentId, long after, int limit);

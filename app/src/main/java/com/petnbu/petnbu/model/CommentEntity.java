@@ -29,6 +29,8 @@ public class CommentEntity {
     @TypeConverters(PhotoConverters.class)
     private Photo photo;
     private int likeCount;
+    private boolean isLiked;
+    private boolean likeInProgress;
     private int commentCount;
     @Nullable
     private String parentCommentId;
@@ -49,14 +51,16 @@ public class CommentEntity {
     }
 
     @Ignore
-    public CommentEntity(@NonNull String id, String ownerId, String content, Photo photo, int likeCount,
-                         int commentCount, @Nullable String parentCommentId, @Nullable String parentFeedId,
-                         @Nullable String latestCommentId, int localStatus, Date timeCreated, Date timeUpdated) {
+    CommentEntity(@NonNull String id, String ownerId, String content, Photo photo, int likeCount, boolean isLiked,
+                  boolean isLikeInProgress, int commentCount, @Nullable String parentCommentId, @Nullable String parentFeedId,
+                  @Nullable String latestCommentId, int localStatus, Date timeCreated, Date timeUpdated) {
         this.id = id;
         this.ownerId = ownerId;
         this.content = content;
         this.photo = photo;
         this.likeCount = likeCount;
+        this.isLiked = isLiked;
+        this.likeInProgress = isLikeInProgress;
         this.commentCount = commentCount;
         this.parentCommentId = parentCommentId;
         this.parentFeedId = parentFeedId;
@@ -66,11 +70,12 @@ public class CommentEntity {
         this.timeUpdated = timeUpdated;
     }
 
+    @NonNull
     public String getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(@NonNull String id) {
         this.id = id;
     }
 
@@ -138,19 +143,37 @@ public class CommentEntity {
         this.commentCount = commentCount;
     }
 
+    @Nullable
     public String getParentCommentId() {
         return parentCommentId;
     }
 
-    public void setParentCommentId(String parentCommentId) {
+    public boolean isLiked() {
+        return isLiked;
+    }
+
+    public void setLiked(boolean liked) {
+        isLiked = liked;
+    }
+
+    public boolean isLikeInProgress() {
+        return likeInProgress;
+    }
+
+    public void setLikeInProgress(boolean likeInProgress) {
+        this.likeInProgress = likeInProgress;
+    }
+
+    public void setParentCommentId(@Nullable String parentCommentId) {
         this.parentCommentId = parentCommentId;
     }
 
+    @Nullable
     public String getParentFeedId() {
         return parentFeedId;
     }
 
-    public void setParentFeedId(String parentFeedId) {
+    public void setParentFeedId(@Nullable String parentFeedId) {
         this.parentFeedId = parentFeedId;
     }
 

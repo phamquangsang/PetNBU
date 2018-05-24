@@ -47,7 +47,7 @@ public abstract class CommentDao {
     public abstract CommentEntity getCommentById(String commentId);
 
     @Query("SELECT comments.id, users.userId, users.avatar, users.name, comments.content, " +
-            "comments.photo, comments.likeCount, comments.commentCount, comments.parentCommentId, " +
+            "comments.photo, comments.likeCount, comments.isLiked, comments.likeInProgress, comments.commentCount, comments.parentCommentId, " +
             "comments.parentFeedId, comments.localStatus, comments.timeCreated, " +
             "subComments.id as latestCommentId, subcomments.content as latestCommentContent, " +
             "subCommentUser.userId as latestCommentOwnerId, subCommentUser.name as latestCommentOwnerName, " +
@@ -62,7 +62,7 @@ public abstract class CommentDao {
 
     @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)//sub comments does not have latestComment fields
     @Query("SELECT comments.id, users.userId, users.avatar, users.name, comments.content, " +
-            "comments.photo, comments.likeCount, comments.commentCount, comments.parentCommentId, " +
+            "comments.photo, comments.likeCount, comments.isLiked, comments.likeInProgress, comments.commentCount, comments.parentCommentId, " +
             "comments.parentFeedId, comments.localStatus, comments.timeCreated " +
             "from comments " +
             "left join users on comments.ownerId = users.userId " +
