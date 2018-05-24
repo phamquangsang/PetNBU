@@ -59,7 +59,6 @@ public class CommentsViewModel extends ViewModel {
     private final SingleLiveEvent<String> mOpenRepliesEvent = new SingleLiveEvent<>();
     private final SingleLiveEvent<String> mOpenUserProfileEvent = new SingleLiveEvent<>();
 
-
     public CommentsViewModel() {
         PetApplication.getAppComponent().inject(this);
         loadMoreHandler = new LoadMoreHandler(mCommentRepository);

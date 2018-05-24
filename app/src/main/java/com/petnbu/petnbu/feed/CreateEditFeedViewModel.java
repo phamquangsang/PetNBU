@@ -5,6 +5,7 @@ import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.Transformations;
 import android.arch.lifecycle.ViewModel;
+import android.databinding.ObservableBoolean;
 import android.text.TextUtils;
 
 import com.petnbu.petnbu.PetApplication;
@@ -23,10 +24,6 @@ import javax.inject.Inject;
 
 public class CreateEditFeedViewModel extends ViewModel {
 
-    public final SingleLiveEvent<Boolean> showLoadingEvent = new SingleLiveEvent<>();
-
-    public final SingleLiveEvent<String> showMessageDialogEvent = new SingleLiveEvent<>();
-
     @Inject
     UserRepository mUserRepository;
 
@@ -35,6 +32,8 @@ public class CreateEditFeedViewModel extends ViewModel {
 
     @Inject
     Application mApplication;
+
+    public final ObservableBoolean showLoading = new ObservableBoolean();
 
     private final MutableLiveData<Feed> feedLiveData = new MutableLiveData<>();
 
@@ -64,10 +63,8 @@ public class CreateEditFeedViewModel extends ViewModel {
                 feedLiveData.setValue(input.data);
                 if(input.data != null) {
                     mFeedId = feedId;
-                } else {
-                    // load failed
                 }
-                showLoadingEvent.setValue(Status.LOADING.equals(input.status));
+                showLoading.set(Status.LOADING.equals(input.status));
                 return feedLiveData;
             });
         } else {
