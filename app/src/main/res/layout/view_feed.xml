@@ -235,13 +235,12 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent">
 
-                <com.github.ybq.android.spinkit.SpinKitView
-                    android:id="@+id/spinKit"
-                    style="@style/SpinKitView.FadingCircle"
+                <include
+                    android:id="@+id/viewLoading"
+                    layout="@layout/view_loading"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    app:SpinKit_Color="@color/colorPrimary" />
+                    android:layout_gravity="center" />
 
                 <LinearLayout
                     android:id="@+id/layoutError"
