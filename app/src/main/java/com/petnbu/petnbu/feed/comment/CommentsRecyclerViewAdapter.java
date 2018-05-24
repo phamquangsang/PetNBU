@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Handler;
@@ -28,9 +29,7 @@ import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.RequestOptions;
-import com.bumptech.glide.request.target.BitmapImageViewTarget;
 import com.bumptech.glide.request.target.Target;
-import com.bumptech.glide.request.transition.Transition;
 import com.google.android.gms.common.internal.Preconditions;
 import com.petnbu.petnbu.BaseBindingViewHolder;
 import com.petnbu.petnbu.GlideApp;
@@ -182,22 +181,11 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
         }
 
         private void displayUserInfo() {
-            mGlideRequests.asBitmap()
-                    .load(mComment.getOwner().getAvatar().getOriginUrl())
+            String avatarUrl = TextUtils.isEmpty(mComment.getOwner().getAvatar().getSmallUrl()) ?
+                    mComment.getOwner().getAvatar().getOriginUrl() : mComment.getOwner().getAvatar().getThumbnailUrl();
+            mGlideRequests.load(avatarUrl)
                     .centerInside()
-                    .into(new BitmapImageViewTarget(mBinding.imgProfile) {
-                        @Override
-                        public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                            Context context = mBinding.imgProfile.getContext();
-                            if (ColorUtils.isDark(resource)) {
-                                mBinding.imgProfile.setBorderWidth(0);
-                            } else {
-                                mBinding.imgProfile.setBorderColor(ContextCompat.getColor(context, android.R.color.darker_gray));
-                                mBinding.imgProfile.setBorderWidth(1);
-                            }
-                            getView().setImageBitmap(resource);
-                        }
-                    });
+                    .into(mBinding.imgProfile);
         }
 
         private void displayContent() {
@@ -212,33 +200,48 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
             builder.setSpan(new ForegroundColorSpan(ColorUtils.modifyAlpha(Color.BLACK, 0.8f)), start, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             mBinding.tvContent.setText(builder);
 
-            if(mComment.getPhoto() != null) {
-                mBinding.imgPhoto.setVisibility(View.VISIBLE);
+            if (mComment.getPhoto() != null) {
+                mBinding.layoutPhoto.setVisibility(View.VISIBLE);
                 Photo photo = mComment.getPhoto();
 
-                new ImageUtils.SizeDeterminer(mBinding.imgPhoto).getSize((width, height) -> {
-                    int photoWidth = photo.getWidth();
-                    int photoHeight = photo.getHeight();
-                    float ratio = photoWidth/(float)photoHeight;
+                new ImageUtils.SizeDeterminer(mBinding.layoutPhoto).getSize((width, height) -> {
+                    float ratio = photo.getWidth() / (float) photo.getHeight();
 
                     ViewGroup.LayoutParams layoutParams = mBinding.imgPhoto.getLayoutParams();
-                    if(photoWidth > photoHeight) {
+                    if (photo.getWidth() > photo.getHeight()) {
                         layoutParams.width = width;
                         layoutParams.height = (int) (layoutParams.width / ratio);
                     } else {
-                        layoutParams.width = width/2;
+                        layoutParams.width = width / 2;
                         layoutParams.height = (int) (layoutParams.width / ratio);
                     }
                     mBinding.imgPhoto.setLayoutParams(layoutParams);
 
                     String photoUrl = TextUtils.isEmpty(mComment.getPhoto().getSmallUrl()) ?
                             mComment.getPhoto().getOriginUrl() : mComment.getPhoto().getSmallUrl();
-                    mGlideRequests.load(photoUrl)
-                            .apply(RequestOptions.centerInsideTransform())
-                            .into(mBinding.imgPhoto);
+
+                    mGlideRequests.asBitmap()
+                            .load(photoUrl)
+                            .placeholder(new ColorDrawable(Color.BLACK))
+                            .centerInside()
+                            .listener(new RequestListener<Bitmap>() {
+                                @Override
+                                public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {
+                                    return false;
+                                }
+
+                                @Override
+                                public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
+                                    RoundedBitmapDrawable roundedBitmapDrawable = RoundedBitmapDrawableFactory.create(itemView.getContext().getResources(), resource);
+                                    roundedBitmapDrawable.setAntiAlias(true);
+                                    roundedBitmapDrawable.setCornerRadius(8.0f);
+                                    mBinding.imgPhoto.setImageDrawable(roundedBitmapDrawable);
+                                    return false;
+                                }
+                            }).submit();
                 });
             } else {
-                mBinding.imgPhoto.setVisibility(View.GONE);
+                mBinding.layoutPhoto.setVisibility(View.GONE);
             }
         }
 
@@ -298,7 +301,7 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
                 builder.setSpan(new ForegroundColorSpan(ColorUtils.modifyAlpha(Color.BLACK, 0.8f)), start, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                 mBinding.tvLatestComment.setText(builder);
 
-                if(mComment.getCommentCount() > 1) {
+                if (mComment.getCommentCount() > 1) {
                     mBinding.tvPreviousReplies.setVisibility(View.VISIBLE);
                     mBinding.tvPreviousReplies.setText(context.getString(R.string.feed_view_previous_replies, mComment.getCommentCount() - 1));
                 } else {

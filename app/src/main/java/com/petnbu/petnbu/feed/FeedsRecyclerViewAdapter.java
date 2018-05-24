@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
@@ -32,6 +33,7 @@ import com.google.android.gms.common.internal.Preconditions;
 import com.petnbu.petnbu.GlideApp;
 import com.petnbu.petnbu.GlideRequests;
 import com.petnbu.petnbu.R;
+import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.util.Utils;
 import com.petnbu.petnbu.databinding.ViewFeedBinding;
 import com.petnbu.petnbu.model.FeedUI;
@@ -80,6 +82,31 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         TraceUtils.begin("onBindFeed", () -> holder.bindData(mFeeds.get(position)));
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position, @NonNull List<Object> payloads) {
+        if(!payloads.isEmpty()) {
+            Bundle bundle = (Bundle) payloads.get(0);
+            if(bundle.getBoolean("like_status")) {
+                FeedUI feed = mFeeds.get(position);
+                if (feed.isLiked) {
+                    holder.mBinding.imgLike.setImageResource(R.drawable.ic_favorite_red_24dp);
+                } else {
+                    holder.mBinding.imgLike.setImageResource(R.drawable.ic_favorite_border_black_24dp);
+                }
+                if (feed.likeInProgress) {
+                    holder.mBinding.imgLike.setVisibility(View.INVISIBLE);
+                    holder.mBinding.imgLikeInProgress.setVisibility(View.VISIBLE);
+                } else {
+                    holder.mBinding.imgLike.setVisibility(View.VISIBLE);
+                    holder.mBinding.imgLikeInProgress.setVisibility(View.GONE);
+                }
+                holder.mBinding.tvLikesCount.setText(String.valueOf(feed.getLikeCount()));
+            }
+        } else {
+            super.onBindViewHolder(holder, position, payloads);
+        }
     }
 
     @Override
@@ -168,6 +195,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
                 mBinding.tvLikesCount.setVisibility(View.GONE);
                 mBinding.tvViewComments.setVisibility(View.GONE);
                 mBinding.imgOptions.setVisibility(View.GONE);
+                mBinding.imgLikeInProgress.setVisibility(View.GONE);
             } else {
                 mBinding.layoutRoot.setShouldInterceptEvents(false);
 
@@ -179,6 +207,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
                     mBinding.tvLikesCount.setVisibility(View.GONE);
                     mBinding.tvViewComments.setVisibility(View.GONE);
                     mBinding.imgOptions.setVisibility(View.GONE);
+                    mBinding.imgLikeInProgress.setVisibility(View.GONE);
                 } else {
                     mBinding.layoutDisable.setVisibility(View.GONE);
                     mBinding.imgLike.setVisibility(View.VISIBLE);
@@ -186,6 +215,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
                     mBinding.tvLikesCount.setVisibility(View.VISIBLE);
                     mBinding.tvViewComments.setVisibility(View.VISIBLE);
                     mBinding.imgOptions.setVisibility(View.VISIBLE);
+                    mBinding.imgLikeInProgress.setVisibility(View.GONE);
                 }
             }
 
@@ -193,13 +223,6 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
                 mBinding.imgLike.setImageResource(R.drawable.ic_favorite_red_24dp);
             }else{
                 mBinding.imgLike.setImageResource(R.drawable.ic_favorite_border_black_24dp);
-            }
-            if(feed.likeInProgress){
-                mBinding.imgLike.setVisibility(View.INVISIBLE);
-                mBinding.imgLikeInProgress.setVisibility(View.VISIBLE);
-            }else{
-                mBinding.imgLike.setVisibility(View.VISIBLE);
-                mBinding.imgLikeInProgress.setVisibility(View.GONE);
             }
             mBinding.tvLikesCount.setText(String.valueOf(feed.getLikeCount()));
         }
@@ -211,7 +234,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
                         ? mFeed.avatar.getThumbnailUrl() : mFeed.avatar.getOriginUrl();
                 mGlideRequests.asBitmap()
                         .load(avatarUrl)
-                        .apply(RequestOptions.centerCropTransform())
+                        .fitCenter()
                         .into(new BitmapImageViewTarget(mBinding.imgProfile) {
                             @Override
                             public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
@@ -225,6 +248,9 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
                                 getView().setImageBitmap(resource);
                             }
                         });
+//                mGlideRequests.load(avatarUrl)
+//                        .apply(RequestOptions.centerCropTransform())
+//                        .into(mBinding.imgProfile);
             }
         }
 
@@ -351,6 +377,19 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
         @Override
         public boolean areContentsTheSame(int oldPos, int newPos) {
             return oldData.get(oldPos).equals(newData.get(newPos));
+        }
+
+        @Nullable
+        @Override
+        public Object getChangePayload(int oldItemPosition, int newItemPosition) {
+            Bundle bundle = new Bundle();
+            FeedUI oldFeed = oldData.get(oldItemPosition);
+            FeedUI newFeed = newData.get(newItemPosition);
+            if(oldFeed.likeInProgress != newFeed.likeInProgress || oldFeed.isLiked != newFeed.isLiked) {
+                bundle.putBoolean("like_status", true);
+                return bundle;
+            }
+            return super.getChangePayload(oldItemPosition, newItemPosition);
         }
     }
 

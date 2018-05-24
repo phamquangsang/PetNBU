@@ -101,8 +101,6 @@ public class CreateEditFeedWorker extends Worker {
                             }
                         }
                         if (uploadedPhoto != null) {
-                            photo.setWidth(uploadedPhoto.getWidth());
-                            photo.setHeight(uploadedPhoto.getHeight());
                             photo.setOriginUrl(uploadedPhoto.getOriginUrl());
                             photo.setLargeUrl(uploadedPhoto.getLargeUrl());
                             photo.setMediumUrl(uploadedPhoto.getMediumUrl());

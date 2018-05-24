@@ -7,8 +7,6 @@ import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.bumptech.glide.RequestManager;
-import com.bumptech.glide.request.RequestOptions;
 import com.google.android.gms.common.internal.Preconditions;
 import com.petnbu.petnbu.GlideRequests;
 import com.petnbu.petnbu.R;
@@ -56,7 +54,7 @@ public class PhotosPagerAdapter extends PagerAdapter {
             String photoUrl = ImageUtils.getPhotoUrl(mFeed.getPhotos().get(position), width);
             mGlideRequests
                     .load(!TextUtils.isEmpty(photoUrl) ? photoUrl : mFeed.getPhotos().get(position).getOriginUrl())
-                    .apply(RequestOptions.centerInsideTransform())
+                    .centerInside()
                     .into(viewFeedPhotosBinding.imgContent);
         });
         viewFeedPhotosBinding.imgContent.setOnClickListener(onPhotoClickedListener);

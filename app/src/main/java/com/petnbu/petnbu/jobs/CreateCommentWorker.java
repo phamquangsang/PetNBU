@@ -87,8 +87,6 @@ public class CreateCommentWorker extends Worker {
                             String jsonPhoto = data.getString(key, "");
                             if (!TextUtils.isEmpty(jsonPhoto)) {
                                 uploadedPhoto = new Gson().fromJson(jsonPhoto, Photo.class);
-                                commentPhoto.setWidth(uploadedPhoto.getWidth());
-                                commentPhoto.setHeight(uploadedPhoto.getHeight());
                                 commentPhoto.setOriginUrl(uploadedPhoto.getOriginUrl());
                                 commentPhoto.setLargeUrl(uploadedPhoto.getLargeUrl());
                                 commentPhoto.setMediumUrl(uploadedPhoto.getMediumUrl());

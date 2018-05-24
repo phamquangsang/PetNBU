@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
@@ -240,8 +241,12 @@ public class CreateEditFeedActivity extends AppCompatActivity {
                     Uri uri = data.getData();
                     PermissionUtils.requestPersistablePermission(this, data, uri);
 
+                    BitmapFactory.Options options = Utils.getBitmapSize(this, uri);
                     Photo photo = new Photo();
                     photo.setOriginUrl(uri.toString());
+                    photo.setWidth(options.outWidth);
+                    photo.setHeight(options.outHeight);
+
                     mSelectedPhotos.add(photo);
                     mPhotosAdapter.notifyItemInserted(mSelectedPhotos.size() - 1);
                 } else {
@@ -252,8 +257,12 @@ public class CreateEditFeedActivity extends AppCompatActivity {
                             Uri uri = item.getUri();
                             PermissionUtils.requestPersistablePermission(this, data, uri);
 
+                            BitmapFactory.Options options = Utils.getBitmapSize(this, uri);
                             Photo photo = new Photo();
                             photo.setOriginUrl(uri.toString());
+                            photo.setWidth(options.outWidth);
+                            photo.setHeight(options.outHeight);
+
                             mSelectedPhotos.add(photo);
                         }
                         mPhotosAdapter.notifyItemRangeInserted(mSelectedPhotos.size() - clipData.getItemCount(),

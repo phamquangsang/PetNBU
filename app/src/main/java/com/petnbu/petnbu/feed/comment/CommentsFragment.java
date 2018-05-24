@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -28,6 +29,7 @@ import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.util.NavigationUtils;
 import com.petnbu.petnbu.util.PermissionUtils;
 import com.petnbu.petnbu.util.SnackbarUtils;
+import com.petnbu.petnbu.util.Utils;
 
 public class CommentsFragment extends Fragment {
 
@@ -143,8 +145,12 @@ public class CommentsFragment extends Fragment {
                     Uri uri = data.getData();
                     PermissionUtils.requestPersistablePermission(getActivity(), data, uri);
 
+                    BitmapFactory.Options options = Utils.getBitmapSize(getActivity(), uri);
                     mSelectedPhoto = new Photo();
                     mSelectedPhoto.setOriginUrl(uri.toString());
+                    mSelectedPhoto.setWidth(options.outWidth);
+                    mSelectedPhoto.setHeight(options.outHeight);
+
                     showSelectedPhoto();
                     checkToEnablePostMenu();
                 }

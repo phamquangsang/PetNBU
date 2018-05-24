@@ -42,9 +42,6 @@ public class CompressPhotoWorker extends PhotoWorker {
                     Uri photoUri = Uri.parse(photo.getOriginUrl());
 
                     if (!URLUtil.isHttpUrl(photo.getOriginUrl()) && !URLUtil.isHttpsUrl(photo.getOriginUrl())) {
-                        BitmapFactory.Options options = Utils.getBitmapSize(getApplicationContext(), photoUri);
-                        photo.setWidth(options.outWidth);
-                        photo.setHeight(options.outHeight);
                         generateCompressedPhotos(photo);
                     }
                     outputDataBuilder.putString(photoUri.getLastPathSegment(), toJson(photo));
