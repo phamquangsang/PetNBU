@@ -104,7 +104,11 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
                     holder.mBinding.imgLike.setVisibility(View.VISIBLE);
                     holder.mBinding.imgLikeInProgress.setVisibility(View.GONE);
                 }
-                holder.mBinding.tvLikesCount.setText(String.valueOf(feed.getLikeCount()));
+                if(feed.getLikeCount() > 0) {
+                    holder.mBinding.tvLikesCount.setText(String.format("%d %s", feed.getLikeCount(), feed.getLikeCount() > 1 ? "likes" : "like"));
+                } else {
+                    holder.mBinding.tvLikesCount.setVisibility(View.GONE);
+                }
             }
         } else {
             super.onBindViewHolder(holder, position, payloads);
@@ -217,18 +221,11 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
                     mBinding.imgLikeInProgress.setVisibility(View.GONE);
                 }
             }
-
             displayUserInfo();
             displayTime();
             displayPhotos();
             displayText();
-
-            if(feed.isLiked){
-                mBinding.imgLike.setImageResource(R.drawable.ic_favorite_red_24dp);
-            }else{
-                mBinding.imgLike.setImageResource(R.drawable.ic_favorite_border_black_24dp);
-            }
-            mBinding.tvLikesCount.setText(String.valueOf(feed.getLikeCount()));
+            displayLikeInfo();
         }
 
         private void displayUserInfo() {
@@ -333,6 +330,20 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
                 mBinding.tvViewComments.setText(String.format("View all %d comments", mFeed.getCommentCount()));
             } else {
                 mBinding.tvViewComments.setVisibility(View.GONE);
+            }
+        }
+
+        private void displayLikeInfo() {
+            if(mFeed.getLikeCount() > 0) {
+                mBinding.tvLikesCount.setText(String.format("%d %s", mFeed.getLikeCount(), mFeed.getLikeCount() > 1 ? "likes" : "like"));
+            } else {
+                mBinding.tvLikesCount.setVisibility(View.GONE);
+            }
+
+            if(mFeed.isLiked){
+                mBinding.imgLike.setImageResource(R.drawable.ic_favorite_red_24dp);
+            }else{
+                mBinding.imgLike.setImageResource(R.drawable.ic_favorite_border_black_24dp);
             }
         }
     }

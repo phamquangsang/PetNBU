@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <com.petnbu.petnbu.views.InterceptTouchEventsLayout
         android:id="@+id/layoutRoot"
@@ -18,21 +18,21 @@
                 android:id="@+id/imgProfile"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
-                android:layout_marginLeft="12dp"
                 android:layout_marginStart="12dp"
+                android:layout_marginLeft="12dp"
                 android:layout_marginTop="8dp"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:ignore="ContentDescription"
-                tools:targetApi="lollipop"/>
+                tools:targetApi="lollipop" />
 
             <TextView
                 android:id="@+id/tvName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="12dp"
                 android:layout_marginStart="12dp"
+                android:layout_marginLeft="12dp"
                 android:maxLines="1"
                 android:singleLine="true"
                 android:textColor="@android:color/black"
@@ -48,7 +48,7 @@
                 app:layout_constraintTop_toTopOf="@+id/imgProfile"
                 tools:ignore="MissingPrefix"
                 tools:targetApi="lollipop"
-                tools:text="AI Domigo"/>
+                tools:text="AI Domigo" />
 
             <TextView
                 android:id="@+id/tvDate"
@@ -60,7 +60,7 @@
                 android:textSize="14sp"
                 app:layout_constraintBottom_toBottomOf="@+id/imgProfile"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/imgProfile"/>
+                app:layout_constraintTop_toTopOf="@+id/imgProfile" />
 
             <FrameLayout
                 android:id="@+id/layoutMedia"
@@ -77,74 +77,75 @@
                     android:id="@+id/vpPhotos"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:overScrollMode="never"/>
+                    android:overScrollMode="never" />
 
                 <TextView
                     android:id="@+id/tvPhotosCount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="top|right"
+                    android:layout_marginTop="12dp"
                     android:layout_marginEnd="12dp"
                     android:layout_marginRight="12dp"
-                    android:layout_marginTop="12dp"
                     android:background="#DC000000"
                     android:maxEms="3"
                     android:padding="4dp"
                     android:textAppearance="@style/TextAppearance.AppCompat.Small"
                     android:textColor="@android:color/white"
-                    tools:text="1/5"/>
+                    tools:text="1/5" />
             </FrameLayout>
 
             <ImageView
                 android:id="@+id/imgLike"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="12dp"
                 android:layout_marginStart="12dp"
+                android:layout_marginLeft="12dp"
                 android:layout_marginTop="8dp"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/layoutMedia"
                 app:srcCompat="@drawable/ic_favorite_border_black_24dp"
-                tools:ignore="ContentDescription"/>
+                tools:ignore="ContentDescription" />
 
             <ProgressBar
                 android:id="@+id/imgLikeInProgress"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:layout_marginLeft="12dp"
                 android:layout_marginStart="12dp"
+                android:layout_marginLeft="12dp"
                 android:layout_marginTop="8dp"
+                android:visibility="gone"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/layoutMedia"
                 app:srcCompat="@drawable/ic_favorite_border_black_24dp"
-                tools:ignore="ContentDescription"/>
+                tools:ignore="ContentDescription" />
 
             <ImageView
                 android:id="@+id/imgComment"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="8dp"
                 android:layout_marginStart="8dp"
+                android:layout_marginLeft="8dp"
                 app:layout_constraintLeft_toRightOf="@+id/imgLike"
                 app:layout_constraintStart_toEndOf="@+id/imgLike"
                 app:layout_constraintTop_toTopOf="@+id/imgLike"
                 app:srcCompat="@drawable/ic_chat_bubble_outline_black_24dp"
-                tools:ignore="ContentDescription"/>
+                tools:ignore="ContentDescription" />
 
             <ImageView
                 android:id="@+id/imgOptions"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
                 android:layout_marginEnd="8dp"
                 android:layout_marginRight="8dp"
-                android:layout_marginTop="8dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/layoutMedia"
                 app:srcCompat="@drawable/ic_more_horiz_black_24dp"
-                tools:ignore="ContentDescription"/>
+                tools:ignore="ContentDescription" />
 
             <TextView
                 android:id="@+id/tvLikesCount"
@@ -159,22 +160,22 @@
                 app:layout_constraintLeft_toLeftOf="@+id/imgLike"
                 app:layout_constraintStart_toStartOf="@+id/imgLike"
                 app:layout_constraintTop_toBottomOf="@+id/imgLike"
-                tools:text="368 likes"/>
+                tools:text="368 likes" />
 
             <TextView
                 android:id="@+id/tvArticleSite"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingBottom="4dp"
-                android:paddingEnd="8dp"
-                android:paddingLeft="8dp"
-                android:paddingRight="8dp"
                 android:paddingStart="8dp"
+                android:paddingLeft="8dp"
                 android:paddingTop="4dp"
+                android:paddingEnd="8dp"
+                android:paddingRight="8dp"
+                android:paddingBottom="4dp"
                 android:visibility="gone"
                 app:layout_constraintBottom_toBottomOf="@+id/layoutMedia"
                 app:layout_constraintStart_toStartOf="@+id/layoutMedia"
-                tools:text="rapper.com"/>
+                tools:text="rapper.com" />
 
             <TextView
                 android:id="@+id/tvArticleTitle"
@@ -187,7 +188,7 @@
                 android:visibility="gone"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/layoutMedia"
-                tools:text="An idea and a dream of an Enterepreneur, Valeniece Balace her sister and a long  "/>
+                tools:text="An idea and a dream of an Enterepreneur, Valeniece Balace her sister and a long  " />
 
             <TextView
                 android:id="@+id/tvContent"
@@ -202,21 +203,19 @@
                 app:layout_constrainedWidth="true"
                 app:layout_constraintEnd_toEndOf="@+id/tvDate"
                 app:layout_constraintHorizontal_bias="0"
-                app:layout_constraintLeft_toLeftOf="@+id/tvLikesCount"
+                app:layout_constraintLeft_toLeftOf="@+id/imgProfile"
                 app:layout_constraintRight_toRightOf="@+id/tvDate"
-                app:layout_constraintStart_toStartOf="@+id/tvLikesCount"
+                app:layout_constraintStart_toStartOf="@+id/imgProfile"
                 app:layout_constraintTop_toBottomOf="@+id/tvLikesCount"
-                app:layout_goneMarginLeft="12dp"
-                app:layout_goneMarginStart="12dp"
-                tools:text="this is a test contentthis is a test contentthis is a test contentthis is a test contentthis is a test content"/>
+                tools:text="this is a test contentthis is a test contentthis is a test contentthis is a test contentthis is a test content" />
 
             <TextView
                 android:id="@+id/tvViewComments"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingTop="8dp"
-                android:fontFamily="sans-serif"
                 android:background="?attr/selectableItemBackground"
+                android:fontFamily="sans-serif"
+                android:paddingTop="8dp"
                 android:textColor="@android:color/secondary_text_light_nodisable"
                 android:textSize="14sp"
                 app:layout_constraintLeft_toLeftOf="@+id/tvLikesCount"
@@ -242,7 +241,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    app:SpinKit_Color="@color/colorPrimary"/>
+                    app:SpinKit_Color="@color/colorPrimary" />
 
                 <LinearLayout
                     android:id="@+id/layoutError"
@@ -255,7 +254,7 @@
                     <ImageView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:src="@drawable/ic_error_outline"/>
+                        android:src="@drawable/ic_error_outline" />
                 </LinearLayout>
             </FrameLayout>
         </android.support.constraint.ConstraintLayout>
