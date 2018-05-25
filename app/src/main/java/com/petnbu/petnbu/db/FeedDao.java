@@ -56,7 +56,12 @@ public abstract class FeedDao {
     @Query("UPDATE feeds SET photos = (:photos), content = :content, timeUpdated = :timeUpdated " +
             "WHERE feedId = :feedId")
     @TypeConverters(ListPhotoConverters.class)
-    public abstract void updateFeed(List<Photo> photos, String content, String feedId, Date timeUpdated);
+    public abstract void updateContentPhotosFeed(List<Photo> photos, String content, String feedId, Date timeUpdated);
+
+    @Query("UPDATE feeds SET latestCommentId = :latestCommentId, commentCount = :commentCount " +
+            "WHERE feedId = :feedId")
+    @TypeConverters(ListPhotoConverters.class)
+    public abstract void updateLatestCommentId(String latestCommentId, int commentCount, String feedId);
 
     @Query("UPDATE feeds set status = :status where feedId = :feedId")
     public abstract void updateFeedLocalStatus(int status, String feedId);

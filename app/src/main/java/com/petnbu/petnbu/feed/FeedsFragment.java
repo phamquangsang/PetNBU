@@ -21,6 +21,7 @@ import android.view.ViewGroup;
 
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.SharedPrefUtil;
+import com.petnbu.petnbu.util.TraceUtils;
 import com.petnbu.petnbu.util.Utils;
 import com.petnbu.petnbu.databinding.FragmentFeedsBinding;
 import com.petnbu.petnbu.feed.comment.CommentsActivity;
@@ -121,7 +122,7 @@ public class FeedsFragment extends Fragment {
 
             @Override
             public void onOptionClicked(View view, FeedUI feed) {
-                if(feed.ownerId.equals(mUserId)) {
+                if (feed.ownerId.equals(mUserId)) {
                     PopupMenu popupMenu = new PopupMenu(view.getContext(), view);
                     popupMenu.getMenu().add("Edit");
                     popupMenu.setOnMenuItemClickListener(item -> {
@@ -145,14 +146,10 @@ public class FeedsFragment extends Fragment {
         mBinding.rvFeeds.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                if (dy > 0) {
-                    if(mBinding.fabNewPost.isShown()){
-                        mBinding.fabNewPost.hide();
-                    }
-                } else if (dy < 0) {
-                    if(!mBinding.fabNewPost.isShown()){
-                        mBinding.fabNewPost.show();
-                    }
+                if (dy > 50) {
+                    mBinding.fabNewPost.hide();
+                } else if (dy < -10) {
+                    mBinding.fabNewPost.show();
                 }
 
                 LinearLayoutManager layoutManager = (LinearLayoutManager)
@@ -162,6 +159,7 @@ public class FeedsFragment extends Fragment {
                 if (lastPosition == mAdapter.getItemCount() - 1) {
                     mFeedsViewModel.loadNextPage();
                 }
+
                 super.onScrolled(recyclerView, dx, dy);
             }
         });
