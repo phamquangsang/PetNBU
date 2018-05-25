@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <android.support.constraint.ConstraintLayout
         android:id="@+id/layoutRoot"
@@ -17,7 +17,7 @@
             android:layout_marginLeft="12dp"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/tvContent"
@@ -25,20 +25,22 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
             android:layout_marginLeft="12dp"
+            android:layout_marginEnd="12dp"
+            android:layout_marginRight="12dp"
             android:fontFamily="sans-serif"
             android:includeFontPadding="false"
             android:textColor="@android:color/black"
             android:textSize="14sp"
             app:layout_constrainedWidth="true"
-            app:layout_constraintEnd_toStartOf="@+id/layoutLike"
+            app:layout_constraintEnd_toStartOf="@+id/imgLike"
             app:layout_constraintHorizontal_bias="0"
             app:layout_constraintLeft_toRightOf="@+id/imgProfile"
-            app:layout_constraintRight_toLeftOf="@+id/layoutLike"
+            app:layout_constraintRight_toLeftOf="@+id/imgLike"
             app:layout_constraintStart_toEndOf="@+id/imgProfile"
             app:layout_constraintTop_toTopOf="@+id/imgProfile"
             app:layout_goneMarginEnd="12dp"
             app:layout_goneMarginRight="12dp"
-            tools:text="Nhat Pham something"/>
+            tools:text="Nhat Pham something" />
 
         <com.petnbu.petnbu.views.RatioImageView
             android:id="@+id/imgPhoto"
@@ -47,15 +49,17 @@
             android:layout_marginStart="12dp"
             android:layout_marginLeft="12dp"
             android:layout_marginTop="8dp"
+            android:layout_marginEnd="12dp"
+            android:layout_marginRight="12dp"
             android:scaleType="fitStart"
-            app:layout_constraintEnd_toStartOf="@+id/layoutLike"
+            app:layout_constraintEnd_toStartOf="@+id/imgLike"
             app:layout_constraintLeft_toRightOf="@+id/imgProfile"
-            app:layout_constraintRight_toLeftOf="@+id/layoutLike"
+            app:layout_constraintRight_toLeftOf="@+id/imgLike"
             app:layout_constraintStart_toEndOf="@+id/imgProfile"
             app:layout_constraintTop_toBottomOf="@+id/tvContent"
             app:layout_goneMarginEnd="12dp"
             app:layout_goneMarginRight="12dp"
-            tools:layout_height="150dp"/>
+            tools:layout_height="150dp" />
 
         <TextView
             android:id="@+id/tvDate"
@@ -70,7 +74,7 @@
             app:layout_constraintStart_toEndOf="@+id/imgProfile"
             app:layout_constraintTop_toBottomOf="@+id/imgPhoto"
             app:layout_goneMarginTop="4dp"
-            tools:text="2h"/>
+            tools:text="2h" />
 
         <TextView
             android:id="@+id/tvLikesCount"
@@ -82,7 +86,7 @@
             app:layout_constraintLeft_toRightOf="@+id/tvDate"
             app:layout_constraintStart_toEndOf="@+id/tvDate"
             app:layout_constraintTop_toTopOf="@+id/tvDate"
-            tools:text="8 likes"/>
+            tools:text="8 likes" />
 
         <TextView
             android:id="@+id/tvReply"
@@ -94,7 +98,7 @@
             android:textSize="12sp"
             app:layout_constraintLeft_toRightOf="@+id/tvLikesCount"
             app:layout_constraintStart_toEndOf="@+id/tvLikesCount"
-            app:layout_constraintTop_toTopOf="@+id/tvLikesCount"/>
+            app:layout_constraintTop_toTopOf="@+id/tvLikesCount" />
 
         <TextView
             android:id="@+id/tvPreviousReplies"
@@ -109,7 +113,7 @@
             app:layout_constraintLeft_toLeftOf="@+id/tvDate"
             app:layout_constraintStart_toStartOf="@+id/tvDate"
             app:layout_constraintTop_toBottomOf="@+id/tvDate"
-            tools:text="View 11 previous replies"/>
+            tools:text="View 11 previous replies" />
 
         <TextView
             android:id="@+id/tvLatestComment"
@@ -130,7 +134,7 @@
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintStart_toStartOf="@+id/tvPreviousReplies"
             app:layout_constraintTop_toBottomOf="@+id/tvPreviousReplies"
-            tools:text="Nhat Pham Good!"/>
+            tools:text="Nhat Pham Good!" />
 
         <View
             android:id="@+id/divider"
@@ -143,13 +147,12 @@
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tvLatestComment"
-            app:layout_goneMarginTop="14dp"/>
+            app:layout_goneMarginTop="14dp" />
 
         <ImageView
-            android:id="@+id/layoutLike"
+            android:id="@+id/imgLike"
             android:layout_width="22dp"
             android:layout_height="22dp"
-            android:layout_marginTop="12dp"
             android:layout_marginEnd="12dp"
             android:layout_marginRight="12dp"
             android:layout_marginBottom="12dp"
@@ -157,19 +160,20 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="@+id/imgProfile"
-            app:srcCompat="@drawable/ic_favorite_border_black_24dp"/>
+            app:srcCompat="@drawable/ic_favorite_border_black_24dp" />
 
         <ProgressBar
             android:id="@+id/progressBar"
-            android:layout_width="34dp"
-            android:layout_height="34dp"
-            android:layout_margin="12dp"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_marginEnd="12dp"
+            android:layout_marginRight="12dp"
             android:indeterminate="true"
             android:indeterminateDrawable="@drawable/indeterminate_progress_bar_background"
             android:indeterminateDuration="800"
             app:layout_constraintBottom_toBottomOf="@+id/imgProfile"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/imgProfile"/>
+            app:layout_constraintTop_toTopOf="@+id/imgProfile" />
     </android.support.constraint.ConstraintLayout>
 </layout>
