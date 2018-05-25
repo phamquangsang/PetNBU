@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.bumptech.glide.Glide;
+import com.petnbu.petnbu.GlideApp;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.databinding.FragmentFeedProfileListBinding;
 import com.petnbu.petnbu.model.Feed;
@@ -23,18 +24,11 @@ import com.petnbu.petnbu.model.UserEntity;
 
 import timber.log.Timber;
 
-/**
- * A fragment representing a list of Items.
- * <p/>
- * Activities containing this fragment MUST implement the {@link OnProfileFragmentInteractionListener}
- * interface.
- */
 public class UserProfileFragment extends Fragment {
 
-    // TODO: Customize parameter argument names
     private static final String ARG_COLUMN_COUNT = "column-count";
     private static String ARG_USER_ID = "user-id";
-    // TODO: Customize parameters
+
     private int mColumnCount = 1;
     private String mUserId;
     private OnProfileFragmentInteractionListener mListener;
@@ -42,15 +36,9 @@ public class UserProfileFragment extends Fragment {
     private ProfileFeedAdapter mAdapter;
     private FragmentFeedProfileListBinding mBinding;
 
-    /**
-     * Mandatory empty constructor for the fragment manager to instantiate the
-     * fragment (e.g. upon screen orientation changes).
-     */
     public UserProfileFragment() {
     }
 
-    // TODO: Customize parameter initialization
-    @SuppressWarnings("unused")
     public static UserProfileFragment newInstance(int columnCount, String userId) {
         UserProfileFragment fragment = new UserProfileFragment();
         Bundle args = new Bundle();
@@ -75,7 +63,6 @@ public class UserProfileFragment extends Fragment {
                              Bundle savedInstanceState) {
         mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_feed_profile_list, container, false);
 
-        // Set the adapter
         if (mColumnCount <= 1) {
             mBinding.list.setLayoutManager(new LinearLayoutManager(getContext()));
         } else {
@@ -124,7 +111,10 @@ public class UserProfileFragment extends Fragment {
                 mBinding.tvUserNamePlaceHolder.setVisibility(View.GONE);
                 mBinding.tvUserName.setVisibility(View.VISIBLE);
                 mBinding.tvUserName.setText(userEntity.getName());
-                Glide.with(mBinding.imgProfile).load(userEntity.getAvatar().getOriginUrl()).into(mBinding.imgProfile);
+
+                GlideApp.with(mBinding.imgProfile)
+                        .load(userEntity.getAvatar().getOriginUrl())
+                        .into(mBinding.imgProfile);
             }
         });
     }
@@ -146,18 +136,8 @@ public class UserProfileFragment extends Fragment {
         mListener = null;
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
     public interface OnProfileFragmentInteractionListener {
-        // TODO: Update argument type and name
+
         void onListFragmentInteractionListener(FeedUI item);
     }
 }

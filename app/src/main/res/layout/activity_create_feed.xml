@@ -29,7 +29,7 @@
             android:id="@+id/layoutScroll"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@android:color/white"
+            android:background="@color/colorPrimaryLight"
             android:fillViewport="true"
             android:overScrollMode="never">
 

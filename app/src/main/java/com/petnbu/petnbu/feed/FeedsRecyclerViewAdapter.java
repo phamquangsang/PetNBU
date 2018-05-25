@@ -3,7 +3,6 @@ package com.petnbu.petnbu.feed;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.databinding.DataBindingUtil;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
@@ -11,9 +10,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.util.ArrayMap;
-import android.support.v4.view.ViewPager;
 import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.PagerSnapHelper;
@@ -25,7 +22,6 @@ import android.text.TextUtils;
 import android.text.format.DateUtils;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,19 +42,19 @@ import java.util.Locale;
 
 import timber.log.Timber;
 
-import static com.petnbu.petnbu.model.LocalStatus.STATUS_DONE;
 import static com.petnbu.petnbu.model.LocalStatus.STATUS_ERROR;
 import static com.petnbu.petnbu.model.LocalStatus.STATUS_UPLOADING;
 
 public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecyclerViewAdapter.ViewHolder> {
 
-    private GlideRequests mGlideRequests;
+    private final GlideRequests mGlideRequests;
     private List<FeedUI> mFeeds;
-    private ArrayMap<String, Integer> lastSelectedPhotoPositions = new ArrayMap<>();
-    private FeedsViewModel mFeedsViewModel;
+    private final ArrayMap<String, Integer> lastSelectedPhotoPositions = new ArrayMap<>();
+    private final FeedsViewModel mFeedsViewModel;
+    private final RecyclerView.RecycledViewPool mFeedPhotosViewPool;
 
     private int maxPhotoHeight;
-    private int deviceWidth;
+    private final int deviceWidth;
     private final int minPhotoHeight;
     private final OnItemClickListener mOnItemClickListener;
     private int mDataVersion;
@@ -73,6 +69,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
         mOnItemClickListener = onItemClickListener;
         mFeedsViewModel = feedsViewModel;
         deviceWidth = Utils.getDeviceWidth(context);
+        mFeedPhotosViewPool = new RecyclerView.RecycledViewPool();
     }
 
     @NonNull
@@ -188,6 +185,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
             mBinding.rvPhotos.setLayoutManager(new LinearLayoutManager(itemView.getContext(), LinearLayoutManager.HORIZONTAL, false));
             SnapHelper snapHelper = new PagerSnapHelper();
             snapHelper.attachToRecyclerView(mBinding.rvPhotos);
+            mBinding.rvPhotos.setRecycledViewPool(mFeedPhotosViewPool);
         }
 
         public void bindData(FeedUI feed) {

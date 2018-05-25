@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
-        <variable name="feed" type="com.petnbu.petnbu.model.FeedUI"/>
+
+        <variable
+            name="feed"
+            type="com.petnbu.petnbu.model.FeedUI" />
     </data>
 
     <android.support.constraint.ConstraintLayout
@@ -17,22 +19,22 @@
             android:id="@+id/imgPhoto"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            tools:src="@drawable/logo"
-            app:bindPhoto="@{feed.getPhotos().get(0)}"
             android:scaleType="centerCrop"
-            app:layout_constraintDimensionRatio="1:1"/>
+            app:bindPhoto="@{feed.getPhotos().get(0)}"
+            app:layout_constraintDimensionRatio="1:1"
+            tools:src="@drawable/logo" />
 
         <ImageView
             android:id="@+id/img_multiple_photos"
             android:layout_width="30dp"
             android:layout_height="30dp"
+            android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
             android:layout_marginRight="8dp"
-            android:layout_marginTop="8dp"
-            app:visibleGone="@{feed.getPhotos().size > 1}"
-            app:srcCompat="@drawable/ic_filter_2_black_24dp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_filter_2_black_24dp"
+            app:visibleGone="@{feed.getPhotos().size > 1}" />
     </android.support.constraint.ConstraintLayout>
 </layout>
 
