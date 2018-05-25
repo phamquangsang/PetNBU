@@ -9,6 +9,7 @@ import com.petnbu.petnbu.AppExecutors;
 import com.petnbu.petnbu.api.ApiResponse;
 import com.petnbu.petnbu.api.WebService;
 import com.petnbu.petnbu.db.PetDb;
+import com.petnbu.petnbu.model.CommentEntity;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.Paging;
 import com.petnbu.petnbu.model.Resource;
@@ -58,16 +59,22 @@ public class FetchNextPageGlobalFeed implements Runnable {
                             Paging newPaging = new Paging(Paging.GLOBAL_FEEDS_PAGING_ID, ids, false, ids.get(ids.size() - 1));
                             mAppExecutors.diskIO().execute(() -> {
                                 mPetDb.beginTransaction();
-                                try{
+                                try {
                                     mPetDb.feedDao().insertFromFeedList(listApiResponse.body);
-                                    for (Feed item :
-                                            listApiResponse.body) {
+                                    for (Feed item : listApiResponse.body) {
                                         mPetDb.userDao().insert(item.getFeedUser());
-                                        mPetDb.commentDao().insertFromComment(item.getLatestComment());
+                                        if (item.getLatestComment() != null) {
+                                            //the latestComment return from server does not have latestSubComment
+                                            CommentEntity remoteLatestComment = item.getLatestComment().toEntity();
+                                            CommentEntity localLatestComment = mPetDb.commentDao().getCommentById(remoteLatestComment.getId());
+                                            remoteLatestComment.setLatestCommentId(localLatestComment.getLatestCommentId());
+                                            mPetDb.commentDao().insert(remoteLatestComment);
+                                            mPetDb.userDao().insert(item.getLatestComment().getFeedUser());
+                                        }
                                     }
                                     mPetDb.pagingDao().insert(newPaging);
                                     mPetDb.setTransactionSuccessful();
-                                }finally {
+                                } finally {
                                     mPetDb.endTransaction();
                                 }
 

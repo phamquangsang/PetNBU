@@ -20,6 +20,8 @@ import com.petnbu.petnbu.jobs.CompressPhotoWorker;
 import com.petnbu.petnbu.jobs.CreateEditFeedWorker;
 import com.petnbu.petnbu.jobs.PhotoWorker;
 import com.petnbu.petnbu.jobs.UploadPhotoWorker;
+import com.petnbu.petnbu.model.Comment;
+import com.petnbu.petnbu.model.CommentEntity;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedEntity;
 import com.petnbu.petnbu.model.FeedUI;
@@ -93,7 +95,11 @@ public class FeedRepository {
                     for (Feed item : items) {
                         mPetDb.userDao().insert(item.getFeedUser());
                         if (item.getLatestComment() != null) {
-                            mPetDb.commentDao().insertFromComment(item.getLatestComment());
+                            //the latestComment return from server does not have latestSubComment
+                            CommentEntity remoteLatestComment = item.getLatestComment().toEntity();
+                            CommentEntity localLatestComment = mPetDb.commentDao().getCommentById(remoteLatestComment.getId());
+                            remoteLatestComment.setLatestCommentId(localLatestComment.getLatestCommentId());
+                            mPetDb.commentDao().insert(remoteLatestComment);
                             mPetDb.userDao().insert(item.getLatestComment().getFeedUser());
                         }
                     }
@@ -146,7 +152,11 @@ public class FeedRepository {
                 mPetDb.feedDao().insertFromFeed(item);
                 mPetDb.userDao().insert(item.getFeedUser());
                 if (item.getLatestComment() != null) {
-                    mPetDb.commentDao().insertFromComment(item.getLatestComment());
+                    //the latestComment return from server does not have latestSubComment
+                    CommentEntity remoteLatestComment = item.getLatestComment().toEntity();
+                    CommentEntity localLatestComment = mPetDb.commentDao().getCommentById(remoteLatestComment.getId());
+                    remoteLatestComment.setLatestCommentId(localLatestComment.getLatestCommentId());
+                    mPetDb.commentDao().insert(remoteLatestComment);
                     mPetDb.userDao().insert(item.getLatestComment().getFeedUser());
                 }
             }
@@ -192,7 +202,10 @@ public class FeedRepository {
                     for (Feed item : items) {
                         mPetDb.userDao().insert(item.getFeedUser());
                         if (item.getLatestComment() != null) {
-                            mPetDb.commentDao().insertFromComment(item.getLatestComment());
+                            CommentEntity remoteLatestComment = item.getLatestComment().toEntity();
+                            CommentEntity localLatestComment = mPetDb.commentDao().getCommentById(remoteLatestComment.getId());
+                            remoteLatestComment.setLatestCommentId(localLatestComment.getLatestCommentId());
+                            mPetDb.commentDao().insert(remoteLatestComment);
                             mPetDb.userDao().insert(item.getLatestComment().getFeedUser());
                         }
                     }
@@ -338,7 +351,11 @@ public class FeedRepository {
                     for (Feed feedItem : items) {
                         mPetDb.userDao().insert(feedItem.getFeedUser());
                         if (feedItem.getLatestComment() != null) {
-                            mPetDb.commentDao().insertFromComment(feedItem.getLatestComment());
+                            //the latestComment return from server does not have latestSubComment
+                            CommentEntity remoteLatestComment = feedItem.getLatestComment().toEntity();
+                            CommentEntity localLatestComment = mPetDb.commentDao().getCommentById(remoteLatestComment.getId());
+                            remoteLatestComment.setLatestCommentId(localLatestComment.getLatestCommentId());
+                            mPetDb.commentDao().insert(remoteLatestComment);
                             mPetDb.userDao().insert(feedItem.getLatestComment().getFeedUser());
                         }
                     }
