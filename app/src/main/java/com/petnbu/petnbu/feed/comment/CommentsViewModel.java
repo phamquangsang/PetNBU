@@ -50,11 +50,10 @@ public class CommentsViewModel extends ViewModel {
     Application mApplication;
 
     private LoadMoreHandler loadMoreHandler;
+    private SubCommentLoadMoreHandler subCommentLoadMoreHandler;
 
     public final ObservableBoolean showLoadingFeedReplies = new ObservableBoolean(false);
     public final ObservableBoolean showLoadingCommentReplies = new ObservableBoolean(false);
-
-    private SubCommentLoadMoreHandler subCommentLoadMoreHandler;
 
     private final SingleLiveEvent<String> mOpenRepliesEvent = new SingleLiveEvent<>();
     private final SingleLiveEvent<String> mOpenUserProfileEvent = new SingleLiveEvent<>();
@@ -104,11 +103,13 @@ public class CommentsViewModel extends ViewModel {
         });
     }
 
-    public LiveData<LoadMoreState> getLoadMoreState() {
+    public LiveData<LoadMoreState> getCommentLoadMoreState() {
         return loadMoreHandler.loadMoreState;
     }
 
-
+    public LiveData<LoadMoreState> getSubCommentLoadMoreState() {
+        return subCommentLoadMoreHandler.loadMoreState;
+    }
 
     public void sendComment(String feedId, String content, Photo photo) {
         Comment comment = new Comment();

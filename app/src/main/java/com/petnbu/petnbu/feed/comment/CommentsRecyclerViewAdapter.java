@@ -1,5 +1,6 @@
 package com.petnbu.petnbu.feed.comment;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -153,6 +154,7 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
         return mAddLoadMore ? getItemCount() - 1 : RecyclerView.NO_POSITION;
     }
 
+    @SuppressLint("StaticFieldLeak")
     public void setComments(List<CommentUI> comments) {
         mDataVersion++;
         final int startVersion = mDataVersion;

@@ -76,7 +76,7 @@ public class CommentsFragment extends Fragment {
         mBinding.setViewModel(mCommentsViewModel);
 
         mCommentsViewModel.loadComments(mFeedId).observe(this, comments -> mAdapter.setComments(comments));
-        mCommentsViewModel.getLoadMoreState().observe(this, loadMoreState -> {
+        mCommentsViewModel.getCommentLoadMoreState().observe(this, loadMoreState -> {
             if (loadMoreState != null) {
                 mAdapter.setAddLoadMore(loadMoreState.isRunning());
 
