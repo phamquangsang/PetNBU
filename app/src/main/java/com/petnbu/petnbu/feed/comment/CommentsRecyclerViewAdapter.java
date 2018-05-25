@@ -7,6 +7,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -35,6 +36,7 @@ import com.petnbu.petnbu.BaseBindingViewHolder;
 import com.petnbu.petnbu.GlideApp;
 import com.petnbu.petnbu.GlideRequests;
 import com.petnbu.petnbu.R;
+import com.petnbu.petnbu.model.FeedUI;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.util.Utils;
 import com.petnbu.petnbu.databinding.ViewCommentBinding;
@@ -87,6 +89,38 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
     public void onBindViewHolder(@NonNull BaseBindingViewHolder holder, int position) {
         if (getItemViewType(position) != VIEW_TYPE_LOADING) {
             holder.bindData(mComments.get(position));
+        }
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull BaseBindingViewHolder holder, int position, @NonNull List<Object> payloads) {
+        if(!payloads.isEmpty()) {
+            Bundle bundle = (Bundle) payloads.get(0);
+            if(bundle.getBoolean("like_status")) {
+                CommentUI commentUI = mComments.get(position);
+                ViewHolder commentViewHolder = (ViewHolder) holder;
+                if (commentUI.getLocalStatus() == LocalStatus.STATUS_UPLOADING || commentUI.isLikeInProgress()) {
+                    commentViewHolder.mBinding.imgLike.setVisibility(View.INVISIBLE);
+                    commentViewHolder.mBinding.progressBar.setVisibility(View.VISIBLE);
+                } else {
+                    commentViewHolder.mBinding.imgLike.setVisibility(View.VISIBLE);
+                    commentViewHolder.mBinding.progressBar.setVisibility(View.GONE);
+
+                    if(commentUI.isLiked()){
+                        commentViewHolder.mBinding.imgLike.setImageResource(R.drawable.ic_favorite_red_24dp);
+                    }else{
+                        commentViewHolder.mBinding.imgLike.setImageResource(R.drawable.ic_favorite_border_black_24dp);
+                    }
+                }
+                if(commentUI.getLikeCount() > 0) {
+                    commentViewHolder.mBinding.tvLikesCount.setVisibility(View.VISIBLE);
+                    commentViewHolder.mBinding.tvLikesCount.setText(String.format("%d %s", commentUI.getLikeCount(), commentUI.getLikeCount() > 1 ? "likes" : "like"));
+                } else {
+                    commentViewHolder.mBinding.tvLikesCount.setVisibility(View.GONE);
+                }
+            }
+        } else {
+            super.onBindViewHolder(holder, position, payloads);
         }
     }
 
@@ -231,18 +265,12 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
         private void displayInfo() {
             mBinding.tvDate.setText(DateUtils.getRelativeTimeSpanString(mComment.getTimeCreated().getTime(),
                     Calendar.getInstance().getTimeInMillis(), 0L, DateUtils.FORMAT_ABBREV_RELATIVE));
+
             if (!mComment.getId().equals(mFeedId)) {
                 mBinding.divider.setVisibility(View.INVISIBLE);
                 mBinding.tvLikesCount.setVisibility(View.VISIBLE);
                 mBinding.tvReply.setVisibility(View.VISIBLE);
                 mBinding.imgLike.setVisibility(View.VISIBLE);
-
-                if (mComment.getLikeCount() > 0) {
-                    mBinding.tvLikesCount.setVisibility(View.VISIBLE);
-                    mBinding.tvLikesCount.setText(String.format("%d %s", mComment.getLikeCount(), mComment.getLikeCount() > 1 ? "likes" : "like"));
-                } else {
-                    mBinding.tvLikesCount.setVisibility(View.GONE);
-                }
 
                 if (mComment.getLocalStatus() == LocalStatus.STATUS_UPLOADING || mComment.isLikeInProgress()) {
                     mBinding.imgLike.setVisibility(View.INVISIBLE);
@@ -250,11 +278,17 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
                 } else {
                     mBinding.imgLike.setVisibility(View.VISIBLE);
                     mBinding.progressBar.setVisibility(View.GONE);
-                    if(mComment.isLiked){
+                    if(mComment.isLiked()){
                         mBinding.imgLike.setImageResource(R.drawable.ic_favorite_red_24dp);
                     }else{
                         mBinding.imgLike.setImageResource(R.drawable.ic_favorite_border_black_24dp);
                     }
+                }
+                if (mComment.getLikeCount() > 0) {
+                    mBinding.tvLikesCount.setVisibility(View.VISIBLE);
+                    mBinding.tvLikesCount.setText(String.format("%d %s", mComment.getLikeCount(), mComment.getLikeCount() > 1 ? "likes" : "like"));
+                } else {
+                    mBinding.tvLikesCount.setVisibility(View.GONE);
                 }
             } else {
                 mBinding.tvLikesCount.setVisibility(View.GONE);
@@ -296,9 +330,11 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
                     mBinding.tvPreviousReplies.setVisibility(View.GONE);
                 }
 
+                String latestCommentOwnerAvatarUrl = TextUtils.isEmpty(mComment.getLatestCommentOwnerAvatar().getThumbnailUrl()) ?
+                        mComment.getLatestCommentOwnerAvatar().getOriginUrl() : mComment.getLatestCommentOwnerAvatar().getThumbnailUrl();
                 mGlideRequests.asBitmap()
-                        .load(mComment.getLatestCommentOwnerAvatar().getOriginUrl())
-                        .apply(RequestOptions.overrideOf(imageSize, imageSize))
+                        .load(latestCommentOwnerAvatarUrl)
+                        .override(imageSize, imageSize)
                         .listener(new RequestListener<Bitmap>() {
                             @Override
                             public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {
@@ -361,6 +397,19 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
         @Override
         public boolean areContentsTheSame(int oldPos, int newPos) {
             return oldData.get(oldPos).equals(newData.get(newPos));
+        }
+
+        @Nullable
+        @Override
+        public Object getChangePayload(int oldItemPosition, int newItemPosition) {
+            Bundle bundle = new Bundle();
+            CommentUI oldComment = oldData.get(oldItemPosition);
+            CommentUI newComment = newData.get(newItemPosition);
+            if(oldComment.isLikeInProgress() != newComment.isLikeInProgress() || oldComment.isLiked() != newComment.isLiked()) {
+                bundle.putBoolean("like_status", true);
+                return bundle;
+            }
+            return super.getChangePayload(oldItemPosition, newItemPosition);
         }
     }
 }

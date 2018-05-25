@@ -93,17 +93,18 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
             Bundle bundle = (Bundle) payloads.get(0);
             if(bundle.getBoolean("like_status")) {
                 FeedUI feed = mFeeds.get(position);
-                if (feed.isLiked) {
-                    holder.mBinding.imgLike.setImageResource(R.drawable.ic_favorite_red_24dp);
-                } else {
-                    holder.mBinding.imgLike.setImageResource(R.drawable.ic_favorite_border_black_24dp);
-                }
                 if (feed.likeInProgress) {
                     holder.mBinding.imgLike.setVisibility(View.INVISIBLE);
                     holder.mBinding.imgLikeInProgress.setVisibility(View.VISIBLE);
                 } else {
                     holder.mBinding.imgLike.setVisibility(View.VISIBLE);
                     holder.mBinding.imgLikeInProgress.setVisibility(View.GONE);
+
+                    if (feed.isLiked) {
+                        holder.mBinding.imgLike.setImageResource(R.drawable.ic_favorite_red_24dp);
+                    } else {
+                        holder.mBinding.imgLike.setImageResource(R.drawable.ic_favorite_border_black_24dp);
+                    }
                 }
                 if(feed.getLikeCount() > 0) {
                     holder.mBinding.tvLikesCount.setVisibility(View.VISIBLE);
@@ -230,8 +231,9 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
             displayUserInfo();
             displayTime();
             displayPhotos();
-            displayText();
             displayLikeInfo();
+            displayContent();
+            displayCommentCount();
         }
 
         private void displayUserInfo() {
@@ -297,7 +299,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
             mBinding.layoutMedia.setLayoutParams(layoutParams);
         }
 
-        private void displayText() {
+        private void displayContent() {
             SpannableStringBuilder builder = new SpannableStringBuilder();
             if(!TextUtils.isEmpty(mFeed.feedContent)) {
                 builder.append(mFeed.name);
@@ -319,26 +321,35 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
             }
             mBinding.tvContent.setVisibility(TextUtils.isEmpty(builder) ? View.GONE : View.VISIBLE);
             mBinding.tvContent.setText(builder);
-
-            if(mFeed.getCommentCount() > 1) {
-                mBinding.tvViewComments.setVisibility(View.VISIBLE);
-                mBinding.tvViewComments.setText(String.format("View all %d comments", mFeed.getCommentCount()));
-            } else {
-                mBinding.tvViewComments.setVisibility(View.GONE);
-            }
         }
 
         private void displayLikeInfo() {
+            if (mFeed.likeInProgress) {
+                mBinding.imgLike.setVisibility(View.INVISIBLE);
+                mBinding.imgLikeInProgress.setVisibility(View.VISIBLE);
+            } else {
+                mBinding.imgLike.setVisibility(View.VISIBLE);
+                mBinding.imgLikeInProgress.setVisibility(View.GONE);
+
+                if (mFeed.isLiked) {
+                    mBinding.imgLike.setImageResource(R.drawable.ic_favorite_red_24dp);
+                } else {
+                    mBinding.imgLike.setImageResource(R.drawable.ic_favorite_border_black_24dp);
+                }
+            }
             if(mFeed.getLikeCount() > 0) {
                 mBinding.tvLikesCount.setText(String.format("%d %s", mFeed.getLikeCount(), mFeed.getLikeCount() > 1 ? "likes" : "like"));
             } else {
                 mBinding.tvLikesCount.setVisibility(View.GONE);
             }
+        }
 
-            if(mFeed.isLiked){
-                mBinding.imgLike.setImageResource(R.drawable.ic_favorite_red_24dp);
-            }else{
-                mBinding.imgLike.setImageResource(R.drawable.ic_favorite_border_black_24dp);
+        private void displayCommentCount() {
+            if(mFeed.getCommentCount() > 1) {
+                mBinding.tvViewComments.setVisibility(View.VISIBLE);
+                mBinding.tvViewComments.setText(String.format("View all %d comments", mFeed.getCommentCount()));
+            } else {
+                mBinding.tvViewComments.setVisibility(View.GONE);
             }
         }
     }
