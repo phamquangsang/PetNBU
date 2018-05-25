@@ -155,7 +155,6 @@
             android:layout_height="22dp"
             android:layout_marginEnd="12dp"
             android:layout_marginRight="12dp"
-            android:layout_marginBottom="12dp"
             app:layout_constraintBottom_toBottomOf="@+id/imgProfile"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintRight_toRightOf="parent"
