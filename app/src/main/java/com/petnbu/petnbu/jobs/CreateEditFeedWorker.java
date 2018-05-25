@@ -189,7 +189,7 @@ public class CreateEditFeedWorker extends Worker {
 
                     mAppExecutors.diskIO().execute(() -> mPetDb.runInTransaction(() ->{
                         Gson gson = new Gson();
-                        mFeedDao.updateFeed(newFeed.getPhotos(), newFeed.getContent(), newFeed.getFeedId(), newFeed.getTimeUpdated());
+                        mFeedDao.updateContentPhotosFeed(newFeed.getPhotos(), newFeed.getContent(), newFeed.getFeedId(), newFeed.getTimeUpdated());
                         mFeedDao.updateFeedLocalStatus(STATUS_DONE, newFeed.getFeedId());
                         countDownLatch.countDown();
                     }));

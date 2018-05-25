@@ -17,6 +17,7 @@ import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.db.UserDao;
 import com.petnbu.petnbu.model.Comment;
 import com.petnbu.petnbu.model.CommentEntity;
+import com.petnbu.petnbu.model.FeedEntity;
 import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Paging;
 import com.petnbu.petnbu.model.Photo;
@@ -147,6 +148,8 @@ public class CreateCommentWorker extends Worker {
                         mCommentDao.updateCommentId(oldCommentId, newComment.getId());
                         newComment.setLocalStatus(STATUS_DONE);
                         mCommentDao.update(newComment.toEntity());
+                        FeedEntity parentFeed = mPetDb.feedDao().findFeedEntityById(newComment.getParentFeedId());
+                        mPetDb.feedDao().updateLatestCommentId(newComment.getId(), parentFeed.getCommentCount() + 1, newComment.getParentFeedId());
                     }));
                 } else {
                     Timber.d("create comment %s error : %s", comment.getId(), commentApiResponse.errorMessage);
