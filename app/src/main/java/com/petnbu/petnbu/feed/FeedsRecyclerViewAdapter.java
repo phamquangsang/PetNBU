@@ -339,6 +339,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
             }
             if(mFeed.getLikeCount() > 0) {
                 mBinding.tvLikesCount.setText(String.format("%d %s", mFeed.getLikeCount(), mFeed.getLikeCount() > 1 ? "likes" : "like"));
+                mBinding.tvLikesCount.setVisibility(View.VISIBLE);
             } else {
                 mBinding.tvLikesCount.setVisibility(View.GONE);
             }

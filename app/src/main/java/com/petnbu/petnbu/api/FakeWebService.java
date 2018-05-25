@@ -422,4 +422,14 @@ public class FakeWebService implements WebService {
     public LiveData<ApiResponse<Comment>> unLikeComment(String userId, String commentId) {
         return null;
     }
+
+    @Override
+    public LiveData<ApiResponse<Comment>> likeSubComment(String userId, String subCommentId) {
+        return null;
+    }
+
+    @Override
+    public LiveData<ApiResponse<Comment>> unLikeSubComment(String userId, String subCommentId) {
+        return null;
+    }
 }

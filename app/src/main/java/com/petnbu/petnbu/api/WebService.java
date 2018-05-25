@@ -44,11 +44,17 @@ public interface WebService {
 
     LiveData<ApiResponse<Comment>> unLikeComment(String userId, String commentId);
 
+    LiveData<ApiResponse<Comment>> likeSubComment(String userId, String subCommentId);
+
+    LiveData<ApiResponse<Comment>> unLikeSubComment(String userId, String subCommentId);
+
     LiveData<ApiResponse<Comment>> createReplyComment(Comment comment, String parentCommentId);
 
     LiveData<ApiResponse<List<Comment>>> getSubComments(String commentId, long after, int limit);
 
     LiveData<ApiResponse<List<Comment>>> getSubCommentsPaging(String commentId, String afterCommentId, int limit);
+
+
 }
 
 

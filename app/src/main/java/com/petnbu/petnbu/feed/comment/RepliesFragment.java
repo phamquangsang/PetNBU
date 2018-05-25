@@ -25,6 +25,7 @@ import com.petnbu.petnbu.GlideApp;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.databinding.FragmentRepliesCommentsBinding;
 import com.petnbu.petnbu.model.Photo;
+import com.petnbu.petnbu.userprofile.UserProfileActivity;
 import com.petnbu.petnbu.util.NavigationUtils;
 import com.petnbu.petnbu.util.PermissionUtils;
 import com.petnbu.petnbu.util.Utils;
@@ -84,7 +85,7 @@ public class RepliesFragment extends Fragment {
 
             @Override
             public void onLikeClicked(String commentId) {
-
+                mCommentsViewModel.likeSubCommentClicked(commentId);
             }
         }, mCommentsViewModel);
         mBinding.rvComments.setAdapter(mAdapter);

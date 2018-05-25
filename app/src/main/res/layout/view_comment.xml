@@ -96,6 +96,7 @@
             android:layout_marginLeft="16dp"
             android:text="Reply"
             android:textSize="12sp"
+            android:visibility="gone"
             app:layout_constraintLeft_toRightOf="@+id/tvLikesCount"
             app:layout_constraintStart_toEndOf="@+id/tvLikesCount"
             app:layout_constraintTop_toTopOf="@+id/tvLikesCount" />

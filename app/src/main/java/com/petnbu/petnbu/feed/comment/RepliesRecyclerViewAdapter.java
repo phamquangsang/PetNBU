@@ -1,5 +1,6 @@
 package com.petnbu.petnbu.feed.comment;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -46,6 +47,7 @@ import com.petnbu.petnbu.util.ColorUtils;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<RepliesRecyclerViewAdapter.ViewHolder> {
 
@@ -86,6 +88,7 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<RepliesRecy
         return mComments.size();
     }
 
+    @SuppressLint("StaticFieldLeak")
     public void setComments(List<CommentUI> comments) {
         mDataVersion++;
         final int startVersion = mDataVersion;
@@ -118,6 +121,14 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<RepliesRecy
                     CommentUI commentUI = mComments.get(getAdapterPosition());
                     if (commentUI.getLocalStatus() != LocalStatus.STATUS_UPLOADING)
                         mCommentsViewModel.openUserProfile(commentUI.getOwner().getUserId());
+                }
+            });
+
+            mBinding.imgLike.setOnClickListener(v -> {
+                if (getAdapterPosition() != RecyclerView.NO_POSITION) {
+                    CommentUI commentUI = mComments.get(getAdapterPosition());
+                    if (commentUI.getLocalStatus() != LocalStatus.STATUS_UPLOADING)
+                        mCommentsViewModel.likeSubCommentClicked(commentUI.getId());
                 }
             });
         }
@@ -188,19 +199,24 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<RepliesRecy
             if (!mComment.getId().equals(mCommentId)) {
                 mBinding.divider.setVisibility(View.INVISIBLE);
 
-                if (mComment.getLikeCount() > 0) {
-                    mBinding.tvLikesCount.setVisibility(View.VISIBLE);
-                    mBinding.tvLikesCount.setText(String.format("%d %s", mComment.getLikeCount(), mComment.getLikeCount() > 1 ? "likes" : "like"));
-                } else {
-                    mBinding.tvLikesCount.setVisibility(View.GONE);
-                }
-
-                if (mComment.getLocalStatus() == LocalStatus.STATUS_UPLOADING) {
+                if (mComment.getLocalStatus() == LocalStatus.STATUS_UPLOADING || mComment.isLikeInProgress()) {
                     mBinding.imgLike.setVisibility(View.INVISIBLE);
                     mBinding.progressBar.setVisibility(View.VISIBLE);
                 } else {
                     mBinding.imgLike.setVisibility(View.VISIBLE);
                     mBinding.progressBar.setVisibility(View.GONE);
+                    if(mComment.isLiked()){
+                        mBinding.imgLike.setImageResource(R.drawable.ic_favorite_red_24dp);
+                    }else{
+                        mBinding.imgLike.setImageResource(R.drawable.ic_favorite_border_black_24dp);
+                    }
+                    if (mComment.getLikeCount() > 0) {
+                        mBinding.tvLikesCount.setVisibility(View.VISIBLE);
+                        mBinding.tvLikesCount.setText(String.format(Locale.getDefault(),"%d %s",
+                                mComment.getLikeCount(), mComment.getLikeCount() > 1 ? "likes" : "like"));
+                    } else {
+                        mBinding.tvLikesCount.setVisibility(View.GONE);
+                    }
                 }
             } else {
                 mBinding.divider.setVisibility(View.VISIBLE);

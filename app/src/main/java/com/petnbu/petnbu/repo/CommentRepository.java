@@ -354,16 +354,16 @@ public class CommentRepository {
             mPetDb.commentDao().update(comment);
             mAppExecutors.networkIO().execute(() -> {
                 if (comment.isLiked()) {
-                    unLikeComment(comment, userId, commentId);
+                    unLikeComment(comment, userId);
                 } else {
-                    likeComment(comment, userId, commentId);
+                    likeComment(comment, userId);
                 }
             });
         });
     }
 
-    private void likeComment(CommentEntity comment, String userId, String commentId) {
-        LiveData<ApiResponse<Comment>> result = mWebService.likeComment(userId, commentId);
+    private void likeComment(CommentEntity comment, String userId) {
+        LiveData<ApiResponse<Comment>> result = mWebService.likeComment(userId, comment.getId());
         result.observeForever(new Observer<ApiResponse<Comment>>() {
             @Override
             public void onChanged(@Nullable ApiResponse<Comment> feedApiResponse) {
@@ -385,8 +385,8 @@ public class CommentRepository {
         });
     }
 
-    private void unLikeComment(final CommentEntity feed, String userId, String commentId) {
-        LiveData<ApiResponse<Comment>> result = mWebService.unLikeComment(userId, commentId);
+    private void unLikeComment(final CommentEntity comment, String userId) {
+        LiveData<ApiResponse<Comment>> result = mWebService.unLikeComment(userId, comment.getId());
         result.observeForever(new Observer<ApiResponse<Comment>>() {
             @Override
             public void onChanged(@Nullable ApiResponse<Comment> feedApiResponse) {
@@ -399,10 +399,75 @@ public class CommentRepository {
                             mPetDb.commentDao().update(feedResult);
                         } else {
                             mAppExecutors.mainThread().execute(() -> mToaster.makeText(feedApiResponse.errorMessage));
-                            feed.setLikeInProgress(false);
-                            mPetDb.commentDao().update(feed);
+                            comment.setLikeInProgress(false);
+                            mPetDb.commentDao().update(comment);
                         }
 
+                    }));
+
+                }
+            }
+        });
+    }
+
+    public void likeSubCommentHandler(String userId, String subCommentId) {
+        mAppExecutors.diskIO().execute(() -> {
+            CommentEntity subComment = mPetDb.commentDao().getCommentById(subCommentId);
+            if (subComment.isLikeInProgress()) {
+                return;
+            }
+            subComment.setLikeInProgress(true);
+            mPetDb.commentDao().update(subComment);
+            mAppExecutors.networkIO().execute(() -> {
+                if (subComment.isLiked()) {
+                    unLikeSubComment(subComment, userId);
+                } else {
+                    likeSubComment(subComment, userId);
+                }
+            });
+        });
+    }
+
+    private void likeSubComment(CommentEntity subComment, String userId) {
+        LiveData<ApiResponse<Comment>> result = mWebService.likeSubComment(userId, subComment.getId());
+        result.observeForever(new Observer<ApiResponse<Comment>>() {
+            @Override
+            public void onChanged(@Nullable ApiResponse<Comment> feedApiResponse) {
+                if (feedApiResponse != null) {
+                    result.removeObserver(this);
+                    mAppExecutors.diskIO().execute(() -> mPetDb.runInTransaction(() -> {
+                        if (feedApiResponse.isSucceed && feedApiResponse.body != null) {
+                            CommentEntity commentResult = feedApiResponse.body.toEntity();
+                            commentResult.setLikeInProgress(false);
+                            mPetDb.commentDao().update(commentResult);
+                        } else {
+                            mAppExecutors.mainThread().execute(() -> mToaster.makeText(feedApiResponse.errorMessage));
+                            subComment.setLikeInProgress(false);
+                            mPetDb.commentDao().update(subComment);
+                        }
+                    }));
+                }
+            }
+        });
+    }
+
+    private void unLikeSubComment(final CommentEntity subComment, String userId) {
+        LiveData<ApiResponse<Comment>> result = mWebService.unLikeSubComment(userId, subComment.getId());
+        result.observeForever(new Observer<ApiResponse<Comment>>() {
+            @Override
+            public void onChanged(@Nullable ApiResponse<Comment> feedApiResponse) {
+                if (feedApiResponse != null) {
+                    result.removeObserver(this);
+                    mAppExecutors.diskIO().execute(() -> mPetDb.runInTransaction(() -> {
+                        if (feedApiResponse.isSucceed && feedApiResponse.body != null) {
+                            CommentEntity feedResult = feedApiResponse.body.toEntity();
+                            feedResult.setLikeInProgress(false);
+                            mPetDb.commentDao().update(feedResult);
+                        } else {
+                            mAppExecutors.mainThread().execute(() -> mToaster.makeText(feedApiResponse.errorMessage));
+                            subComment.setLikeInProgress(false);
+                            mPetDb.commentDao().update(subComment);
+                        }
                     }));
 
                 }
