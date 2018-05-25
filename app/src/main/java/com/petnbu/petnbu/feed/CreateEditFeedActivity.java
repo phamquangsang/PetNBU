@@ -65,6 +65,7 @@ public class CreateEditFeedActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_create_feed);
+        getWindow().setBackgroundDrawable(null);
         initialize();
     }
 

@@ -11,8 +11,7 @@
         <android.support.constraint.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:background="#FFFFFF">
+            android:layout_marginTop="8dp">
 
             <de.hdodenhof.circleimageview.CircleImageView
                 android:id="@+id/imgProfile"
@@ -226,7 +225,7 @@
                 android:id="@+id/layoutDisable"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
-                android:background="#AAFFFFFF"
+                android:background="#CCFFFFFF"
                 android:visibility="gone"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"

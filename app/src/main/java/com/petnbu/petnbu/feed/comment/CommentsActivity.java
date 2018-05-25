@@ -22,7 +22,6 @@ public class CommentsActivity extends AppCompatActivity {
     private CommentsViewModel mCommentsViewModel;
     private CommentsFragment mCommentsFragment;
     private String mFeedId;
-    private Photo mSelectedPhoto;
 
     public static Intent newIntent(Context context, String feedId) {
         Intent intent = new Intent(context, CommentsActivity.class);
@@ -34,6 +33,7 @@ public class CommentsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_comments);
+        getWindow().setBackgroundDrawable(null);
         initialize();
     }
 

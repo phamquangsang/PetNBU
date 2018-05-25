@@ -21,6 +21,7 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:clipToPadding="false"
+            android:overScrollMode="never"
             android:paddingTop="4dp"
             android:paddingBottom="8dp"
             app:layout_constraintBottom_toTopOf="@+id/layoutInputComment"

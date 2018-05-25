@@ -25,14 +25,15 @@ public class UserProfileActivity extends AppCompatActivity implements UserProfil
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        String userId = getIntent().getStringExtra(ARG_USER_ID);
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_user_profile);
-        getSupportFragmentManager().beginTransaction()
-                .add(R.id.container, UserProfileFragment.newInstance(3, userId))
+        getWindow().setBackgroundDrawable(null);
+
+        String userId = getIntent().getStringExtra(ARG_USER_ID);
+        getSupportFragmentManager()
+                .beginTransaction()
+                .add(R.id.layoutRoot, UserProfileFragment.newInstance(3, userId))
                 .commit();
     }
-
-
 
     @Override
     public void onListFragmentInteractionListener(FeedUI item) {
