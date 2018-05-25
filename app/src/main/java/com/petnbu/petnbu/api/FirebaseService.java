@@ -653,7 +653,7 @@ public class FirebaseService implements WebService {
             }
             result.postValue(new ApiResponse<>(comments, true, null));
         })).addOnFailureListener(e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
-        return result;
+        return processUserLikeComment(false, result, SharedPrefUtil.getUserId());
     }
 
     @Override
@@ -678,7 +678,7 @@ public class FirebaseService implements WebService {
                     })).addOnFailureListener(e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
         })).addOnFailureListener(e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
 
-        return result;
+        return processUserLikeComment(false, result, SharedPrefUtil.getUserId());
     }
 
     @Override
@@ -695,7 +695,7 @@ public class FirebaseService implements WebService {
             }
             result.postValue(new ApiResponse<>(subComments, true, null));
         })).addOnFailureListener(e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
-        return result;
+        return processUserLikeComment(true, result, SharedPrefUtil.getUserId());
     }
 
     @Override
@@ -720,7 +720,7 @@ public class FirebaseService implements WebService {
             })).addOnFailureListener(e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
         })).addOnFailureListener(e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
 
-        return result;
+        return processUserLikeComment(true, result, SharedPrefUtil.getUserId());
     }
 
     private void updateFeedTransaction(Transaction transaction, Feed feed, Map<String, Object> update) {
@@ -766,6 +766,41 @@ public class FirebaseService implements WebService {
                             for (Feed feed : inputFeeds) {
                                 if (likedFeeds.containsKey(feed.getFeedId())) {
                                     feed.setLiked(true);
+                                }
+                            }
+                            result.postValue(new ApiResponse<>(inputFeeds, true, null));
+                        })).addOnFailureListener(e -> result.setValue(new ApiResponse<>(inputFeeds, false, e.getMessage())));
+            } else {
+                result.setValue(new ApiResponse<>(null, false, input.errorMessage));
+            }
+            return result;
+        });
+    }
+
+    private LiveData<ApiResponse<List<Comment>>> processUserLikeComment(boolean isSubComment,
+                                                                        LiveData<ApiResponse<List<Comment>>> commentsResponse,
+                                                                        String userId) {
+        return Transformations.switchMap(commentsResponse, input -> {
+            MutableLiveData<ApiResponse<List<Comment>>> result = new MutableLiveData<>();
+            if (input.isSucceed) {
+                List<Comment> inputFeeds = input.body;
+                if (inputFeeds == null || inputFeeds.isEmpty()) {
+                    result.setValue(input);
+                    return result;
+                }
+
+                CollectionReference userLikePosts = mDb.collection("users").document(userId)
+                        .collection(isSubComment ? "likeSubComments" : "likeComments");
+
+                userLikePosts.orderBy("timeCreated").startAt(inputFeeds.get(inputFeeds.size() - 1).getTimeCreated()).get()
+                        .addOnSuccessListener(queryDocumentSnapshots -> mExecutors.networkIO().execute(() -> {
+                            Map<String, Object> likedComments = new HashMap<>();
+                            for (DocumentSnapshot item : queryDocumentSnapshots) {
+                                likedComments.put(item.getId(), item.get("timeCreated"));
+                            }
+                            for (Comment comment : inputFeeds) {
+                                if (likedComments.containsKey(comment.getId())) {
+                                    comment.setLiked(true);
                                 }
                             }
                             result.postValue(new ApiResponse<>(inputFeeds, true, null));
