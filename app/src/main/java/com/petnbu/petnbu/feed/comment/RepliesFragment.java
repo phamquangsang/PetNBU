@@ -211,6 +211,7 @@ public class RepliesFragment extends Fragment {
         mBinding.layoutInputComment.layoutSelectedPhoto.setVisibility(View.GONE);
         mBinding.layoutInputComment.imgSelectedPhoto.setImageDrawable(null);
         mSelectedPhoto = null;
+        mBinding.rvComments.scrollToPosition(0);
         checkToEnablePostMenu();
     }
 }

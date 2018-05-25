@@ -216,22 +216,11 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<BaseBinding
         }
 
         private void displayUserInfo() {
-            mGlideRequests.asBitmap()
-                    .load(mComment.getOwner().getAvatar().getOriginUrl())
-                    .apply(RequestOptions.centerCropTransform())
-                    .into(new BitmapImageViewTarget(mBinding.imgProfile) {
-                        @Override
-                        public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                            Context context = mBinding.imgProfile.getContext();
-                            if(ColorUtils.isDark(resource)) {
-                                mBinding.imgProfile.setBorderWidth(0);
-                            } else {
-                                mBinding.imgProfile.setBorderColor(ContextCompat.getColor(context, android.R.color.darker_gray));
-                                mBinding.imgProfile.setBorderWidth(1);
-                            }
-                            getView().setImageBitmap(resource);
-                        }
-                    });
+            String avatarUrl = TextUtils.isEmpty(mComment.getOwner().getAvatar().getThumbnailUrl()) ?
+                    mComment.getOwner().getAvatar().getOriginUrl() : mComment.getOwner().getAvatar().getThumbnailUrl();
+            mGlideRequests.load(avatarUrl)
+                    .centerInside()
+                    .into(mBinding.imgProfile);
         }
 
         private void displayContent() {
