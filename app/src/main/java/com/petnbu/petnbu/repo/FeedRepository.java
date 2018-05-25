@@ -96,10 +96,7 @@ public class FeedRepository {
                         mPetDb.userDao().insert(item.getFeedUser());
                         if (item.getLatestComment() != null) {
                             //the latestComment return from server does not have latestSubComment
-                            CommentEntity remoteLatestComment = item.getLatestComment().toEntity();
-                            CommentEntity localLatestComment = mPetDb.commentDao().getCommentById(remoteLatestComment.getId());
-                            remoteLatestComment.setLatestCommentId(localLatestComment.getLatestCommentId());
-                            mPetDb.commentDao().insert(remoteLatestComment);
+                            mPetDb.commentDao().insertIfNotExists(item.getLatestComment().toEntity());
                             mPetDb.userDao().insert(item.getLatestComment().getFeedUser());
                         }
                     }
@@ -153,10 +150,7 @@ public class FeedRepository {
                 mPetDb.userDao().insert(item.getFeedUser());
                 if (item.getLatestComment() != null) {
                     //the latestComment return from server does not have latestSubComment
-                    CommentEntity remoteLatestComment = item.getLatestComment().toEntity();
-                    CommentEntity localLatestComment = mPetDb.commentDao().getCommentById(remoteLatestComment.getId());
-                    remoteLatestComment.setLatestCommentId(localLatestComment.getLatestCommentId());
-                    mPetDb.commentDao().insert(remoteLatestComment);
+                    mPetDb.commentDao().insertIfNotExists(item.getLatestComment().toEntity());
                     mPetDb.userDao().insert(item.getLatestComment().getFeedUser());
                 }
             }
@@ -202,10 +196,7 @@ public class FeedRepository {
                     for (Feed item : items) {
                         mPetDb.userDao().insert(item.getFeedUser());
                         if (item.getLatestComment() != null) {
-                            CommentEntity remoteLatestComment = item.getLatestComment().toEntity();
-                            CommentEntity localLatestComment = mPetDb.commentDao().getCommentById(remoteLatestComment.getId());
-                            remoteLatestComment.setLatestCommentId(localLatestComment.getLatestCommentId());
-                            mPetDb.commentDao().insert(remoteLatestComment);
+                            mPetDb.commentDao().insertIfNotExists(item.getLatestComment().toEntity());
                             mPetDb.userDao().insert(item.getLatestComment().getFeedUser());
                         }
                     }
@@ -352,10 +343,7 @@ public class FeedRepository {
                         mPetDb.userDao().insert(feedItem.getFeedUser());
                         if (feedItem.getLatestComment() != null) {
                             //the latestComment return from server does not have latestSubComment
-                            CommentEntity remoteLatestComment = feedItem.getLatestComment().toEntity();
-                            CommentEntity localLatestComment = mPetDb.commentDao().getCommentById(remoteLatestComment.getId());
-                            remoteLatestComment.setLatestCommentId(localLatestComment.getLatestCommentId());
-                            mPetDb.commentDao().insert(remoteLatestComment);
+                            mPetDb.commentDao().insertIfNotExists(feedItem.getLatestComment().toEntity());
                             mPetDb.userDao().insert(feedItem.getLatestComment().getFeedUser());
                         }
                     }

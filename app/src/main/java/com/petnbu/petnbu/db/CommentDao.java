@@ -25,6 +25,9 @@ public abstract class CommentDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     public abstract void insert(CommentEntity... comments);
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    public abstract void insertIfNotExists(CommentEntity... comments);
+
     @Transaction
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     public abstract void insert(List<CommentEntity> comments);

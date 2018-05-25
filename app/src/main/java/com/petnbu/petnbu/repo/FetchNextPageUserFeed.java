@@ -65,10 +65,7 @@ public class FetchNextPageUserFeed implements Runnable{
                                         mPetDb.userDao().insert(item.getFeedUser());
                                         if (item.getLatestComment() != null) {
                                             //the latestComment return from server does not have latestSubComment
-                                            CommentEntity remoteLatestComment = item.getLatestComment().toEntity();
-                                            CommentEntity localLatestComment = mPetDb.commentDao().getCommentById(remoteLatestComment.getId());
-                                            remoteLatestComment.setLatestCommentId(localLatestComment.getLatestCommentId());
-                                            mPetDb.commentDao().insert(remoteLatestComment);
+                                            mPetDb.commentDao().insertIfNotExists(item.getLatestComment().toEntity());
                                             mPetDb.userDao().insert(item.getLatestComment().getFeedUser());
                                         }
                                     }
