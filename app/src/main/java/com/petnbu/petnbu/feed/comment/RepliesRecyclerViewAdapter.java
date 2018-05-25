@@ -161,12 +161,21 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<RepliesRecy
             builder.setSpan(new ForegroundColorSpan(ColorUtils.modifyAlpha(Color.BLACK, 0.8f)), start, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             mBinding.tvContent.setText(builder);
 
-            if(mComment.getPhoto() != null) {
+            if (mComment.getPhoto() != null) {
                 mBinding.imgPhoto.setVisibility(View.VISIBLE);
+                Photo photo = mComment.getPhoto();
+
+                float ratio = photo.getWidth() / (float) photo.getHeight();
+                if (photo.getWidth() > photo.getHeight()) {
+                    mBinding.imgPhoto.set(1.0f, 1/ratio);
+                } else {
+                    mBinding.imgPhoto.set(1.0f/2, 1/(2*ratio));
+                }
                 String photoUrl = TextUtils.isEmpty(mComment.getPhoto().getSmallUrl()) ?
                         mComment.getPhoto().getOriginUrl() : mComment.getPhoto().getSmallUrl();
+
                 mGlideRequests.load(photoUrl)
-                        .apply(RequestOptions.centerInsideTransform())
+                        .centerInside()
                         .into(mBinding.imgPhoto);
             } else {
                 mBinding.imgPhoto.setVisibility(View.GONE);
@@ -187,10 +196,10 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<RepliesRecy
                 }
 
                 if (mComment.getLocalStatus() == LocalStatus.STATUS_UPLOADING) {
-                    mBinding.layoutLike.setVisibility(View.INVISIBLE);
+                    mBinding.imgLike.setVisibility(View.INVISIBLE);
                     mBinding.progressBar.setVisibility(View.VISIBLE);
                 } else {
-                    mBinding.layoutLike.setVisibility(View.VISIBLE);
+                    mBinding.imgLike.setVisibility(View.VISIBLE);
                     mBinding.progressBar.setVisibility(View.GONE);
                 }
             } else {

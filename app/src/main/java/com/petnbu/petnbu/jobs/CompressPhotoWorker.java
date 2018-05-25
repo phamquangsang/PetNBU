@@ -40,7 +40,6 @@ public class CompressPhotoWorker extends PhotoWorker {
 
                 for (Photo photo : photos) {
                     Uri photoUri = Uri.parse(photo.getOriginUrl());
-
                     if (!URLUtil.isHttpUrl(photo.getOriginUrl()) && !URLUtil.isHttpsUrl(photo.getOriginUrl())) {
                         generateCompressedPhotos(photo);
                     }

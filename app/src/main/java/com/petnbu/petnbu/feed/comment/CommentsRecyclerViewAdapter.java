@@ -36,7 +36,6 @@ import com.petnbu.petnbu.GlideApp;
 import com.petnbu.petnbu.GlideRequests;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.model.Photo;
-import com.petnbu.petnbu.util.ImageUtils;
 import com.petnbu.petnbu.util.Utils;
 import com.petnbu.petnbu.databinding.ViewCommentBinding;
 import com.petnbu.petnbu.databinding.ViewLoadingBinding;
@@ -47,8 +46,6 @@ import com.petnbu.petnbu.util.ColorUtils;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-
-import timber.log.Timber;
 
 public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindingViewHolder> {
 
@@ -172,7 +169,7 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
                 }
             });
 
-            mBinding.layoutLike.setOnClickListener(view ->{
+            mBinding.imgLike.setOnClickListener(view ->{
                 if (getAdapterPosition() != RecyclerView.NO_POSITION) {
                     CommentUI commentUI = mComments.get(getAdapterPosition());
                     if (commentUI.getLocalStatus() != LocalStatus.STATUS_UPLOADING)
@@ -191,7 +188,7 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
         }
 
         private void displayUserInfo() {
-            String avatarUrl = TextUtils.isEmpty(mComment.getOwner().getAvatar().getSmallUrl()) ?
+            String avatarUrl = TextUtils.isEmpty(mComment.getOwner().getAvatar().getThumbnailUrl()) ?
                     mComment.getOwner().getAvatar().getOriginUrl() : mComment.getOwner().getAvatar().getThumbnailUrl();
             mGlideRequests.load(avatarUrl)
                     .centerInside()
@@ -238,7 +235,7 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
                 mBinding.divider.setVisibility(View.INVISIBLE);
                 mBinding.tvLikesCount.setVisibility(View.VISIBLE);
                 mBinding.tvReply.setVisibility(View.VISIBLE);
-                mBinding.layoutLike.setVisibility(View.VISIBLE);
+                mBinding.imgLike.setVisibility(View.VISIBLE);
 
                 if (mComment.getLikeCount() > 0) {
                     mBinding.tvLikesCount.setVisibility(View.VISIBLE);
@@ -248,21 +245,21 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
                 }
 
                 if (mComment.getLocalStatus() == LocalStatus.STATUS_UPLOADING || mComment.isLikeInProgress()) {
-                    mBinding.layoutLike.setVisibility(View.INVISIBLE);
+                    mBinding.imgLike.setVisibility(View.INVISIBLE);
                     mBinding.progressBar.setVisibility(View.VISIBLE);
                 } else {
-                    mBinding.layoutLike.setVisibility(View.VISIBLE);
+                    mBinding.imgLike.setVisibility(View.VISIBLE);
                     mBinding.progressBar.setVisibility(View.GONE);
                     if(mComment.isLiked){
-                        mBinding.layoutLike.setImageResource(R.drawable.ic_favorite_red_24dp);
+                        mBinding.imgLike.setImageResource(R.drawable.ic_favorite_red_24dp);
                     }else{
-                        mBinding.layoutLike.setImageResource(R.drawable.ic_favorite_border_black_24dp);
+                        mBinding.imgLike.setImageResource(R.drawable.ic_favorite_border_black_24dp);
                     }
                 }
             } else {
                 mBinding.tvLikesCount.setVisibility(View.GONE);
                 mBinding.tvReply.setVisibility(View.GONE);
-                mBinding.layoutLike.setVisibility(View.GONE);
+                mBinding.imgLike.setVisibility(View.GONE);
                 mBinding.divider.setVisibility(View.VISIBLE);
                 mBinding.progressBar.setVisibility(View.GONE);
             }
