@@ -220,6 +220,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
             }
             if(bundle.getBoolean("latest_comment")) {
                 displayContent();
+                displayCommentCount();
             }
         }
 

@@ -99,31 +99,8 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<BaseBinding
     @Override
     public void onBindViewHolder(@NonNull BaseBindingViewHolder holder, int position, @NonNull List<Object> payloads) {
         if(!payloads.isEmpty()) {
-            Bundle bundle = (Bundle) payloads.get(0);
-            if(bundle.getBoolean("like_status")) {
-                CommentUI commentUI = mComments.get(position);
-                RepliesRecyclerViewAdapter.ViewHolder commentViewHolder = (ViewHolder) holder;
-                if (commentUI.getLocalStatus() == LocalStatus.STATUS_UPLOADING || commentUI.isLikeInProgress()) {
-                    commentViewHolder.mBinding.imgLike.setVisibility(View.INVISIBLE);
-                    commentViewHolder.mBinding.progressBar.setVisibility(View.VISIBLE);
-                } else {
-                    commentViewHolder.mBinding.imgLike.setVisibility(View.VISIBLE);
-                    commentViewHolder.mBinding.progressBar.setVisibility(View.GONE);
-
-                    if(commentUI.isLiked()){
-                        commentViewHolder.mBinding.imgLike.setImageResource(R.drawable.ic_favorite_red_24dp);
-                    }else{
-                        commentViewHolder.mBinding.imgLike.setImageResource(R.drawable.ic_favorite_border_black_24dp);
-                    }
-                }
-                if(commentUI.getLikeCount() > 0) {
-                    commentViewHolder.mBinding.tvLikesCount.setVisibility(View.VISIBLE);
-                    commentViewHolder.mBinding.tvLikesCount.setText(String.format("%d %s",
-                            commentUI.getLikeCount(), commentUI.getLikeCount() > 1 ? "likes" : "like"));
-                } else {
-                    commentViewHolder.mBinding.tvLikesCount.setVisibility(View.GONE);
-                }
-            }
+            if(getItemViewType(position) != VIEW_TYPE_LOADING)
+                holder.bindData(mComments.get(position), payloads);
         } else {
             super.onBindViewHolder(holder, position, payloads);
         }
@@ -215,6 +192,16 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<BaseBinding
             displayInfo();
         }
 
+        @Override
+        public void bindData(CommentUI item, List<Object> payloads) {
+            mComment = item;
+
+            Bundle bundle = (Bundle) payloads.get(0);
+            if(bundle.getBoolean("like_status")) {
+                displayLikeInfo();
+            }
+        }
+
         private void displayUserInfo() {
             String avatarUrl = TextUtils.isEmpty(mComment.getOwner().getAvatar().getThumbnailUrl()) ?
                     mComment.getOwner().getAvatar().getOriginUrl() : mComment.getOwner().getAvatar().getThumbnailUrl();
@@ -261,29 +248,32 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<BaseBinding
                     Calendar.getInstance().getTimeInMillis(), 0L, DateUtils.FORMAT_ABBREV_RELATIVE));
             if (!mComment.getId().equals(mCommentId)) {
                 mBinding.divider.setVisibility(View.INVISIBLE);
-
-                if (mComment.getLocalStatus() == LocalStatus.STATUS_UPLOADING || mComment.isLikeInProgress()) {
-                    mBinding.imgLike.setVisibility(View.INVISIBLE);
-                    mBinding.progressBar.setVisibility(View.VISIBLE);
-                } else {
-                    mBinding.imgLike.setVisibility(View.VISIBLE);
-                    mBinding.progressBar.setVisibility(View.GONE);
-                    if(mComment.isLiked()){
-                        mBinding.imgLike.setImageResource(R.drawable.ic_favorite_red_24dp);
-                    }else{
-                        mBinding.imgLike.setImageResource(R.drawable.ic_favorite_border_black_24dp);
-                    }
-                }
-                if (mComment.getLikeCount() > 0) {
-                    mBinding.tvLikesCount.setVisibility(View.VISIBLE);
-                    mBinding.tvLikesCount.setText(String.format(Locale.getDefault(),"%d %s",
-                            mComment.getLikeCount(), mComment.getLikeCount() > 1 ? "likes" : "like"));
-                } else {
-                    mBinding.tvLikesCount.setVisibility(View.GONE);
-                }
+                displayLikeInfo();
             } else {
                 mBinding.divider.setVisibility(View.VISIBLE);
                 mBinding.progressBar.setVisibility(View.GONE);
+            }
+        }
+
+        private void displayLikeInfo() {
+            if (mComment.getLocalStatus() == LocalStatus.STATUS_UPLOADING || mComment.isLikeInProgress()) {
+                mBinding.imgLike.setVisibility(View.INVISIBLE);
+                mBinding.progressBar.setVisibility(View.VISIBLE);
+            } else {
+                mBinding.imgLike.setVisibility(View.VISIBLE);
+                mBinding.progressBar.setVisibility(View.GONE);
+                if(mComment.isLiked()){
+                    mBinding.imgLike.setImageResource(R.drawable.ic_favorite_red_24dp);
+                }else{
+                    mBinding.imgLike.setImageResource(R.drawable.ic_favorite_border_black_24dp);
+                }
+            }
+            if (mComment.getLikeCount() > 0) {
+                mBinding.tvLikesCount.setVisibility(View.VISIBLE);
+                mBinding.tvLikesCount.setText(String.format("%d %s", mComment.getLikeCount(),
+                        mComment.getLikeCount() > 1 ? "likes" : "like"));
+            } else {
+                mBinding.tvLikesCount.setVisibility(View.GONE);
             }
         }
     }
@@ -296,6 +286,11 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<BaseBinding
 
         @Override
         public void bindData(Void item) {
+        }
+
+        @Override
+        public void bindData(Void item, List<Object> payloads) {
+
         }
     }
 
