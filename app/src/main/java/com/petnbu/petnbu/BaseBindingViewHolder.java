@@ -5,6 +5,8 @@ import android.databinding.ViewDataBinding;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
+import java.util.List;
+
 public abstract class BaseBindingViewHolder <T extends ViewDataBinding, M> extends RecyclerView.ViewHolder {
 
     public final T mBinding;
@@ -15,4 +17,6 @@ public abstract class BaseBindingViewHolder <T extends ViewDataBinding, M> exten
     }
 
     public abstract void bindData(M item);
+
+    public abstract void bindData(M item, List<Object> payloads);
 }

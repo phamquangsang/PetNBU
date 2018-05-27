@@ -16,6 +16,8 @@ import com.petnbu.petnbu.model.FeedUI;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.util.ImageUtils;
 
+import java.util.List;
+
 public class FeedPhotosAdapter extends RecyclerView.Adapter<FeedPhotosAdapter.PhotoHolder> {
 
     private FeedUI mFeed;
@@ -72,6 +74,11 @@ public class FeedPhotosAdapter extends RecyclerView.Adapter<FeedPhotosAdapter.Ph
                     .load(TextUtils.isEmpty(photoUrl) ? photo.getOriginUrl() : photoUrl)
                     .centerInside()
                     .into(mBinding.imgContent);
+        }
+
+        @Override
+        public void bindData(Photo item, List<Object> payloads) {
+
         }
     }
 }
