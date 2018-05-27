@@ -78,7 +78,7 @@ public class CommentsFragment extends Fragment {
         mCommentsViewModel.loadComments(mFeedId).observe(this, comments -> mAdapter.setComments(comments));
         mCommentsViewModel.getCommentLoadMoreState().observe(this, loadMoreState -> {
             if (loadMoreState != null) {
-                mAdapter.setAddLoadMore(loadMoreState.isRunning());
+                mBinding.rvComments.post(() -> mAdapter.setAddLoadMore(loadMoreState.isRunning()));
 
                 String errorMessage = loadMoreState.getErrorMessageIfNotHandled();
                 if (errorMessage != null) {
