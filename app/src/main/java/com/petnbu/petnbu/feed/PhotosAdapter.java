@@ -18,6 +18,7 @@ import com.petnbu.petnbu.databinding.ViewCreateFeedPhotosSelectedBinding;
 import com.petnbu.petnbu.model.Photo;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class PhotosAdapter extends RecyclerView.Adapter<BaseBindingViewHolder> {
 
@@ -109,6 +110,11 @@ public class PhotosAdapter extends RecyclerView.Adapter<BaseBindingViewHolder> {
                     .centerInside()
                     .into(mBinding.imgContent);
         }
+
+        @Override
+        public void bindData(Photo item, List<Object> payloads) {
+
+        }
     }
 
     protected final class CameraHolder extends BaseBindingViewHolder<ViewCreateFeedCameraBinding, String> {
@@ -129,6 +135,11 @@ public class PhotosAdapter extends RecyclerView.Adapter<BaseBindingViewHolder> {
 
         @Override
         public void bindData(String item) {
+
+        }
+
+        @Override
+        public void bindData(String item, List<Object> payloads) {
 
         }
     }

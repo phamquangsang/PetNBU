@@ -22,6 +22,7 @@ public class FeedUI {
     public boolean likeInProgress;
     public int commentCount;
     public String feedContent;
+    public String latestCommentId;
     public String commentOwnerId;
     public String commentOwnerName;
     public Photo commentUserAvatar;
@@ -103,6 +104,7 @@ public class FeedUI {
                 ", likeInProgress=" + likeInProgress +
                 ", commentCount=" + commentCount +
                 ", feedContent='" + feedContent + '\'' +
+                ", latestCommentId='" + latestCommentId + '\'' +
                 ", commentOwnerId='" + commentOwnerId + '\'' +
                 ", commentOwnerName='" + commentOwnerName + '\'' +
                 ", commentUserAvatar=" + commentUserAvatar +
@@ -124,15 +126,16 @@ public class FeedUI {
         if (likeInProgress != feedUI.likeInProgress) return false;
         if (commentCount != feedUI.commentCount) return false;
         if (status != feedUI.status) return false;
-        if (feedId != null ? !feedId.equals(feedUI.feedId) : feedUI.feedId != null) return false;
-        if (ownerId != null ? !ownerId.equals(feedUI.ownerId) : feedUI.ownerId != null)
-            return false;
+        if (!feedId.equals(feedUI.feedId)) return false;
+        if (!ownerId.equals(feedUI.ownerId)) return false;
         if (name != null ? !name.equals(feedUI.name) : feedUI.name != null) return false;
         if (avatar != null ? !avatar.equals(feedUI.avatar) : feedUI.avatar != null) return false;
         if (photos != null ? !photos.equals(feedUI.photos) : feedUI.photos != null) return false;
         if (timeCreated != null ? !timeCreated.equals(feedUI.timeCreated) : feedUI.timeCreated != null)
             return false;
         if (feedContent != null ? !feedContent.equals(feedUI.feedContent) : feedUI.feedContent != null)
+            return false;
+        if (latestCommentId != null ? !latestCommentId.equals(feedUI.latestCommentId) : feedUI.latestCommentId != null)
             return false;
         if (commentOwnerId != null ? !commentOwnerId.equals(feedUI.commentOwnerId) : feedUI.commentOwnerId != null)
             return false;
@@ -147,8 +150,8 @@ public class FeedUI {
 
     @Override
     public int hashCode() {
-        int result = feedId != null ? feedId.hashCode() : 0;
-        result = 31 * result + (ownerId != null ? ownerId.hashCode() : 0);
+        int result = feedId.hashCode();
+        result = 31 * result + ownerId.hashCode();
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (avatar != null ? avatar.hashCode() : 0);
         result = 31 * result + (photos != null ? photos.hashCode() : 0);
@@ -158,6 +161,7 @@ public class FeedUI {
         result = 31 * result + (likeInProgress ? 1 : 0);
         result = 31 * result + commentCount;
         result = 31 * result + (feedContent != null ? feedContent.hashCode() : 0);
+        result = 31 * result + (latestCommentId != null ? latestCommentId.hashCode() : 0);
         result = 31 * result + (commentOwnerId != null ? commentOwnerId.hashCode() : 0);
         result = 31 * result + (commentOwnerName != null ? commentOwnerName.hashCode() : 0);
         result = 31 * result + (commentUserAvatar != null ? commentUserAvatar.hashCode() : 0);

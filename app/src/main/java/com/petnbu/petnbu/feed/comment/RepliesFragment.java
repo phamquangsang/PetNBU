@@ -28,6 +28,7 @@ import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.userprofile.UserProfileActivity;
 import com.petnbu.petnbu.util.NavigationUtils;
 import com.petnbu.petnbu.util.PermissionUtils;
+import com.petnbu.petnbu.util.SnackbarUtils;
 import com.petnbu.petnbu.util.Utils;
 
 public class RepliesFragment extends Fragment {
@@ -73,6 +74,16 @@ public class RepliesFragment extends Fragment {
         mBinding.setViewModel(mCommentsViewModel);
 
         mCommentsViewModel.loadSubComments(mCommentId).observe(this, comments -> mAdapter.setComments(comments));
+        mCommentsViewModel.getSubCommentLoadMoreState().observe(this, loadMoreState -> {
+            if (loadMoreState != null) {
+                mBinding.rvComments.post(() -> mAdapter.setAddLoadMore(loadMoreState.isRunning()));
+
+                String errorMessage = loadMoreState.getErrorMessageIfNotHandled();
+                if (errorMessage != null) {
+                    SnackbarUtils.showSnackbar(mBinding.layoutRoot, errorMessage);
+                }
+            }
+        });
 
         mBinding.rvComments.setLayoutManager(new LinearLayoutManager(getActivity()));
         mAdapter = new RepliesRecyclerViewAdapter(getActivity(), null, mCommentId,
@@ -200,6 +211,7 @@ public class RepliesFragment extends Fragment {
         mBinding.layoutInputComment.layoutSelectedPhoto.setVisibility(View.GONE);
         mBinding.layoutInputComment.imgSelectedPhoto.setImageDrawable(null);
         mSelectedPhoto = null;
+        mBinding.rvComments.scrollToPosition(0);
         checkToEnablePostMenu();
     }
 }

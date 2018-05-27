@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
@@ -37,6 +38,7 @@ import com.petnbu.petnbu.BaseBindingViewHolder;
 import com.petnbu.petnbu.GlideApp;
 import com.petnbu.petnbu.GlideRequests;
 import com.petnbu.petnbu.R;
+import com.petnbu.petnbu.databinding.ViewLoadingBinding;
 import com.petnbu.petnbu.model.LocalStatus;
 import com.petnbu.petnbu.util.Utils;
 import com.petnbu.petnbu.databinding.ViewCommentBinding;
@@ -49,7 +51,10 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
-public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<RepliesRecyclerViewAdapter.ViewHolder> {
+public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindingViewHolder> {
+
+    private static final int VIEW_TYPE_COMMENT = 1;
+    private static final int VIEW_TYPE_LOADING = 2;
 
     private List<CommentUI> mComments;
     private RepliesRecyclerViewAdapter.OnItemClickListener mOnItemClickListener;
@@ -58,6 +63,7 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<RepliesRecy
 
     private String mCommentId;
     private int mDataVersion;
+    private boolean mAddLoadMore;
 
     public RepliesRecyclerViewAdapter(Context context, List<CommentUI> comments, String commentId,
                                       OnItemClickListener onItemClickListener, CommentsViewModel commentsViewModel) {
@@ -73,19 +79,64 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<RepliesRecy
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.view_comment, parent, false);
-        return new ViewHolder(view);
+    public BaseBindingViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        if (viewType == VIEW_TYPE_LOADING) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.view_loading, parent, false);
+            return new ViewLoadingHolder(view);
+        } else {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.view_comment, parent, false);
+            return new ViewHolder(view);
+        }
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.bindData(mComments.get(position));
+    public void onBindViewHolder(@NonNull BaseBindingViewHolder holder, int position) {
+        if (getItemViewType(position) != VIEW_TYPE_LOADING) {
+            holder.bindData(mComments.get(position));
+        }
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull BaseBindingViewHolder holder, int position, @NonNull List<Object> payloads) {
+        if(!payloads.isEmpty()) {
+            if(getItemViewType(position) != VIEW_TYPE_LOADING)
+                holder.bindData(mComments.get(position), payloads);
+        } else {
+            super.onBindViewHolder(holder, position, payloads);
+        }
     }
 
     @Override
     public int getItemCount() {
+        return getDataItemCount() + (mAddLoadMore ? 1 : 0);
+    }
+
+    private int getDataItemCount() {
         return mComments.size();
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        if (position < getDataItemCount() && getDataItemCount() > 0) {
+            return VIEW_TYPE_COMMENT;
+        }
+        return VIEW_TYPE_LOADING;
+    }
+
+    public void setAddLoadMore(boolean addLoadMore) {
+        if (mAddLoadMore != addLoadMore) {
+            if (addLoadMore) {
+                mAddLoadMore = addLoadMore;
+                notifyItemInserted(getLoadingMoreItemPosition());
+            } else {
+                notifyItemRemoved(getLoadingMoreItemPosition());
+                mAddLoadMore = addLoadMore;
+            }
+        }
+    }
+
+    private int getLoadingMoreItemPosition() {
+        return mAddLoadMore ? getItemCount() - 1 : RecyclerView.NO_POSITION;
     }
 
     @SuppressLint("StaticFieldLeak")
@@ -141,23 +192,22 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<RepliesRecy
             displayInfo();
         }
 
+        @Override
+        public void bindData(CommentUI item, List<Object> payloads) {
+            mComment = item;
+
+            Bundle bundle = (Bundle) payloads.get(0);
+            if(bundle.getBoolean("like_status")) {
+                displayLikeInfo();
+            }
+        }
+
         private void displayUserInfo() {
-            mGlideRequests.asBitmap()
-                    .load(mComment.getOwner().getAvatar().getOriginUrl())
-                    .apply(RequestOptions.centerCropTransform())
-                    .into(new BitmapImageViewTarget(mBinding.imgProfile) {
-                        @Override
-                        public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                            Context context = mBinding.imgProfile.getContext();
-                            if(ColorUtils.isDark(resource)) {
-                                mBinding.imgProfile.setBorderWidth(0);
-                            } else {
-                                mBinding.imgProfile.setBorderColor(ContextCompat.getColor(context, android.R.color.darker_gray));
-                                mBinding.imgProfile.setBorderWidth(1);
-                            }
-                            getView().setImageBitmap(resource);
-                        }
-                    });
+            String avatarUrl = TextUtils.isEmpty(mComment.getOwner().getAvatar().getThumbnailUrl()) ?
+                    mComment.getOwner().getAvatar().getOriginUrl() : mComment.getOwner().getAvatar().getThumbnailUrl();
+            mGlideRequests.load(avatarUrl)
+                    .centerInside()
+                    .into(mBinding.imgProfile);
         }
 
         private void displayContent() {
@@ -198,30 +248,49 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<RepliesRecy
                     Calendar.getInstance().getTimeInMillis(), 0L, DateUtils.FORMAT_ABBREV_RELATIVE));
             if (!mComment.getId().equals(mCommentId)) {
                 mBinding.divider.setVisibility(View.INVISIBLE);
-
-                if (mComment.getLocalStatus() == LocalStatus.STATUS_UPLOADING || mComment.isLikeInProgress()) {
-                    mBinding.imgLike.setVisibility(View.INVISIBLE);
-                    mBinding.progressBar.setVisibility(View.VISIBLE);
-                } else {
-                    mBinding.imgLike.setVisibility(View.VISIBLE);
-                    mBinding.progressBar.setVisibility(View.GONE);
-                    if(mComment.isLiked()){
-                        mBinding.imgLike.setImageResource(R.drawable.ic_favorite_red_24dp);
-                    }else{
-                        mBinding.imgLike.setImageResource(R.drawable.ic_favorite_border_black_24dp);
-                    }
-                    if (mComment.getLikeCount() > 0) {
-                        mBinding.tvLikesCount.setVisibility(View.VISIBLE);
-                        mBinding.tvLikesCount.setText(String.format(Locale.getDefault(),"%d %s",
-                                mComment.getLikeCount(), mComment.getLikeCount() > 1 ? "likes" : "like"));
-                    } else {
-                        mBinding.tvLikesCount.setVisibility(View.GONE);
-                    }
-                }
+                displayLikeInfo();
             } else {
                 mBinding.divider.setVisibility(View.VISIBLE);
                 mBinding.progressBar.setVisibility(View.GONE);
             }
+        }
+
+        private void displayLikeInfo() {
+            if (mComment.getLocalStatus() == LocalStatus.STATUS_UPLOADING || mComment.isLikeInProgress()) {
+                mBinding.imgLike.setVisibility(View.INVISIBLE);
+                mBinding.progressBar.setVisibility(View.VISIBLE);
+            } else {
+                mBinding.imgLike.setVisibility(View.VISIBLE);
+                mBinding.progressBar.setVisibility(View.GONE);
+                if(mComment.isLiked()){
+                    mBinding.imgLike.setImageResource(R.drawable.ic_favorite_red_24dp);
+                }else{
+                    mBinding.imgLike.setImageResource(R.drawable.ic_favorite_border_black_24dp);
+                }
+            }
+            if (mComment.getLikeCount() > 0) {
+                mBinding.tvLikesCount.setVisibility(View.VISIBLE);
+                mBinding.tvLikesCount.setText(String.format("%d %s", mComment.getLikeCount(),
+                        mComment.getLikeCount() > 1 ? "likes" : "like"));
+            } else {
+                mBinding.tvLikesCount.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    protected class ViewLoadingHolder extends BaseBindingViewHolder<ViewLoadingBinding, Void> {
+
+        public ViewLoadingHolder(View itemView) {
+            super(itemView);
+        }
+
+        @Override
+        public void bindData(Void item) {
+        }
+
+        @Override
+        public void bindData(Void item, List<Object> payloads) {
+
         }
     }
 
@@ -253,6 +322,19 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<RepliesRecy
         @Override
         public boolean areContentsTheSame(int oldPos, int newPos) {
             return oldData.get(oldPos).equals(newData.get(newPos));
+        }
+
+        @Nullable
+        @Override
+        public Object getChangePayload(int oldItemPosition, int newItemPosition) {
+            Bundle bundle = new Bundle();
+            CommentUI oldComment = oldData.get(oldItemPosition);
+            CommentUI newComment = newData.get(newItemPosition);
+            if(oldComment.isLikeInProgress() != newComment.isLikeInProgress() || oldComment.isLiked() != newComment.isLiked()) {
+                bundle.putBoolean("like_status", true);
+                return bundle;
+            }
+            return super.getChangePayload(oldItemPosition, newItemPosition);
         }
     }
 

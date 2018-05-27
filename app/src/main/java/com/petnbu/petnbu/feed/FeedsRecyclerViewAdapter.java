@@ -2,7 +2,6 @@ package com.petnbu.petnbu.feed;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.databinding.DataBindingUtil;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
@@ -28,6 +27,7 @@ import android.view.ViewGroup;
 import android.widget.AbsListView;
 
 import com.google.android.gms.common.internal.Preconditions;
+import com.petnbu.petnbu.BaseBindingViewHolder;
 import com.petnbu.petnbu.GlideApp;
 import com.petnbu.petnbu.GlideRequests;
 import com.petnbu.petnbu.R;
@@ -90,29 +90,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position, @NonNull List<Object> payloads) {
         if(!payloads.isEmpty()) {
-            Bundle bundle = (Bundle) payloads.get(0);
-            if(bundle.getBoolean("like_status")) {
-                FeedUI feed = mFeeds.get(position);
-                if (feed.likeInProgress) {
-                    holder.mBinding.imgLike.setVisibility(View.INVISIBLE);
-                    holder.mBinding.imgLikeInProgress.setVisibility(View.VISIBLE);
-                } else {
-                    holder.mBinding.imgLike.setVisibility(View.VISIBLE);
-                    holder.mBinding.imgLikeInProgress.setVisibility(View.GONE);
-
-                    if (feed.isLiked) {
-                        holder.mBinding.imgLike.setImageResource(R.drawable.ic_favorite_red_24dp);
-                    } else {
-                        holder.mBinding.imgLike.setImageResource(R.drawable.ic_favorite_border_black_24dp);
-                    }
-                }
-                if(feed.getLikeCount() > 0) {
-                    holder.mBinding.tvLikesCount.setVisibility(View.VISIBLE);
-                    holder.mBinding.tvLikesCount.setText(String.format("%d %s", feed.getLikeCount(), feed.getLikeCount() > 1 ? "likes" : "like"));
-                } else {
-                    holder.mBinding.tvLikesCount.setVisibility(View.GONE);
-                }
-            }
+            holder.bindData(mFeeds.get(position), payloads);
         } else {
             super.onBindViewHolder(holder, position, payloads);
         }
@@ -149,9 +127,8 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
         }.execute();
     }
 
-    protected class ViewHolder extends RecyclerView.ViewHolder {
+    protected class ViewHolder extends BaseBindingViewHolder<ViewFeedBinding, FeedUI> {
 
-        private ViewFeedBinding mBinding;
         private FeedUI mFeed;
         private final View.OnClickListener mOpenProfileClickListener = v -> {
             if (getAdapterPosition() != RecyclerView.NO_POSITION) {
@@ -166,8 +143,6 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
 
         public ViewHolder(View itemView) {
             super(itemView);
-            mBinding = DataBindingUtil.bind(itemView);
-
             mBinding.imgProfile.setOnClickListener(mOpenProfileClickListener);
             mBinding.tvName.setOnClickListener(mOpenProfileClickListener);
             mBinding.imgLike.setOnClickListener(v -> {
@@ -191,6 +166,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
             mBinding.rvPhotos.setRecycledViewPool(mFeedPhotosViewPool);
         }
 
+        @Override
         public void bindData(FeedUI feed) {
 //            Timber.i("bind feed: %s", feed.toString());
             TraceUtils.begin("bind Feed");
@@ -237,6 +213,20 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
             displayContent();
             displayCommentCount();
             TraceUtils.end();
+        }
+
+        @Override
+        public void bindData(FeedUI item, List<Object> payloads) {
+            mFeed = item;
+
+            Bundle bundle = (Bundle) payloads.get(0);
+            if(bundle.getBoolean("like_status")) {
+                displayLikeInfo();
+            }
+            if(bundle.getBoolean("latest_comment")) {
+                displayContent();
+                displayCommentCount();
+            }
         }
 
         private void displayUserInfo() {
@@ -396,9 +386,11 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
             FeedUI newFeed = newData.get(newItemPosition);
             if(oldFeed.likeInProgress != newFeed.likeInProgress || oldFeed.isLiked != newFeed.isLiked) {
                 bundle.putBoolean("like_status", true);
-                return bundle;
             }
-            return super.getChangePayload(oldItemPosition, newItemPosition);
+            if(oldFeed.latestCommentId != null && !oldFeed.latestCommentId.equals(newFeed.latestCommentId)) {
+                bundle.putBoolean("latest_comment", true);
+            }
+            return !bundle.isEmpty() ? bundle : super.getChangePayload(oldItemPosition, newItemPosition);
         }
     }
 
