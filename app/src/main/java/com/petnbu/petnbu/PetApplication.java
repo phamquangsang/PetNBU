@@ -28,9 +28,14 @@ public class PetApplication  extends Application{
         if (BuildConfig.DEBUG) {
             Timber.plant(new Timber.DebugTree());
             StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
-                    .detectNetwork().detectAll()
+                    .detectAll() // or .detectAll() for all detectable problems
+                    .penaltyDeath()
                     .penaltyLog()
-                    .penaltyDeath().build());
+                    .build());
+            StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
+                    .detectLeakedSqlLiteObjects()
+                    .penaltyLog()
+                    .build());
         }
         sAppComponent = DaggerAppComponent.builder().appModule(new AppModule(this)).build();
 

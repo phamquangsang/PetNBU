@@ -31,6 +31,7 @@ import com.google.android.gms.common.internal.Preconditions;
 import com.petnbu.petnbu.GlideApp;
 import com.petnbu.petnbu.GlideRequests;
 import com.petnbu.petnbu.R;
+import com.petnbu.petnbu.util.TraceUtils;
 import com.petnbu.petnbu.util.Utils;
 import com.petnbu.petnbu.databinding.ViewFeedBinding;
 import com.petnbu.petnbu.model.FeedUI;
@@ -75,7 +76,9 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        TraceUtils.begin("create feed view holder");
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.view_feed, parent, false);
+        TraceUtils.end();
         return new ViewHolder(view);
     }
 
@@ -189,7 +192,8 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
         }
 
         public void bindData(FeedUI feed) {
-            Timber.i("bind feed: %s", feed.toString());
+//            Timber.i("bind feed: %s", feed.toString());
+            TraceUtils.begin("bind Feed");
             mFeed = feed;
 
             if (feed.status == STATUS_UPLOADING) {
@@ -232,6 +236,7 @@ public class FeedsRecyclerViewAdapter extends RecyclerView.Adapter<FeedsRecycler
             displayLikeInfo();
             displayContent();
             displayCommentCount();
+            TraceUtils.end();
         }
 
         private void displayUserInfo() {
