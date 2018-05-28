@@ -21,7 +21,6 @@ import android.view.ViewGroup;
 
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.SharedPrefUtil;
-import com.petnbu.petnbu.util.TraceUtils;
 import com.petnbu.petnbu.util.Utils;
 import com.petnbu.petnbu.databinding.FragmentFeedsBinding;
 import com.petnbu.petnbu.feed.comment.CommentsActivity;
@@ -45,8 +44,9 @@ public class FeedsFragment extends Fragment {
     private FragmentFeedsBinding mBinding;
     private FeedsViewModel mFeedsViewModel;
     private FeedsRecyclerViewAdapter mAdapter;
-    private RateLimiter<String> mLikeClickLimiter = new RateLimiter<>(1, TimeUnit.SECONDS);
+    private RateLimiter<String> mRateLimiter = new RateLimiter<>(1, TimeUnit.SECONDS);
     private String mUserId;
+
 
     public FeedsFragment() {
         // Required empty public constructor
@@ -114,7 +114,7 @@ public class FeedsFragment extends Fragment {
 
             @Override
             public void onLikeClicked(String feedId) {
-                if (mLikeClickLimiter.shouldFetch(feedId)) {
+                if (mRateLimiter.shouldFetch(feedId)) {
                     Timber.i("like clicked");
                     mFeedsViewModel.likeClicked(mUserId, feedId);
                 }
@@ -146,18 +146,20 @@ public class FeedsFragment extends Fragment {
         mBinding.rvFeeds.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                if (dy > 50) {
-                    mBinding.fabNewPost.hide();
-                } else if (dy < -10) {
-                    mBinding.fabNewPost.show();
-                }
+//                if (dy > 50) {
+//                    mBinding.fabNewPost.hide();
+//                } else if (dy < -10) {
+//                    mBinding.fabNewPost.show();
+//                }
 
                 LinearLayoutManager layoutManager = (LinearLayoutManager)
                         recyclerView.getLayoutManager();
                 int lastPosition = layoutManager
                         .findLastVisibleItemPosition();
                 if (lastPosition == mAdapter.getItemCount() - 1) {
-                    mFeedsViewModel.loadNextPage();
+                    if(mRateLimiter.shouldFetch("global-feed-load-next-page")){
+                        mFeedsViewModel.loadNextPage();
+                    }
                 }
 
                 super.onScrolled(recyclerView, dx, dy);
