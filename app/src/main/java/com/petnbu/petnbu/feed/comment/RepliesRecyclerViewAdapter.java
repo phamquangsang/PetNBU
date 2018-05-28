@@ -91,16 +91,13 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<BaseBinding
 
     @Override
     public void onBindViewHolder(@NonNull BaseBindingViewHolder holder, int position) {
-        if (getItemViewType(position) != VIEW_TYPE_LOADING) {
-            holder.bindData(mComments.get(position));
-        }
+        holder.bindData(getItem(position));
     }
 
     @Override
     public void onBindViewHolder(@NonNull BaseBindingViewHolder holder, int position, @NonNull List<Object> payloads) {
         if(!payloads.isEmpty()) {
-            if(getItemViewType(position) != VIEW_TYPE_LOADING)
-                holder.bindData(mComments.get(position), payloads);
+            holder.bindData(getItem(position), payloads);
         } else {
             super.onBindViewHolder(holder, position, payloads);
         }
@@ -133,6 +130,12 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<BaseBinding
                 mAddLoadMore = addLoadMore;
             }
         }
+    }
+
+    private CommentUI getItem(int position) {
+        if (position < 0 || position >= mComments.size())
+            return null;
+        return mComments.get(position);
     }
 
     private int getLoadingMoreItemPosition() {

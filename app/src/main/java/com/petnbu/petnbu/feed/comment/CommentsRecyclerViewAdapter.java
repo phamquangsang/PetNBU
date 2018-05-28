@@ -48,8 +48,8 @@ import java.util.List;
 
 public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindingViewHolder> {
 
-    private static final int VIEW_TYPE_COMMENT = 1;
-    private static final int VIEW_TYPE_LOADING = 2;
+    private final int VIEW_TYPE_COMMENT = 1;
+    private final int VIEW_TYPE_LOADING = 2;
 
     private List<CommentUI> mComments;
     private CommentsViewModel mCommentsViewModel;
@@ -64,7 +64,7 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
         Preconditions.checkNotNull(context);
         Preconditions.checkNotNull(commentsViewModel);
 
-        mComments = comments != null ? comments : new ArrayList<>();
+        mComments = comments != null ? comments : new ArrayList<>(0);
         mCommentsViewModel = commentsViewModel;
         mFeedId = feedId;
         mGlideRequests = GlideApp.with(context);
@@ -84,16 +84,13 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
 
     @Override
     public void onBindViewHolder(@NonNull BaseBindingViewHolder holder, int position) {
-        if (getItemViewType(position) != VIEW_TYPE_LOADING) {
-            holder.bindData(mComments.get(position));
-        }
+        holder.bindData(getItem(position));
     }
 
     @Override
     public void onBindViewHolder(@NonNull BaseBindingViewHolder holder, int position, @NonNull List<Object> payloads) {
         if(!payloads.isEmpty()) {
-            if(getItemViewType(position) != VIEW_TYPE_LOADING)
-                holder.bindData(mComments.get(position), payloads);
+            holder.bindData(getItem(position), payloads);
         } else {
             super.onBindViewHolder(holder, position, payloads);
         }
@@ -126,6 +123,12 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
                 mAddLoadMore = addLoadMore;
             }
         }
+    }
+
+    private CommentUI getItem(int position) {
+        if (position < 0 || position >= mComments.size())
+            return null;
+        return mComments.get(position);
     }
 
     private int getLoadingMoreItemPosition() {

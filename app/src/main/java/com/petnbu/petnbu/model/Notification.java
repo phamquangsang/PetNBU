@@ -19,7 +19,6 @@ public class Notification {
     public static final int TYPE_NEW_COMMENT = 4;
     public static final int TYPE_NEW_REPLY = 5;
 
-
     @NonNull
     private String id;
     private FeedUser targetUser;
