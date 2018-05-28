@@ -19,10 +19,12 @@ package com.petnbu.petnbu;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Process;
 import android.support.annotation.NonNull;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -50,8 +52,15 @@ public class AppExecutors {
 
     @Inject
     public AppExecutors() {
-        this(Executors.newSingleThreadExecutor(), Executors.newFixedThreadPool(3),
-                new MainThreadExecutor());
+        this(Executors.newSingleThreadExecutor(r -> {
+            Thread t = new Thread(r);
+            t.setPriority(Process.THREAD_PRIORITY_BACKGROUND);
+            return t;
+        }), Executors.newFixedThreadPool(3, r -> {
+            Thread t = new Thread(r);
+            t.setPriority(Process.THREAD_PRIORITY_BACKGROUND);
+            return t;
+        }), new MainThreadExecutor());
     }
 
     public Executor diskIO() {

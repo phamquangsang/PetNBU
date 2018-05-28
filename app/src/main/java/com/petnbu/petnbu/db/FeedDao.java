@@ -99,7 +99,8 @@ public abstract class FeedDao {
     public abstract LiveData<Feed> loadFeedById(String feedId);
 
     @Query("SELECT feedId, feeds.fromUserId as ownerId,feedUsers.name, feedUsers.avatar, feeds.timeCreated, " +
-            "feeds.likeCount, feeds.isLiked, feeds.likeInProgress, feeds.commentCount, feeds.content AS feedContent, feeds.status, feeds.photos, " +
+            "feeds.likeCount, feeds.isLiked, feeds.likeInProgress, feeds.commentCount, feeds.content AS feedContent, " +
+            "feeds.status, feeds.photos, feeds.latestCommentId, " +
             "commentUsers.userId as commentOwnerId ,commentUsers.name AS commentOwnerName, " +
             "commentUsers.avatar AS commentUserAvatar, comments.content AS commentContent, comments.photo as commentPhoto  " +
             "FROM feeds " +
