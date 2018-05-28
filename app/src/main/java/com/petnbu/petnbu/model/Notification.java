@@ -2,6 +2,9 @@ package com.petnbu.petnbu.model;
 
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
+import com.google.firebase.firestore.ServerTimestamp;
 
 import java.lang.annotation.Retention;
 
@@ -24,9 +27,18 @@ public class Notification {
     private String id;
     private FeedUser targetUser;
     private FeedUser fromUser;
+    @Nullable
+    private String targetFeedId;
+    @Nullable
+    private String targetCommentId;
+    @Nullable
+    private String targetReplyId;
     @NotificationType
     private int type;
+    @ServerTimestamp
     private long timeCreated;
+
+    private boolean isRead;
 
     @NonNull
     public String getId() {
@@ -67,5 +79,40 @@ public class Notification {
 
     public void setTimeCreated(long timeCreated) {
         this.timeCreated = timeCreated;
+    }
+
+    @Nullable
+    public String getTargetFeedId() {
+        return targetFeedId;
+    }
+
+    public void setTargetFeedId(@Nullable String targetFeedId) {
+        this.targetFeedId = targetFeedId;
+    }
+
+    @Nullable
+    public String getTargetCommentId() {
+        return targetCommentId;
+    }
+
+    public void setTargetCommentId(@Nullable String targetCommentId) {
+        this.targetCommentId = targetCommentId;
+    }
+
+    @Nullable
+    public String getTargetReplyId() {
+        return targetReplyId;
+    }
+
+    public void setTargetReplyId(@Nullable String targetReplyId) {
+        this.targetReplyId = targetReplyId;
+    }
+
+    public boolean isRead() {
+        return isRead;
+    }
+
+    public void setRead(boolean read) {
+        isRead = read;
     }
 }
