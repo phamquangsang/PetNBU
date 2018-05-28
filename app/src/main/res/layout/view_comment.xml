@@ -15,6 +15,7 @@
             android:layout_height="32dp"
             android:layout_marginStart="12dp"
             android:layout_marginLeft="12dp"
+            android:scaleType="centerCrop"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -105,7 +106,7 @@
             android:id="@+id/tvPreviousReplies"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="6dp"
             android:fontFamily="sans-serif"
             android:textColor="@android:color/black"
             android:textSize="14sp"
@@ -116,11 +117,28 @@
             app:layout_constraintTop_toBottomOf="@+id/tvDate"
             tools:text="View 11 previous replies" />
 
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/imgLatestCommentOwnerProfile"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginTop="6dp"
+            android:scaleType="centerCrop"
+            android:visibility="gone"
+            app:civ_circle_background_color="@color/placeholderBackground"
+            app:layout_constraintLeft_toLeftOf="@+id/tvPreviousReplies"
+            app:layout_constraintStart_toStartOf="@+id/tvPreviousReplies"
+            app:layout_constraintTop_toBottomOf="@+id/tvPreviousReplies"
+            tools:visibility="visible" />
+
         <TextView
             android:id="@+id/tvLatestComment"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
             android:layout_marginTop="6dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
             android:ellipsize="end"
             android:gravity="center_vertical"
             android:paddingBottom="2dp"
@@ -129,13 +147,15 @@
             android:textSize="12sp"
             android:visibility="gone"
             app:layout_constrainedWidth="true"
+            app:layout_constraintBottom_toBottomOf="@+id/imgLatestCommentOwnerProfile"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0"
-            app:layout_constraintLeft_toLeftOf="@+id/tvPreviousReplies"
+            app:layout_constraintLeft_toRightOf="@+id/imgLatestCommentOwnerProfile"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintStart_toStartOf="@+id/tvPreviousReplies"
-            app:layout_constraintTop_toBottomOf="@+id/tvPreviousReplies"
-            tools:text="Nhat Pham Good!" />
+            app:layout_constraintStart_toEndOf="@+id/imgLatestCommentOwnerProfile"
+            app:layout_constraintTop_toTopOf="@+id/imgLatestCommentOwnerProfile"
+            tools:text="Nhat Pham Good!"
+            tools:visibility="visible" />
 
         <View
             android:id="@+id/divider"
