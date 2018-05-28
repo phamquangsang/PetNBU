@@ -146,11 +146,11 @@ public class FeedsFragment extends Fragment {
         mBinding.rvFeeds.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-//                if (dy > 50) {
-//                    mBinding.fabNewPost.hide();
-//                } else if (dy < -10) {
-//                    mBinding.fabNewPost.show();
-//                }
+                if (dy > 50) {
+                    mBinding.fabNewPost.hide();
+                } else if (dy < -10) {
+                    mBinding.fabNewPost.show();
+                }
 
                 LinearLayoutManager layoutManager = (LinearLayoutManager)
                         recyclerView.getLayoutManager();
