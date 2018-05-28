@@ -293,17 +293,11 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
 
         private void displayReplies() {
             if (mComment.getLatestCommentId() != null) {
+                mBinding.imgLatestCommentOwnerProfile.setVisibility(View.VISIBLE);
                 mBinding.tvLatestComment.setVisibility(View.VISIBLE);
                 mBinding.tvPreviousReplies.setVisibility(View.VISIBLE);
 
                 Context context = itemView.getContext();
-                int imageSize = (int) Utils.convertDpToPixel(context, 36);
-                Drawable leftDrawable = ContextCompat.getDrawable(context, R.drawable.logo);
-                leftDrawable.setBounds(0, 0, imageSize, imageSize);
-
-                mBinding.tvLatestComment.setCompoundDrawables(leftDrawable, null, null, null);
-                mBinding.tvLatestComment.setCompoundDrawablePadding((int) Utils.convertDpToPixel(context, 8));
-
                 SpannableStringBuilder builder = new SpannableStringBuilder(mComment.getLatestCommentOwnerName() + "");
                 int start = 0;
                 builder.setSpan(new StyleSpan(Typeface.BOLD), start, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -324,26 +318,12 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindin
 
                 String latestCommentOwnerAvatarUrl = TextUtils.isEmpty(mComment.getLatestCommentOwnerAvatar().getThumbnailUrl()) ?
                         mComment.getLatestCommentOwnerAvatar().getOriginUrl() : mComment.getLatestCommentOwnerAvatar().getThumbnailUrl();
-                mGlideRequests.asBitmap()
+                mGlideRequests
                         .load(latestCommentOwnerAvatarUrl)
-                        .override(imageSize, imageSize)
-                        .listener(new RequestListener<Bitmap>() {
-                            @Override
-                            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {
-                                return false;
-                            }
-
-                            @Override
-                            public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
-                                RoundedBitmapDrawable roundedBitmapDrawable = RoundedBitmapDrawableFactory.create(context.getResources(), resource);
-                                roundedBitmapDrawable.setCircular(true);
-                                roundedBitmapDrawable.setAntiAlias(true);
-                                roundedBitmapDrawable.setBounds(0, 0, imageSize, imageSize);
-                                mBinding.tvLatestComment.setCompoundDrawables(roundedBitmapDrawable, null, null, null);
-                                return false;
-                            }
-                        }).submit();
+                        .centerInside()
+                        .into(mBinding.imgLatestCommentOwnerProfile);
             } else {
+                mBinding.imgLatestCommentOwnerProfile.setVisibility(View.GONE);
                 mBinding.tvLatestComment.setVisibility(View.GONE);
                 mBinding.tvPreviousReplies.setVisibility(View.GONE);
             }
