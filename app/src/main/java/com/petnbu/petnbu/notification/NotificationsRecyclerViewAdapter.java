@@ -118,7 +118,7 @@ public class NotificationsRecyclerViewAdapter extends RecyclerView.Adapter<BaseB
                     .centerInside()
                     .into(mBinding.imgProfile);
             displayMessageContent();
-            mBinding.tvDate.setText(DateUtils.getRelativeTimeSpanString(mNotification.getTimeCreated(),
+            mBinding.tvDate.setText(DateUtils.getRelativeTimeSpanString(mNotification.getTimeCreated().getTime(),
                     Calendar.getInstance().getTimeInMillis(), 0L, DateUtils.FORMAT_ABBREV_RELATIVE));
         }
 

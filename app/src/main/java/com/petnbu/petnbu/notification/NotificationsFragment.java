@@ -16,6 +16,7 @@ import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Notification;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class NotificationsFragment extends Fragment {
@@ -41,14 +42,14 @@ public class NotificationsFragment extends Fragment {
         feedUser.setName("Nhat Pham");
         feedUser.setAvatarUrl("https://academy-stg-assets.s3.amazonaws.com/user_50/hN5JRUzjs8nXifDEWnBc1522315546980_optimized.jpg");
         notification.setFromUser(feedUser);
-        notification.setTimeCreated(System.currentTimeMillis());
+        notification.setTimeCreated(Calendar.getInstance().getTime());
         notification.setType(Notification.TYPE_LIKE_FEED);
         notificationList.add(notification);
 
         notification = new Notification();
         notification.setId("1");
         notification.setFromUser(feedUser);
-        notification.setTimeCreated(System.currentTimeMillis());
+        notification.setTimeCreated(Calendar.getInstance().getTime());
         notification.setType(Notification.TYPE_LIKE_COMMENT);
         notificationList.add(notification);
 
@@ -56,21 +57,21 @@ public class NotificationsFragment extends Fragment {
         notification = new Notification();
         notification.setId("1");
         notification.setFromUser(feedUser);
-        notification.setTimeCreated(System.currentTimeMillis());
+        notification.setTimeCreated(Calendar.getInstance().getTime());
         notification.setType(Notification.TYPE_LIKE_REPLY);
         notificationList.add(notification);
 
         notification = new Notification();
         notification.setId("1");
         notification.setFromUser(feedUser);
-        notification.setTimeCreated(System.currentTimeMillis());
+        notification.setTimeCreated(Calendar.getInstance().getTime());
         notification.setType(Notification.TYPE_NEW_COMMENT);
         notificationList.add(notification);
 
         notification = new Notification();
         notification.setId("1");
         notification.setFromUser(feedUser);
-        notification.setTimeCreated(System.currentTimeMillis());
+        notification.setTimeCreated(Calendar.getInstance().getTime());
         notification.setType(Notification.TYPE_NEW_REPLY);
         notificationList.add(notification);
 

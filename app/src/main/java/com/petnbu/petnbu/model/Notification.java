@@ -2,8 +2,12 @@ package com.petnbu.petnbu.model;
 
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
+import com.google.firebase.firestore.ServerTimestamp;
 
 import java.lang.annotation.Retention;
+import java.util.Date;
 
 import static java.lang.annotation.RetentionPolicy.SOURCE;
 
@@ -21,11 +25,20 @@ public class Notification {
 
     @NonNull
     private String id;
-    private FeedUser targetUser;
+    private String targetUserId;
     private FeedUser fromUser;
+    @Nullable
+    private String targetFeedId;
+    @Nullable
+    private String targetCommentId;
+    @Nullable
+    private String targetReplyId;
     @NotificationType
     private int type;
-    private long timeCreated;
+    @ServerTimestamp
+    private Date timeCreated;
+
+    private boolean isRead;
 
     @NonNull
     public String getId() {
@@ -36,12 +49,12 @@ public class Notification {
         this.id = id;
     }
 
-    public FeedUser getTargetUser() {
-        return targetUser;
+    public String getTargetUserId() {
+        return targetUserId;
     }
 
-    public void setTargetUser(FeedUser targetUser) {
-        this.targetUser = targetUser;
+    public void setTargetUserId(String targetUserId) {
+        this.targetUserId = targetUserId;
     }
 
     public FeedUser getFromUser() {
@@ -60,11 +73,47 @@ public class Notification {
         this.type = type;
     }
 
-    public long getTimeCreated() {
+    public Date getTimeCreated() {
         return timeCreated;
     }
 
-    public void setTimeCreated(long timeCreated) {
+    public void setTimeCreated(Date timeCreated) {
         this.timeCreated = timeCreated;
     }
+
+    @Nullable
+    public String getTargetFeedId() {
+        return targetFeedId;
+    }
+
+    public void setTargetFeedId(@Nullable String targetFeedId) {
+        this.targetFeedId = targetFeedId;
+    }
+
+    @Nullable
+    public String getTargetCommentId() {
+        return targetCommentId;
+    }
+
+    public void setTargetCommentId(@Nullable String targetCommentId) {
+        this.targetCommentId = targetCommentId;
+    }
+
+    @Nullable
+    public String getTargetReplyId() {
+        return targetReplyId;
+    }
+
+    public void setTargetReplyId(@Nullable String targetReplyId) {
+        this.targetReplyId = targetReplyId;
+    }
+
+    public boolean isRead() {
+        return isRead;
+    }
+
+    public void setRead(boolean read) {
+        isRead = read;
+    }
+
 }
