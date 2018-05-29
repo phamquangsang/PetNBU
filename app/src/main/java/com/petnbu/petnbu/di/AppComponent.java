@@ -12,6 +12,7 @@ import com.petnbu.petnbu.feed.comment.CommentsViewModel;
 import com.petnbu.petnbu.jobs.CreateCommentWorker;
 import com.petnbu.petnbu.jobs.CreateEditFeedWorker;
 import com.petnbu.petnbu.login.LoginJavaActivity;
+import com.petnbu.petnbu.notification.NotificationViewModel;
 import com.petnbu.petnbu.repo.FeedRepository;
 import com.petnbu.petnbu.repo.NotificationRepository;
 import com.petnbu.petnbu.repo.UserRepository;
@@ -36,6 +37,8 @@ public interface AppComponent {
     void inject(UserProfileViewModel userProfileViewModel);
 
     void inject(CommentsViewModel commentsViewModel);
+
+    void inject(NotificationViewModel notificationViewModel);
 
     void inject(CreateCommentWorker createCommentWorker);
 

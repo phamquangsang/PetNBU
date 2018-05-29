@@ -1,9 +1,12 @@
 package com.petnbu.petnbu.notification;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
+import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.RecyclerView;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
@@ -21,8 +24,12 @@ import com.petnbu.petnbu.GlideApp;
 import com.petnbu.petnbu.GlideRequests;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.databinding.ViewNotificationBinding;
+import com.petnbu.petnbu.feed.FeedsRecyclerViewAdapter;
+import com.petnbu.petnbu.model.FeedUI;
 import com.petnbu.petnbu.model.Notification;
+import com.petnbu.petnbu.model.NotificationUI;
 import com.petnbu.petnbu.util.ColorUtils;
+import com.petnbu.petnbu.util.Objects;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -34,10 +41,11 @@ public class NotificationsRecyclerViewAdapter extends RecyclerView.Adapter<BaseB
     private final int VIEW_TYPE_LOADING = 2;
 
     private GlideRequests mGlideRequests;
-    private List<Notification> mNotifications;
+    private List<NotificationUI> mNotifications;
     private boolean mAddLoadMore;
+    private int mDataVersion = 0;
 
-    public NotificationsRecyclerViewAdapter(Context context, List<Notification> notifications) {
+    public NotificationsRecyclerViewAdapter(Context context, List<NotificationUI> notifications) {
         Preconditions.checkNotNull(context);
         mGlideRequests = GlideApp.with(context);
         mNotifications = notifications != null ? notifications : new ArrayList<>(0);
@@ -77,7 +85,7 @@ public class NotificationsRecyclerViewAdapter extends RecyclerView.Adapter<BaseB
         return VIEW_TYPE_LOADING;
     }
 
-    private Notification getItem(int position) {
+    private NotificationUI getItem(int position) {
         if (position < 0 || position >= mNotifications.size())
             return null;
         return mNotifications.get(position);
@@ -99,16 +107,16 @@ public class NotificationsRecyclerViewAdapter extends RecyclerView.Adapter<BaseB
         return mAddLoadMore ? getItemCount() - 1 : RecyclerView.NO_POSITION;
     }
 
-    protected class ViewHolder extends BaseBindingViewHolder<ViewNotificationBinding, Notification> {
+    protected class ViewHolder extends BaseBindingViewHolder<ViewNotificationBinding, NotificationUI> {
 
-        private Notification mNotification;
+        private NotificationUI mNotification;
 
         public ViewHolder(View itemView) {
             super(itemView);
         }
 
         @Override
-        public void bindData(Notification item) {
+        public void bindData(NotificationUI item) {
             mNotification = item;
 
             String avatarUrl = TextUtils.isEmpty(mNotification.getFromUser().getAvatar().getThumbnailUrl()) ?
@@ -123,7 +131,7 @@ public class NotificationsRecyclerViewAdapter extends RecyclerView.Adapter<BaseB
         }
 
         @Override
-        public void bindData(Notification item, List<Object> payloads) {
+        public void bindData(NotificationUI item, List<Object> payloads) {
 
         }
 
@@ -159,20 +167,72 @@ public class NotificationsRecyclerViewAdapter extends RecyclerView.Adapter<BaseB
         }
     }
 
-    protected class ViewLoadingHolder extends BaseBindingViewHolder<ViewNotificationBinding, Notification> {
+    protected class ViewLoadingHolder extends BaseBindingViewHolder<ViewNotificationBinding, NotificationUI> {
 
         public ViewLoadingHolder(View itemView) {
             super(itemView);
         }
 
         @Override
-        public void bindData(Notification item) {
+        public void bindData(NotificationUI item) {
 
         }
 
         @Override
-        public void bindData(Notification item, List<Object> payloads) {
+        public void bindData(NotificationUI item, List<Object> payloads) {
 
         }
+    }
+
+    public static class NotificationDiffCallback extends DiffUtil.Callback{
+        private final List<NotificationUI> oldData;
+        private final List<NotificationUI> newData;
+
+        public NotificationDiffCallback(List<NotificationUI> oldData, List<NotificationUI> newData) {
+            this.oldData = oldData;
+            this.newData = newData;
+        }
+
+        @Override
+        public int getOldListSize() {
+            return oldData.size();
+        }
+
+        @Override
+        public int getNewListSize() {
+            return newData.size();
+        }
+
+        @Override
+        public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
+            return oldData.get(oldItemPosition).getId().equals(newData.get(newItemPosition).getId());
+        }
+
+        @Override
+        public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
+            return Objects.equals(oldData.get(oldItemPosition), newData.get(newItemPosition));
+        }
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    public void setData(List<NotificationUI> notifications) {
+        mDataVersion++;
+        final int startVersion = mDataVersion;
+        new AsyncTask<Void, Void, DiffUtil.DiffResult>() {
+            @Override
+            protected DiffUtil.DiffResult doInBackground(Void... voids) {
+                return DiffUtil.calculateDiff(new NotificationDiffCallback(mNotifications, notifications));
+            }
+
+            @Override
+            protected void onPostExecute(DiffUtil.DiffResult diffResult) {
+                if (startVersion != mDataVersion) {
+                    // ignore update
+                    return;
+                }
+                mNotifications = notifications;
+                diffResult.dispatchUpdatesTo(NotificationsRecyclerViewAdapter.this);
+            }
+        }.execute();
     }
 }
