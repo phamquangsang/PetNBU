@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 import com.google.firebase.firestore.ServerTimestamp;
 
 import java.lang.annotation.Retention;
+import java.util.Date;
 
 import static java.lang.annotation.RetentionPolicy.SOURCE;
 
@@ -25,7 +26,7 @@ public class Notification {
 
     @NonNull
     private String id;
-    private FeedUser targetUser;
+    private String targetUserId;
     private FeedUser fromUser;
     @Nullable
     private String targetFeedId;
@@ -36,7 +37,7 @@ public class Notification {
     @NotificationType
     private int type;
     @ServerTimestamp
-    private long timeCreated;
+    private Date timeCreated;
 
     private boolean isRead;
 
@@ -49,12 +50,12 @@ public class Notification {
         this.id = id;
     }
 
-    public FeedUser getTargetUser() {
-        return targetUser;
+    public String getTargetUserId() {
+        return targetUserId;
     }
 
-    public void setTargetUser(FeedUser targetUser) {
-        this.targetUser = targetUser;
+    public void setTargetUserId(String targetUserId) {
+        this.targetUserId = targetUserId;
     }
 
     public FeedUser getFromUser() {
@@ -73,11 +74,11 @@ public class Notification {
         this.type = type;
     }
 
-    public long getTimeCreated() {
+    public Date getTimeCreated() {
         return timeCreated;
     }
 
-    public void setTimeCreated(long timeCreated) {
+    public void setTimeCreated(Date timeCreated) {
         this.timeCreated = timeCreated;
     }
 
@@ -115,4 +116,5 @@ public class Notification {
     public void setRead(boolean read) {
         isRead = read;
     }
+
 }

@@ -18,6 +18,8 @@ import com.petnbu.petnbu.AppExecutors;
 import com.petnbu.petnbu.SharedPrefUtil;
 import com.petnbu.petnbu.model.Comment;
 import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.FeedUser;
+import com.petnbu.petnbu.model.Notification;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.UserEntity;
 
@@ -234,7 +236,7 @@ public class FirebaseService implements WebService {
     @Override
     public LiveData<ApiResponse<Feed>> likeFeed(String userId, String feedId) {
         MutableLiveData<ApiResponse<Feed>> result = new MutableLiveData<>();
-        mDb.runTransaction(transaction -> {
+        mDb.document("users/"+userId).get().addOnSuccessListener(fromUserSnap -> mDb.runTransaction(transaction -> {
             Timber.i("like feed transaction");
             ApiResponse<Feed> transactionResult;
             Feed feed = transaction.get(mDb.document("global_feeds/" + feedId)).toObject(Feed.class);
@@ -243,7 +245,8 @@ public class FirebaseService implements WebService {
             }
 
             Map<String, Object> updates = new HashMap<>();
-            DocumentReference likeByUsers = mDb.collection("global_feeds").document(feedId).collection("likedByUsers").document(userId);
+            DocumentReference likeByUsers = mDb.collection("global_feeds").document(feedId)
+                    .collection("likedByUsers").document(userId);
             int newLikeCount = feed.getLikeCount() + 1;
             if (transaction.get(likeByUsers).exists()) {//user already like this feed
                 Timber.i("user already like this feed");
@@ -252,10 +255,18 @@ public class FirebaseService implements WebService {
             Map<String, Object> timeStamp = new HashMap<>();
             timeStamp.put("timeCreated", FieldValue.serverTimestamp());
             transaction.set(likeByUsers, timeStamp);
-            DocumentReference userLikePosts = mDb.collection("users").document(userId).collection("likePosts").document(feedId);
+            DocumentReference userLikePosts = mDb.collection("users").document(userId)
+                    .collection("likePosts").document(feedId);
             transaction.set(userLikePosts, timeStamp);
             updates.put("likeCount", newLikeCount);
             updateFeedTransaction(transaction, feed, updates);
+
+            Notification notification = new Notification();
+            notification.setFromUser(fromUserSnap.toObject(FeedUser.class));
+            notification.setType(Notification.TYPE_LIKE_FEED);
+            notification.setTargetUserId(feed.getFeedUser().getUserId());
+            notification.setTargetFeedId(feedId);
+            createNotificationInTransaction(transaction, notification);
 
             feed.setLiked(true);
             feed.setLikeCount(newLikeCount);
@@ -263,7 +274,9 @@ public class FirebaseService implements WebService {
             return transactionResult;
         }).addOnSuccessListener(result::setValue)
                 .addOnFailureListener(
-                        e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
+                        e -> result.setValue(new ApiResponse<>(null, false, e.getMessage()))))
+                .addOnFailureListener(e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
+
         return result;
     }
 
@@ -311,7 +324,7 @@ public class FirebaseService implements WebService {
     @Override
     public LiveData<ApiResponse<Comment>> likeComment(String userId, String commentId) {
         MutableLiveData<ApiResponse<Comment>> result = new MutableLiveData<>();
-        mDb.runTransaction(transaction -> {
+        mDb.document("users/"+userId).get().addOnSuccessListener(userSnap -> mDb.runTransaction(transaction -> {
             Timber.i("like comment transaction");
             ApiResponse<Comment> transactionResult;
 
@@ -344,13 +357,22 @@ public class FirebaseService implements WebService {
 
             transaction.set(feedContainerRef, feedContainer);
 
+            Notification notification = new Notification();
+            notification.setFromUser(userSnap.toObject(FeedUser.class));
+            notification.setType(Notification.TYPE_LIKE_COMMENT);
+            notification.setTargetUserId(comment.getFeedUser().getUserId());
+            notification.setTargetCommentId(comment.getId());
+            notification.setTargetFeedId(feedContainer.getFeedId());
+            createNotificationInTransaction(transaction, notification);
+
             comment.setLiked(true);
             comment.setLikeCount(newLikeCount);
             transactionResult = new ApiResponse<>(comment, true, null);
             return transactionResult;
         }).addOnSuccessListener(result::setValue)
                 .addOnFailureListener(
-                        e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
+                        e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())))
+                .addOnFailureListener( e -> result.setValue(new ApiResponse<>(null, false, e.getMessage()))));
         return result;
     }
 
@@ -403,7 +425,7 @@ public class FirebaseService implements WebService {
     @Override
     public LiveData<ApiResponse<Comment>> likeSubComment(String userId, String subCommentId) {
         MutableLiveData<ApiResponse<Comment>> result = new MutableLiveData<>();
-        mDb.runTransaction(transaction -> {
+        mDb.document("users/" + userId).get().addOnSuccessListener(userSnap -> mDb.runTransaction(transaction -> {
             DocumentReference subCommentRef = mDb.document(String.format("subComments/%s", subCommentId));
             Comment subComment = transaction.get(subCommentRef).toObject(Comment.class);
             if (subComment == null) {
@@ -427,12 +449,22 @@ public class FirebaseService implements WebService {
 
             updateSubCommentTransaction(transaction, subComment, likeCountUpdate);
 
+            Notification notification = new Notification();
+            notification.setTargetReplyId(subCommentId);
+            notification.setTargetUserId(subComment.getFeedUser().getUserId());
+            notification.setFromUser(userSnap.toObject(FeedUser.class));
+            notification.setType(Notification.TYPE_LIKE_REPLY);
+            notification.setTargetCommentId(subComment.getParentCommentId());
+            createNotificationInTransaction(transaction, notification);
+
             subComment.setLiked(true);
             subComment.setLikeCount(newLikeCount);
             return new ApiResponse<>(subComment, true, null);
-        }).addOnSuccessListener(result::setValue)
-                .addOnFailureListener(
-                        e -> result.setValue(new ApiResponse<>(null, false, e.getMessage())));
+        }).addOnSuccessListener(result::setValue).addOnFailureListener(e->{
+            result.setValue(new ApiResponse<>(null, false, e.getMessage()));
+        })).addOnFailureListener(e->{
+            result.setValue(new ApiResponse<>(null, false, e.getMessage()));
+        });
         return result;
     }
 
@@ -559,6 +591,13 @@ public class FirebaseService implements WebService {
             latestCommentUpdates.put("latestComment", commentMap);
             updateFeedTransaction(transaction, feed, latestCommentUpdates);
 
+            Notification notification = new Notification();
+            notification.setType(Notification.TYPE_NEW_COMMENT);
+            notification.setTargetUserId(feed.getFeedUser().getUserId());
+            notification.setTargetFeedId(feed.getFeedId());
+            notification.setTargetCommentId(comment.getId());
+            notification.setFromUser(comment.getFeedUser());
+            createNotificationInTransaction(transaction, notification);
 
             transaction.set(commentRef, commentMap);
 
@@ -625,11 +664,18 @@ public class FirebaseService implements WebService {
             FirebaseService.this.updateCommentTransaction(transaction, feedContainer, parentComment, updatesCount);
             FirebaseService.this.updateCommentTransaction(transaction, feedContainer, parentComment, latestCommentUpdate);
 
-
             transaction.set(subCommentRef, commentMap);
             String replyCommentPath = String.format("comments/%s/subComments/%s", parentCommentId, subComment.getId());
             DocumentReference replyCommentRef = mDb.document(replyCommentPath);
             transaction.set(replyCommentRef, commentMap);
+
+            Notification notification = new Notification();
+            notification.setFromUser(subComment.getFeedUser());
+            notification.setTargetCommentId(subComment.getParentCommentId());
+            notification.setTargetUserId(parentComment.getFeedUser().getUserId());
+            notification.setType(Notification.TYPE_NEW_REPLY);
+            createNotificationInTransaction(transaction, notification);
+
             return new ApiResponse<>(subComment, true, null);
 
         }).addOnSuccessListener(result::setValue).addOnFailureListener(e -> {
@@ -810,5 +856,41 @@ public class FirebaseService implements WebService {
             }
             return result;
         });
+    }
+
+    public void createNotificationInTransaction(Transaction tran, Notification notification) throws FirebaseFirestoreException {
+        if(notification.getTargetUserId()
+                .equals(notification.getFromUser().getUserId())){
+            Timber.e("target user and from user is the same");
+            return;
+        }
+        StringBuilder notiIdBuilder = new StringBuilder();
+        notiIdBuilder.append(notification.getFromUser().getUserId()).append("-");
+        switch (notification.getType()) {
+            case Notification.TYPE_LIKE_COMMENT:
+            case Notification.TYPE_NEW_REPLY:
+                notiIdBuilder.append(notification.getTargetCommentId());
+                break;
+            case Notification.TYPE_LIKE_FEED:
+            case Notification.TYPE_NEW_COMMENT:
+                notiIdBuilder.append(notification.getTargetFeedId());
+                break;
+            case Notification.TYPE_LIKE_REPLY:
+                notiIdBuilder.append(notification.getTargetReplyId());
+                break;
+        }
+        notiIdBuilder.append("-").append(notification.getType());
+        String notiId = notiIdBuilder.toString();
+
+        DocumentReference notiRef = mDb.collection("notifications").document(notiId);
+
+        DocumentReference userNotiRef = mDb.document(String.format("users/%s/notifications/%s",
+                notification.getTargetUserId(),
+                notiId));
+
+        notification.setId(notiId);
+        notification.setTimeCreated(null);
+        tran.set(notiRef, notification);
+        tran.set(userNotiRef, notification);
     }
 }
