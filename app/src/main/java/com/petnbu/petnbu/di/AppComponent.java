@@ -13,6 +13,7 @@ import com.petnbu.petnbu.jobs.CreateCommentWorker;
 import com.petnbu.petnbu.jobs.CreateEditFeedWorker;
 import com.petnbu.petnbu.login.LoginJavaActivity;
 import com.petnbu.petnbu.repo.FeedRepository;
+import com.petnbu.petnbu.repo.NotificationRepository;
 import com.petnbu.petnbu.repo.UserRepository;
 import com.petnbu.petnbu.userprofile.UserProfileViewModel;
 
@@ -43,6 +44,8 @@ public interface AppComponent {
     FeedRepository getFeedRepo();
 
     UserRepository getUserRepo();
+
+    NotificationRepository getNotificationRepo();
 
     AppExecutors getAppExecutor();
 

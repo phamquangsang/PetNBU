@@ -71,7 +71,7 @@ public class CommentRepository {
 
     private final Application mApplication;
 
-    private Toaster mToaster;
+    final private Toaster mToaster;
 
     private final RateLimiter<String> mRateLimiter = new RateLimiter<>(10, TimeUnit.MINUTES);
 

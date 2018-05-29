@@ -52,11 +52,12 @@ public class FeedApiTest {
     @Test
     public void migrateData() {
         FirebaseFirestore firestore = FirebaseFirestore.getInstance();
-        FirebaseService webService = new FirebaseService(firestore);
+        AppExecutors appExecutors = PetApplication.getAppComponent().getAppExecutor();
+        FirebaseService webService = new FirebaseService(firestore, appExecutors);
         
         CountDownLatch countDownLatch = new CountDownLatch(1);
         
-        webService.getAllUser(10).observeForever(listApiResponse -> {
+        webService.getAllUser().observeForever(listApiResponse -> {
             if(listApiResponse != null){
                 if(listApiResponse.isSucceed){
                     List<UserEntity> users = listApiResponse.body;
@@ -118,7 +119,7 @@ public class FeedApiTest {
         FeedUser userNhat = new FeedUser("2", avatar, "Nhat Nhat");
         List<Photo> photo2 = new ArrayList<>();
         photo2.add(new Photo("https://picsum.photos/1000/600/?image=383", "https://picsum.photos/500/300/?image=383", "https://picsum.photos/250/150/?image=383", "https://picsum.photos/100/60/?image=383", 1000, 600));
-        Feed feed1 = new Feed("2", userNhat, photo2, 12, null, 14, "", new Date(), new Date(), STATUS_NEW);
+        Feed feed1 = new Feed("2", userNhat, photo2, 12, null, 14, false ,false, "", new Date(), new Date(), STATUS_NEW);
 
         AppExecutors appExecutors = PetApplication.getAppComponent().getAppExecutor();
         PetDb petDb = PetApplication.getAppComponent().getPetDb();
@@ -133,7 +134,7 @@ public class FeedApiTest {
     @Test
     public void testFeedsCreateApi() {
         FirebaseFirestore firestore = FirebaseFirestore.getInstance();
-        WebService webService = new FirebaseService(firestore);
+        WebService webService = new FirebaseService(firestore, PetApplication.getAppComponent().getAppExecutor());
 
         Photo avatar = new Photo("\"https://lh5.googleusercontent.com/-FJzPGWw8bAk/AAAAAAAAAAI/AAAAAAAAAu8/GohAJXC8_78/photo.jpg?sz=64\"", null, null, null, 0, 0);
         FeedUser userSang = new FeedUser("1", avatar,
@@ -141,13 +142,13 @@ public class FeedApiTest {
         List<Photo> photo1 = new ArrayList<>();
         photo1.add(new Photo("https://picsum.photos/1200/1300/?image=381", "https://picsum.photos/600/650/?image=381", "https://picsum.photos/300/325/?image=381", "https://picsum.photos/120/130/?image=381", 1200, 1300));
         photo1.add(new Photo("https://picsum.photos/1200/1300/?image=382", "https://picsum.photos/600/650/?image=382", "https://picsum.photos/300/325/?image=382", "https://picsum.photos/120/130/?image=382", 1200, 1300));
-        Feed feed = new Feed("1", userSang, photo1, 10, null, 12, "", new Date(), new Date(), STATUS_NEW);
+        Feed feed = new Feed("1", userSang, photo1, 10, null, 12, false, false, "", new Date(), new Date(), STATUS_NEW);
 
         Photo avatarNhat = new Photo("https://developer.android.com/static/images/android_logo_2x.png", null, null, null, 0, 0);
         FeedUser userNhat = new FeedUser("2", avatarNhat, "Nhat Nhat");
         List<Photo> photo2 = new ArrayList<>();
         photo2.add(new Photo("https://picsum.photos/1000/600/?image=383", "https://picsum.photos/500/300/?image=383", "https://picsum.photos/250/150/?image=383", "https://picsum.photos/100/60/?image=383", 1000, 600));
-        Feed feed1 = new Feed("2", userNhat, photo2, 12, null, 14, "", new Date(), new Date(), STATUS_NEW);
+        Feed feed1 = new Feed("2", userNhat, photo2, 12, null, 14, false, false,"", new Date(), new Date(), STATUS_NEW);
 
         for (int i = 0; i < 30; i++) {
             webService.createFeed(i % 2 == 0 ? feed : feed1);
@@ -166,7 +167,9 @@ public class FeedApiTest {
     public void testFeedsPagingApi() throws InterruptedException {
         final CountDownLatch signal = new CountDownLatch(2);
         FirebaseFirestore firestore = FirebaseFirestore.getInstance();
-        WebService webService = new FirebaseService(firestore);
+
+        AppExecutors appExecutors = PetApplication.getAppComponent().getAppExecutor();
+        WebService webService = new FirebaseService(firestore ,appExecutors);
         Date date = new Date();
         LiveData<ApiResponse<List<Feed>>> result = webService.getGlobalFeeds(date.getTime(), 30);
         result.observeForever(listApiResponse -> {
@@ -187,11 +190,10 @@ public class FeedApiTest {
 
         FeedRepository repository = PetApplication.getAppComponent().getFeedRepo();
 
-        AppExecutors appExecutors = PetApplication.getAppComponent().getAppExecutor();
         appExecutors.mainThread().execute(new Runnable() {
             @Override
             public void run() {
-                LiveData<Resource<List<FeedUI>>> resultLive = repository.loadFeeds(Paging.GLOBAL_FEEDS_PAGING_ID);
+                LiveData<Resource<List<FeedUI>>> resultLive = repository.loadFeeds(Paging.GLOBAL_FEEDS_PAGING_ID, "701Gx5cLL9W7H3RmLz4ZxEdFlpb2");
                 resultLive.observeForever(new Observer<Resource<List<FeedUI>>>() {
                     @Override
                     public void onChanged(@Nullable Resource<List<FeedUI>> listResource) {

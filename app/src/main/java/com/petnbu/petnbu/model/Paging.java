@@ -15,6 +15,13 @@ import java.util.List;
 public class Paging {
 
     public static final String GLOBAL_FEEDS_PAGING_ID = "global-feeds-paging-id-feeds";
+
+    public static final String NOTIFICATION_PAGING_ID = "notifcation-paging-id";
+
+    public static String notificationsPagingId(){
+        return NOTIFICATION_PAGING_ID;
+    }
+
     public static String feedCommentsPagingId(String feedId){
         return feedId + "-comments";
     }

@@ -893,4 +893,21 @@ public class FirebaseService implements WebService {
         tran.set(notiRef, notification);
         tran.set(userNotiRef, notification);
     }
+
+    public LiveData<ApiResponse<List<Notification>>> getNotifications(String userId, long after, int limit){
+        MutableLiveData<ApiResponse<List<Notification>>> result = new MutableLiveData<>();
+        mDb.collection(String.format("users/%s/notifications", userId))
+                .orderBy("timeCreated", Query.Direction.DESCENDING)
+                .startAfter(new Date(after))
+                .limit(limit)
+                .get().addOnSuccessListener(querySnapshots -> mExecutors.networkIO().execute(()->{
+           List<Notification> notifications = new ArrayList<>(querySnapshots.size());
+            for (DocumentSnapshot notiSnap : querySnapshots) {
+                notifications.add(notiSnap.toObject(Notification.class));
+            }
+            result.postValue(new ApiResponse<>(notifications, true, null));
+        })).addOnFailureListener(e -> result.postValue(new ApiResponse<>(null, false, e.getMessage())));
+        return result;
+    }
+
 }

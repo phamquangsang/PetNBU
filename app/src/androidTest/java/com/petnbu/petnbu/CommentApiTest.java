@@ -33,10 +33,11 @@ public class CommentApiTest {
 
     @Test
     public void createComment() {
-        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
-        WebService webService = new FirebaseService(firestore);
-
         AppExecutors appExecutors = PetApplication.getAppComponent().getAppExecutor();
+        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+        WebService webService = new FirebaseService(firestore, appExecutors);
+
+
         CountDownLatch signalFeed = new CountDownLatch(1);
 
         appExecutors.networkIO().execute(() ->{
@@ -91,9 +92,10 @@ public class CommentApiTest {
     public void createReply(){
         String parentCommentId = "ZIKSOzLudKLRu6yQIOhI";
         FirebaseFirestore firestore = FirebaseFirestore.getInstance();
-        WebService webService = new FirebaseService(firestore);
-
         AppExecutors appExecutors = PetApplication.getAppComponent().getAppExecutor();
+        WebService webService = new FirebaseService(firestore,appExecutors);
+
+
         PetDb petDb = PetApplication.getAppComponent().getPetDb();
         CountDownLatch signalFeed = new CountDownLatch(1);
 
