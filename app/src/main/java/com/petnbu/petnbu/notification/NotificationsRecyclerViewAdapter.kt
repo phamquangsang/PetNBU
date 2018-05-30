@@ -66,19 +66,11 @@ class NotificationsRecyclerViewAdapter(context: Context?, notifications: List<No
         }
     }
 
-    override fun getItemCount(): Int {
-        return dataItemCount + if (addLoadMore) 1 else 0
-    }
+    override fun getItemCount() = dataItemCount + if (addLoadMore) 1 else 0
 
-    override fun getItemViewType(position: Int): Int {
-        return if (position < dataItemCount && dataItemCount > 0) {
-            VIEW_TYPE_NOTIFICATION
-        } else VIEW_TYPE_LOADING
-    }
+    override fun getItemViewType(position: Int) = if (position < dataItemCount && dataItemCount > 0) VIEW_TYPE_NOTIFICATION else VIEW_TYPE_LOADING
 
-    private fun getItem(position: Int): NotificationUI? {
-        return if (position < 0 || position >= notifications.size) null else notifications[position]
-    }
+    private fun getItem(position: Int) = if (position < 0 || position >= notifications.size) null else notifications[position]
 
     fun setAddLoadMore(addLoadMore: Boolean) {
         if (this.addLoadMore != addLoadMore) {
@@ -150,21 +142,15 @@ class NotificationsRecyclerViewAdapter(context: Context?, notifications: List<No
 
     class NotificationDiffCallback(private val oldData: List<NotificationUI>, private val newData: List<NotificationUI>) : DiffUtil.Callback() {
 
-        override fun getOldListSize(): Int {
-            return oldData.size
-        }
+        override fun getOldListSize() = oldData.size
 
-        override fun getNewListSize(): Int {
-            return newData.size
-        }
+        override fun getNewListSize() = newData.size
 
-        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-            return oldData[oldItemPosition].id == newData[newItemPosition].id
-        }
+        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int) =
+                oldData[oldItemPosition].id == newData[newItemPosition].id
 
-        override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-            return Objects.equals(oldData[oldItemPosition], newData[newItemPosition])
-        }
+        override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int) =
+                Objects.equals(oldData[oldItemPosition], newData[newItemPosition])
     }
 
     @SuppressLint("StaticFieldLeak")
