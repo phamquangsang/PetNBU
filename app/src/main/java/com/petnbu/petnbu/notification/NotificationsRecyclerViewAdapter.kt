@@ -32,9 +32,6 @@ import java.util.Calendar
 
 class NotificationsRecyclerViewAdapter(context: Context?, notifications: List<NotificationUI>?) : RecyclerView.Adapter<BaseBindingViewHolder<*, *>>() {
 
-    private val VIEW_TYPE_NOTIFICATION = 1
-    private val VIEW_TYPE_LOADING = 2
-
     private val glideRequests: GlideRequests
     private var notifications: List<NotificationUI>
     private var addLoadMore: Boolean = false
@@ -188,5 +185,10 @@ class NotificationsRecyclerViewAdapter(context: Context?, notifications: List<No
                 diffResult.dispatchUpdatesTo(this@NotificationsRecyclerViewAdapter)
             }
         }.execute()
+    }
+
+    companion object {
+        private const val VIEW_TYPE_NOTIFICATION = 1
+        private const val VIEW_TYPE_LOADING = 2
     }
 }
