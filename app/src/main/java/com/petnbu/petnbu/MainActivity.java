@@ -1,15 +1,22 @@
 package com.petnbu.petnbu;
 
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.design.widget.BottomNavigationView;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v4.util.ArrayMap;
 import android.support.v7.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.petnbu.petnbu.databinding.ActivityMainBinding;
-import com.petnbu.petnbu.db.PetDb;
+import com.petnbu.petnbu.feed.FeedsFragment;
+import com.petnbu.petnbu.feed.FeedsViewModel;
 import com.petnbu.petnbu.login.LoginJavaActivity;
+import com.petnbu.petnbu.notification.NotificationsFragment;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -18,13 +25,13 @@ public class MainActivity extends AppCompatActivity {
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener = item -> {
                 switch (item.getItemId()) {
                     case R.id.navigation_home:
-                        return true;
-                    case R.id.navigation_dashboard:
-                        PetApplication.getAppComponent().getJobDispatcher().cancelAll();
+                        showFeeds();
                         return true;
                     case R.id.navigation_notifications:
-                        PetApplication.getAppComponent().getAppExecutor().diskIO().execute(
-                                () ->PetApplication.getAppComponent().getPetDb().feedDao().deleteAll());
+                        showNotifications();
+                        return true;
+                    case R.id.navigation_fragment3:
+                        show3();
                         return true;
                 }
                 return false;
@@ -50,6 +57,86 @@ public class MainActivity extends AppCompatActivity {
 
     private void initialize() {
         mBinding.bottomNavigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+        mBinding.bottomNavigation.setSelectedItemId(R.id.navigation_home);
     }
 
+    private void showFeeds() {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        Fragment feedFragment = fragmentManager.findFragmentByTag(FeedsFragment.class.getSimpleName());
+        if(feedFragment != null) {
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .hide(fragmentManager.findFragmentById(R.id.fragmentContainer))
+                    .show(feedFragment)
+                    .addToBackStack(FeedsFragment.class.getSimpleName())
+                    .commit();
+        } else {
+            feedFragment = new FeedsFragment();
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .add(R.id.fragmentContainer, feedFragment, FeedsFragment.class.getSimpleName())
+                    .commit();
+        }
+    }
+
+    private void showNotifications() {
+        Fragment fragment = getSupportFragmentManager().findFragmentByTag(NotificationsFragment.class.getSimpleName());
+        if(fragment == null) {
+            fragment = new NotificationsFragment();
+        }
+        showFragment(fragment);
+    }
+
+    private void show3() {
+        Fragment fragment = getSupportFragmentManager().findFragmentByTag(Fragment3.class.getSimpleName());
+        if(fragment == null) {
+            fragment = new Fragment3();
+        }
+        showFragment(fragment);
+    }
+
+    private void showFragment(Fragment fragment) {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        String tagFragmentToAdd = fragment.getClass().getSimpleName();
+
+        if(fragmentManager.findFragmentByTag(tagFragmentToAdd) != null) {
+            ArrayMap<String, Fragment> mFragments = new ArrayMap<>();
+            boolean isFound = false;
+            for (int i = fragmentManager.getBackStackEntryCount() - 1; i >= 0; i--) {
+                FragmentManager.BackStackEntry backStackEntry = fragmentManager.getBackStackEntryAt(i);
+                if (backStackEntry.getName().equals(tagFragmentToAdd)) {
+                    isFound = true;
+                    break;
+                } else {
+                    mFragments.put(backStackEntry.getName(), fragmentManager.findFragmentByTag(backStackEntry.getName()));
+                }
+            }
+
+            if(isFound) {
+                mFragments.put(tagFragmentToAdd, fragment);
+                if(FeedsFragment.class.getSimpleName().equals(mFragments.keyAt(0))) {
+                    mFragments.removeAt(0);
+                }
+                fragmentManager.popBackStackImmediate(tagFragmentToAdd, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+
+                Fragment previous = fragmentManager.findFragmentById(R.id.fragmentContainer);
+                for (String tagBackStack : mFragments.keySet()) {
+                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                    fragmentTransaction.hide(previous);
+                    Fragment fragmentToAdd = mFragments.get(tagBackStack);
+                    fragmentTransaction.add(R.id.fragmentContainer, fragmentToAdd, tagBackStack)
+                            .addToBackStack(tagBackStack)
+                            .commit();
+                    previous = fragmentToAdd;
+                }
+            }
+        } else {
+            Fragment current = fragmentManager.findFragmentById(R.id.fragmentContainer);
+            fragmentManager.beginTransaction()
+                    .hide(current)
+                    .add(R.id.fragmentContainer, fragment, tagFragmentToAdd)
+                    .addToBackStack(tagFragmentToAdd)
+                    .commit();
+        }
+    }
 }

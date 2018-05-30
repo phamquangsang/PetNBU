@@ -14,10 +14,8 @@ import com.petnbu.petnbu.util.Objects;
 
 public class ProfileFeedAdapter extends DataBoundListAdapter<FeedUI, FragmentFeedProfileItemBinding> {
 
-    private final UserProfileFragment.OnProfileFragmentInteractionListener mListener;
+    public ProfileFeedAdapter() {
 
-    public ProfileFeedAdapter(UserProfileFragment.OnProfileFragmentInteractionListener listener) {
-        mListener = listener;
     }
 
     @Override
@@ -26,11 +24,7 @@ public class ProfileFeedAdapter extends DataBoundListAdapter<FeedUI, FragmentFee
                 DataBindingUtil.inflate(LayoutInflater.from(parent.getContext()), R.layout.fragment_feed_profile_item, parent, false);
 
         binding.getRoot().setOnClickListener(v -> {
-            if (null != mListener) {
-                // Notify the active callbacks interface (the activity, if the
-                // fragment is attached to one) that an item has been selected.
-                mListener.onListFragmentInteractionListener(binding.getFeed());
-            }
+
         });
         return binding;
     }

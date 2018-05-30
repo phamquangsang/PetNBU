@@ -9,4 +9,5 @@
     <color name="colorIcons">#212121</color>
     <color name="colorDivider">#BDBDBD</color>
     <color name="placeholderBackground">#DDDDDD</color>
+    <color name="inline_action_icon">#757575</color> <!-- grey 600 -->
 </resources>

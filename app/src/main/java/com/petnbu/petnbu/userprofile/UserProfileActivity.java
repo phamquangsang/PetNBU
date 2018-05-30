@@ -11,7 +11,7 @@ import com.petnbu.petnbu.databinding.ActivityUserProfileBinding;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedUI;
 
-public class UserProfileActivity extends AppCompatActivity implements UserProfileFragment.OnProfileFragmentInteractionListener{
+public class UserProfileActivity extends AppCompatActivity {
 
     private static String ARG_USER_ID = "user-id";
     private ActivityUserProfileBinding mBinding;
@@ -33,10 +33,5 @@ public class UserProfileActivity extends AppCompatActivity implements UserProfil
                 .beginTransaction()
                 .add(R.id.layoutRoot, UserProfileFragment.newInstance(3, userId))
                 .commit();
-    }
-
-    @Override
-    public void onListFragmentInteractionListener(FeedUI item) {
-
     }
 }

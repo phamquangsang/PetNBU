@@ -31,7 +31,6 @@ public class UserProfileFragment extends Fragment {
 
     private int mColumnCount = 1;
     private String mUserId;
-    private OnProfileFragmentInteractionListener mListener;
     private UserProfileViewModel mViewModel;
     private ProfileFeedAdapter mAdapter;
     private FragmentFeedProfileListBinding mBinding;
@@ -68,7 +67,7 @@ public class UserProfileFragment extends Fragment {
         } else {
             mBinding.list.setLayoutManager(new GridLayoutManager(getContext(), mColumnCount));
         }
-        mAdapter = new ProfileFeedAdapter(mListener);
+        mAdapter = new ProfileFeedAdapter();
         mBinding.list.setAdapter(mAdapter);
         mBinding.list.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -117,27 +116,5 @@ public class UserProfileFragment extends Fragment {
                         .into(mBinding.imgProfile);
             }
         });
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnProfileFragmentInteractionListener) {
-            mListener = (OnProfileFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnProfileFragmentInteractionListener");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }
-
-    public interface OnProfileFragmentInteractionListener {
-
-        void onListFragmentInteractionListener(FeedUI item);
     }
 }
