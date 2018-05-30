@@ -30,7 +30,7 @@ import com.petnbu.petnbu.util.Objects
 import java.util.ArrayList
 import java.util.Calendar
 
-class NotificationsRecyclerViewAdapter(context: Context?, notifications: List<NotificationUI>?) : RecyclerView.Adapter<BaseBindingViewHolder<*, *>>() {
+class NotificationsRecyclerViewAdapter(context: Context?, notifications: List<NotificationUI> = ArrayList(0)) : RecyclerView.Adapter<BaseBindingViewHolder<*, *>>() {
 
     private val glideRequests: GlideRequests
     private var notifications: List<NotificationUI>
@@ -46,7 +46,7 @@ class NotificationsRecyclerViewAdapter(context: Context?, notifications: List<No
     init {
         context!!
         glideRequests = GlideApp.with(context)
-        this.notifications = notifications ?: ArrayList(0)
+        this.notifications = notifications
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseBindingViewHolder<*, *> {

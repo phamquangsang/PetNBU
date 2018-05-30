@@ -41,7 +41,7 @@ class NotificationsFragment : Fragment() {
         })
 
         mBinding.rvNotifications.layoutManager = LinearLayoutManager(activity)
-        mAdapter = NotificationsRecyclerViewAdapter(activity, ArrayList())
+        mAdapter = NotificationsRecyclerViewAdapter(activity)
         mBinding.rvNotifications.adapter = mAdapter
     }
 }
