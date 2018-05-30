@@ -41,16 +41,17 @@ class NotificationViewModel : ViewModel() {
 
     val showLoading = ObservableBoolean()
 
-    val notifications: LiveData<List<NotificationUI>>
-        get() = Transformations.switchMap(mNotificationRepository.getUserNotifications(SharedPrefUtil.getUserId(), Date().time)) { notificationsResource ->
-            val notificationsLiveData = MutableLiveData<List<NotificationUI>>()
+    private val notifications: MutableLiveData<List<NotificationUI>> = MutableLiveData()
+
+    fun loadNotifications(): LiveData<List<NotificationUI>> {
+        return Transformations.switchMap(mNotificationRepository.getUserNotifications(SharedPrefUtil.getUserId(), Date().time)) { notificationsResource ->
             if (notificationsResource != null) {
                 showLoading.set(notificationsResource.status == Status.LOADING)
-                if (notificationsResource.data != null)
-                    notificationsLiveData.value = notificationsResource.data
+                notifications.value = notificationsResource.data
             }
-            notificationsLiveData
+            notifications
         }
+    }
 
     init {
         PetApplication.getAppComponent().inject(this)

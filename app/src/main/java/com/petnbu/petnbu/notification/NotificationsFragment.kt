@@ -34,10 +34,14 @@ class NotificationsFragment : Fragment() {
     private fun initialize() {
         mNotificationViewModel = ViewModelProviders.of(this).get(NotificationViewModel::class.java)
         mBinding.viewModel = mNotificationViewModel
-        mNotificationViewModel.notifications.observe(this, Observer { notifications -> mAdapter!!.setData(notifications)})
+        mNotificationViewModel.loadNotifications().observe(this, Observer { notifications ->
+            if (notifications != null) {
+                mAdapter?.setData(notifications)
+            }
+        })
 
         mBinding.rvNotifications.layoutManager = LinearLayoutManager(activity)
-        mAdapter = NotificationsRecyclerViewAdapter(activity, ArrayList<NotificationUI>())
+        mAdapter = NotificationsRecyclerViewAdapter(activity, ArrayList())
         mBinding.rvNotifications.adapter = mAdapter
     }
 }
