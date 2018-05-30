@@ -1,36 +1,18 @@
 package com.petnbu.petnbu.model;
 
-import android.support.annotation.IntDef;
+import android.arch.persistence.room.Embedded;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.google.firebase.firestore.ServerTimestamp;
 
-import java.lang.annotation.Retention;
 import java.util.Date;
 
-import static java.lang.annotation.RetentionPolicy.SOURCE;
-
-public class Notification {
-
-    public NotificationEntity toEntity() {
-        return new NotificationEntity(id, targetUserId, fromUser.getUserId(), targetFeedId, targetCommentId,
-                targetReplyId, type, timeCreated, isRead);
-    }
-
-    @Retention(SOURCE)
-    @IntDef(value = {TYPE_LIKE_FEED, TYPE_LIKE_COMMENT, TYPE_LIKE_REPLY, TYPE_NEW_COMMENT, TYPE_NEW_REPLY})
-    public @interface NotificationType { }
-
-    public static final int TYPE_LIKE_FEED = 1;
-    public static final int TYPE_LIKE_COMMENT = 2;
-    public static final int TYPE_LIKE_REPLY = 3;
-    public static final int TYPE_NEW_COMMENT = 4;
-    public static final int TYPE_NEW_REPLY = 5;
-
+public class NotificationUI {
     @NonNull
     private String id;
     private String targetUserId;
+    @Embedded
     private FeedUser fromUser;
     @Nullable
     private String targetFeedId;
@@ -38,7 +20,7 @@ public class Notification {
     private String targetCommentId;
     @Nullable
     private String targetReplyId;
-    @NotificationType
+    @Notification.NotificationType
     private int type;
     @ServerTimestamp
     private Date timeCreated;
@@ -70,11 +52,12 @@ public class Notification {
         this.fromUser = fromUser;
     }
 
+    @Notification.NotificationType
     public int getType() {
         return type;
     }
 
-    public void setType(int type) {
+    public void setType(@Notification.NotificationType int type) {
         this.type = type;
     }
 
@@ -120,5 +103,4 @@ public class Notification {
     public void setRead(boolean read) {
         isRead = read;
     }
-
 }

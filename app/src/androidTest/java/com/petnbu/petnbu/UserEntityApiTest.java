@@ -33,7 +33,7 @@ public class UserEntityApiTest {
         UserEntity userEntity = new UserEntity("1234", photo, "Sang Sang", "phamsang@gmail.com", new Date(), new Date());
 
         FirebaseFirestore firebaseFirestore = FirebaseFirestore.getInstance();
-        WebService webService = new FirebaseService(firebaseFirestore);
+        WebService webService = new FirebaseService(firebaseFirestore, PetApplication.getAppComponent().getAppExecutor());
 
         CountDownLatch signal = new CountDownLatch(1);
         LiveData<ApiResponse<UserEntity>> apiResponse = webService.createUser(userEntity);

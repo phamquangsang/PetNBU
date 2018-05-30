@@ -55,7 +55,7 @@ import static com.petnbu.petnbu.model.LocalStatus.STATUS_UPLOADING;
 @Singleton
 public class FeedRepository {
 
-    public static final int FEEDS_PER_PAGE = 10;
+    public static final int FEEDS_PER_PAGE = 50;
 
     private final PetDb mPetDb;
 

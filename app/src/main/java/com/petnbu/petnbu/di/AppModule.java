@@ -10,6 +10,7 @@ import com.firebase.jobdispatcher.GooglePlayDriver;
 import com.google.gson.Gson;
 import com.petnbu.petnbu.db.CommentDao;
 import com.petnbu.petnbu.db.FeedDao;
+import com.petnbu.petnbu.db.NotificationDao;
 import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.db.UserDao;
 
@@ -57,6 +58,12 @@ public class AppModule {
     @Singleton
     CommentDao provideCommentDao(PetDb db){
         return db.commentDao();
+    }
+
+    @Provides
+    @Singleton
+    NotificationDao provideNotificationDao(PetDb db){
+        return db.notificationDao();
     }
 
     @Provides

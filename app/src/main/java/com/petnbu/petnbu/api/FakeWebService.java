@@ -6,6 +6,7 @@ import android.arch.lifecycle.MutableLiveData;
 import com.petnbu.petnbu.model.Comment;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedUser;
+import com.petnbu.petnbu.model.Notification;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.UserEntity;
 
@@ -430,6 +431,11 @@ public class FakeWebService implements WebService {
 
     @Override
     public LiveData<ApiResponse<Comment>> unLikeSubComment(String userId, String subCommentId) {
+        return null;
+    }
+
+    @Override
+    public LiveData<ApiResponse<List<Notification>>> getNotifications(String userId, long after, int limit) {
         return null;
     }
 }

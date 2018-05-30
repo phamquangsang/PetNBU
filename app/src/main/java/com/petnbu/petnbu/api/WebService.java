@@ -4,6 +4,7 @@ import android.arch.lifecycle.LiveData;
 
 import com.petnbu.petnbu.model.Comment;
 import com.petnbu.petnbu.model.Feed;
+import com.petnbu.petnbu.model.Notification;
 import com.petnbu.petnbu.model.UserEntity;
 
 import java.util.List;
@@ -54,6 +55,7 @@ public interface WebService {
 
     LiveData<ApiResponse<List<Comment>>> getSubCommentsPaging(String commentId, String afterCommentId, int limit);
 
+    LiveData<ApiResponse<List<Notification>>> getNotifications(String userId, long after, int limit);
 
 }
 

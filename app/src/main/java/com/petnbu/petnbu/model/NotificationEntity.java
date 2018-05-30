@@ -1,49 +1,54 @@
 package com.petnbu.petnbu.model;
 
-import android.support.annotation.IntDef;
+import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.ForeignKey;
+import android.arch.persistence.room.Ignore;
+import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.google.firebase.firestore.ServerTimestamp;
 
-import java.lang.annotation.Retention;
 import java.util.Date;
 
-import static java.lang.annotation.RetentionPolicy.SOURCE;
+@Entity(tableName = "notifications")
+public class NotificationEntity {
 
-public class Notification {
-
-    public NotificationEntity toEntity() {
-        return new NotificationEntity(id, targetUserId, fromUser.getUserId(), targetFeedId, targetCommentId,
-                targetReplyId, type, timeCreated, isRead);
-    }
-
-    @Retention(SOURCE)
-    @IntDef(value = {TYPE_LIKE_FEED, TYPE_LIKE_COMMENT, TYPE_LIKE_REPLY, TYPE_NEW_COMMENT, TYPE_NEW_REPLY})
-    public @interface NotificationType { }
-
-    public static final int TYPE_LIKE_FEED = 1;
-    public static final int TYPE_LIKE_COMMENT = 2;
-    public static final int TYPE_LIKE_REPLY = 3;
-    public static final int TYPE_NEW_COMMENT = 4;
-    public static final int TYPE_NEW_REPLY = 5;
-
-    @NonNull
+    @PrimaryKey @NonNull
     private String id;
     private String targetUserId;
-    private FeedUser fromUser;
+    @ForeignKey(entity = UserEntity.class, parentColumns = "userId", childColumns = "fromUserId")
+    private String fromUserId;
     @Nullable
     private String targetFeedId;
     @Nullable
     private String targetCommentId;
     @Nullable
     private String targetReplyId;
-    @NotificationType
+    @Notification.NotificationType
     private int type;
     @ServerTimestamp
     private Date timeCreated;
 
     private boolean isRead;
+
+    public NotificationEntity() {
+    }
+
+    @Ignore
+    public NotificationEntity(@NonNull String id, String targetUserId, String fromUserId,
+                              @Nullable String targetFeedId, @Nullable String targetCommentId,
+                              @Nullable String targetReplyId, int type, Date timeCreated, boolean isRead) {
+        this.id = id;
+        this.targetUserId = targetUserId;
+        this.fromUserId = fromUserId;
+        this.targetFeedId = targetFeedId;
+        this.targetCommentId = targetCommentId;
+        this.targetReplyId = targetReplyId;
+        this.type = type;
+        this.timeCreated = timeCreated;
+        this.isRead = isRead;
+    }
 
     @NonNull
     public String getId() {
@@ -62,19 +67,20 @@ public class Notification {
         this.targetUserId = targetUserId;
     }
 
-    public FeedUser getFromUser() {
-        return fromUser;
+    public String getFromUserId() {
+        return fromUserId;
     }
 
-    public void setFromUser(FeedUser fromUser) {
-        this.fromUser = fromUser;
+    public void setFromUserId(String fromUserId) {
+        this.fromUserId = fromUserId;
     }
 
+    @Notification.NotificationType
     public int getType() {
         return type;
     }
 
-    public void setType(int type) {
+    public void setType(@Notification.NotificationType int type) {
         this.type = type;
     }
 
@@ -120,5 +126,4 @@ public class Notification {
     public void setRead(boolean read) {
         isRead = read;
     }
-
 }
