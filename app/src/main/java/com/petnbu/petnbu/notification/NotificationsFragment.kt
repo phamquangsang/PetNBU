@@ -2,6 +2,7 @@ package com.petnbu.petnbu.notification
 
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
+import android.content.Context
 import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.support.v4.app.Fragment
@@ -36,12 +37,12 @@ class NotificationsFragment : Fragment() {
         mBinding.viewModel = mNotificationViewModel
         mNotificationViewModel.loadNotifications().observe(this, Observer { notifications ->
             if (notifications != null) {
-                mAdapter?.setData(notifications)
+                mAdapter?.submitList(notifications)
             }
         })
 
         mBinding.rvNotifications.layoutManager = LinearLayoutManager(activity)
-        mAdapter = NotificationsRecyclerViewAdapter(activity, ArrayList())
+        mAdapter = activity?.let { NotificationsRecyclerViewAdapter(context = it) }
         mBinding.rvNotifications.adapter = mAdapter
     }
 }
