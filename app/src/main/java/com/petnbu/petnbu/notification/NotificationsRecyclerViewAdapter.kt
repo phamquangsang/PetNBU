@@ -1,10 +1,9 @@
 package com.petnbu.petnbu.notification
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
-import android.os.AsyncTask
+import android.support.v7.recyclerview.extensions.ListAdapter
 import android.support.v7.util.DiffUtil
 import android.support.v7.widget.RecyclerView
 import android.text.SpannableStringBuilder
@@ -27,27 +26,16 @@ import com.petnbu.petnbu.model.NotificationUI
 import com.petnbu.petnbu.util.ColorUtils
 import com.petnbu.petnbu.util.Objects
 
-import java.util.ArrayList
 import java.util.Calendar
 
-class NotificationsRecyclerViewAdapter(context: Context?, notifications: List<NotificationUI> = ArrayList(0)) : RecyclerView.Adapter<BaseBindingViewHolder<*, *>>() {
+class NotificationsRecyclerViewAdapter(context: Context)
+    : ListAdapter<NotificationUI, BaseBindingViewHolder<*, *>>(NotificationDiffCallback()) {
 
-    private val glideRequests: GlideRequests
-    private var notifications: List<NotificationUI>
+    private val glideRequests: GlideRequests = GlideApp.with(context)
     private var addLoadMore: Boolean = false
-    private var dataVersion = 0
-
-    private val dataItemCount: Int
-        get() = notifications.size
 
     private val loadingMoreItemPosition: Int
         get() = if (addLoadMore) itemCount - 1 else RecyclerView.NO_POSITION
-
-    init {
-        context!!
-        glideRequests = GlideApp.with(context)
-        this.notifications = notifications
-    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseBindingViewHolder<*, *> {
         return if (viewType == VIEW_TYPE_LOADING) {
@@ -66,11 +54,9 @@ class NotificationsRecyclerViewAdapter(context: Context?, notifications: List<No
         }
     }
 
-    override fun getItemCount() = dataItemCount + if (addLoadMore) 1 else 0
+    override fun getItemCount() = super.getItemCount() + if (addLoadMore) 1 else 0
 
-    override fun getItemViewType(position: Int) = if (position < dataItemCount && dataItemCount > 0) VIEW_TYPE_NOTIFICATION else VIEW_TYPE_LOADING
-
-    private fun getItem(position: Int) = if (position < 0 || position >= notifications.size) null else notifications[position]
+    override fun getItemViewType(position: Int) = if (position < itemCount && itemCount > 0) VIEW_TYPE_NOTIFICATION else VIEW_TYPE_LOADING
 
     fun setAddLoadMore(addLoadMore: Boolean) {
         if (this.addLoadMore != addLoadMore) {
@@ -84,7 +70,7 @@ class NotificationsRecyclerViewAdapter(context: Context?, notifications: List<No
         }
     }
 
-    inner class ViewHolder(itemView: View) : BaseBindingViewHolder<ViewNotificationBinding, NotificationUI>(itemView) {
+    private inner class ViewHolder(itemView: View) : BaseBindingViewHolder<ViewNotificationBinding, NotificationUI>(itemView) {
 
         private lateinit var notification: NotificationUI
 
@@ -129,7 +115,7 @@ class NotificationsRecyclerViewAdapter(context: Context?, notifications: List<No
         }
     }
 
-    inner class ViewLoadingHolder(itemView: View) : BaseBindingViewHolder<ViewNotificationBinding, NotificationUI>(itemView) {
+    private inner class ViewLoadingHolder(itemView: View) : BaseBindingViewHolder<ViewNotificationBinding, NotificationUI>(itemView) {
 
         override fun bindData(item: NotificationUI) {
 
@@ -140,37 +126,11 @@ class NotificationsRecyclerViewAdapter(context: Context?, notifications: List<No
         }
     }
 
-    class NotificationDiffCallback(private val oldData: List<NotificationUI>, private val newData: List<NotificationUI>) : DiffUtil.Callback() {
+    private class NotificationDiffCallback : DiffUtil.ItemCallback<NotificationUI>() {
 
-        override fun getOldListSize() = oldData.size
+        override fun areContentsTheSame(oldItem: NotificationUI, newItem: NotificationUI) = oldItem.id == newItem.id
 
-        override fun getNewListSize() = newData.size
-
-        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int) =
-                oldData[oldItemPosition].id == newData[newItemPosition].id
-
-        override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int) =
-                Objects.equals(oldData[oldItemPosition], newData[newItemPosition])
-    }
-
-    @SuppressLint("StaticFieldLeak")
-    fun setData(notifications: List<NotificationUI>) {
-        dataVersion++
-        val startVersion = dataVersion
-        object : AsyncTask<Void, Void, DiffUtil.DiffResult>() {
-            override fun doInBackground(vararg voids: Void): DiffUtil.DiffResult {
-                return DiffUtil.calculateDiff(NotificationDiffCallback(this@NotificationsRecyclerViewAdapter.notifications, notifications))
-            }
-
-            override fun onPostExecute(diffResult: DiffUtil.DiffResult) {
-                if (startVersion != dataVersion) {
-                    // ignore update
-                    return
-                }
-                this@NotificationsRecyclerViewAdapter.notifications = notifications
-                diffResult.dispatchUpdatesTo(this@NotificationsRecyclerViewAdapter)
-            }
-        }.execute()
+        override fun areItemsTheSame(oldItem: NotificationUI, newItem: NotificationUI) = Objects.equals(oldItem, newItem)
     }
 
     companion object {
