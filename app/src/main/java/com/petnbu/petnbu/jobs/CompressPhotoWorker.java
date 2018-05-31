@@ -69,7 +69,7 @@ public class CompressPhotoWorker extends PhotoWorker {
         String compressedFileName = String.format("%s", fileUri.getLastPathSegment());
         Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
         FileOutputStream fileOutputStream = new FileOutputStream(new File(destinationDirectoryPath + File.separator + compressedFileName));
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 75, fileOutputStream);
+        bitmap.compress(Bitmap.CompressFormat.WEBP, 75, fileOutputStream);
         photo.setOriginUrl(Uri.fromFile(new File(destinationDirectoryPath + File.separator + compressedFileName)).toString());
         bitmap.recycle();
 
@@ -101,7 +101,7 @@ public class CompressPhotoWorker extends PhotoWorker {
     private String createAndSaveResizedBitmap(String path, String destinationDirectoryPath, String compressedFileName, int width, int height) throws FileNotFoundException {
         Bitmap bitmap = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(path), width, height, false);
         FileOutputStream fileOutputStream = new FileOutputStream(new File(destinationDirectoryPath + File.separator + compressedFileName));
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 75, fileOutputStream);
+        bitmap.compress(Bitmap.CompressFormat.WEBP, 75, fileOutputStream);
         bitmap.recycle();
         return Uri.fromFile(new File(destinationDirectoryPath + File.separator + compressedFileName)).toString();
     }
