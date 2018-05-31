@@ -9,7 +9,6 @@ import android.text.TextUtils;
 import android.webkit.URLUtil;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import com.petnbu.petnbu.util.Utils;
 import com.petnbu.petnbu.model.Photo;
@@ -19,7 +18,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import androidx.work.Data;
@@ -48,10 +46,7 @@ public class CompressPhotoWorker extends PhotoWorker {
                 setOutputData(outputDataBuilder.build());
 
                 workerResult = WorkerResult.SUCCESS;
-            } catch (IOException e) {
-                e.printStackTrace();
-                Timber.i("compress failed %s", e.getMessage());
-            } catch (JsonSyntaxException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 Timber.i("compress failed %s", e.getMessage());
             }
@@ -65,43 +60,50 @@ public class CompressPhotoWorker extends PhotoWorker {
         File file = new File(Utils.getPath(context, fileUri));
         String destinationDirectoryPath = context.getFilesDir().getAbsolutePath();
 
+        BitmapFactory.Options bitmapOpts = new BitmapFactory.Options();
+        bitmapOpts.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(file.getAbsolutePath(), bitmapOpts);
+        Bitmap bitmap = Bitmap.createBitmap(bitmapOpts.outWidth, bitmapOpts.outHeight, Bitmap.Config.ARGB_8888);
+        bitmapOpts.inJustDecodeBounds = false;
+        bitmapOpts.inBitmap = bitmap;
+
         // Origin
         String compressedFileName = String.format("%s", fileUri.getLastPathSegment());
-        Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
+        BitmapFactory.decodeFile(file.getAbsolutePath(), bitmapOpts);
         FileOutputStream fileOutputStream = new FileOutputStream(new File(destinationDirectoryPath + File.separator + compressedFileName));
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 75, fileOutputStream);
+        bitmap.compress(Bitmap.CompressFormat.WEBP, 75, fileOutputStream);
         photo.setOriginUrl(Uri.fromFile(new File(destinationDirectoryPath + File.separator + compressedFileName)).toString());
-        bitmap.recycle();
 
         // FHD
         int[] resolution = ImageUtils.getResolutionForImage(ImageUtils.FHD, photo.getWidth(), photo.getHeight());
         compressedFileName = String.format("%s-FHD", fileUri.getLastPathSegment());
-        String savedFilePath = createAndSaveResizedBitmap(file.getAbsolutePath(), destinationDirectoryPath, compressedFileName, resolution[0], resolution[1]);
+        String savedFilePath = createAndSaveResizedBitmap(file.getAbsolutePath(), destinationDirectoryPath, compressedFileName, resolution[0], resolution[1], bitmapOpts);
         photo.setLargeUrl(savedFilePath);
 
         // HD
         resolution = ImageUtils.getResolutionForImage(ImageUtils.HD, photo.getWidth(), photo.getHeight());
         compressedFileName = String.format("%s-HD", fileUri.getLastPathSegment());
-        savedFilePath = createAndSaveResizedBitmap(file.getAbsolutePath(), destinationDirectoryPath, compressedFileName, resolution[0], resolution[1]);
+        savedFilePath = createAndSaveResizedBitmap(file.getAbsolutePath(), destinationDirectoryPath, compressedFileName, resolution[0], resolution[1], bitmapOpts);
         photo.setMediumUrl(savedFilePath);
 
         // qHD
         resolution = ImageUtils.getResolutionForImage(ImageUtils.qHD, photo.getWidth(), photo.getHeight());
         compressedFileName = String.format("%s-qHD", fileUri.getLastPathSegment());
-        savedFilePath = createAndSaveResizedBitmap(file.getAbsolutePath(), destinationDirectoryPath, compressedFileName, resolution[0], resolution[1]);
+        savedFilePath = createAndSaveResizedBitmap(file.getAbsolutePath(), destinationDirectoryPath, compressedFileName, resolution[0], resolution[1], bitmapOpts);
         photo.setSmallUrl(savedFilePath);
 
         // THUMBNAIL
         resolution = ImageUtils.getResolutionForImage(ImageUtils.THUMBNAIL, photo.getWidth(), photo.getHeight());
         compressedFileName = String.format("%s-thumbnail", fileUri.getLastPathSegment());
-        savedFilePath = createAndSaveResizedBitmap(file.getAbsolutePath(), destinationDirectoryPath, compressedFileName, resolution[0], resolution[1]);
+        savedFilePath = createAndSaveResizedBitmap(file.getAbsolutePath(), destinationDirectoryPath, compressedFileName, resolution[0], resolution[1], bitmapOpts);
         photo.setThumbnailUrl(savedFilePath);
     }
 
-    private String createAndSaveResizedBitmap(String path, String destinationDirectoryPath, String compressedFileName, int width, int height) throws FileNotFoundException {
-        Bitmap bitmap = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(path), width, height, false);
+    private String createAndSaveResizedBitmap(String path, String destinationDirectoryPath, String compressedFileName,
+                                              int width, int height, BitmapFactory.Options opts) throws FileNotFoundException {
+        Bitmap bitmap = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(path, opts), width, height, false);
         FileOutputStream fileOutputStream = new FileOutputStream(new File(destinationDirectoryPath + File.separator + compressedFileName));
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 75, fileOutputStream);
+        bitmap.compress(Bitmap.CompressFormat.WEBP, 75, fileOutputStream);
         bitmap.recycle();
         return Uri.fromFile(new File(destinationDirectoryPath + File.separator + compressedFileName)).toString();
     }

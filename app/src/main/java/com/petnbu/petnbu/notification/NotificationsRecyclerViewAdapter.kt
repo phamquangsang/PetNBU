@@ -95,7 +95,7 @@ class NotificationsRecyclerViewAdapter(context: Context)
         }
 
         private fun displayMessageContent() {
-            val messageSpanBuilder = SpannableStringBuilder(notification!!.fromUser.name)
+            val messageSpanBuilder = SpannableStringBuilder(notification.fromUser.name)
             messageSpanBuilder.setSpan(StyleSpan(Typeface.BOLD), 0, messageSpanBuilder.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             messageSpanBuilder.append("  ")
 
