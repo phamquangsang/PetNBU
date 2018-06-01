@@ -3,18 +3,14 @@ package com.petnbu.petnbu.jobs
 import android.net.Uri
 import android.text.TextUtils
 import android.webkit.URLUtil
-
-import com.petnbu.petnbu.api.StorageApi
-import com.petnbu.petnbu.model.Photo
-
-import java.io.File
-import java.util.concurrent.CountDownLatch
-
 import androidx.work.Data
 import androidx.work.Worker
 import com.google.gson.Gson
+import com.petnbu.petnbu.api.StorageApi
 import com.petnbu.petnbu.extensions.toJson
-import java.util.ArrayList
+import com.petnbu.petnbu.model.Photo
+import java.io.File
+import java.util.concurrent.CountDownLatch
 
 class UploadPhotoWorker : Worker() {
 
@@ -91,13 +87,5 @@ class UploadPhotoWorker : Worker() {
 
     companion object {
         const val KEY_PHOTO = "key-photo"
-
-        @JvmStatic
-        fun data(photo: Photo): Data = data(ArrayList<Photo>(1).apply { add(photo) })
-
-        @JvmStatic
-        fun data(photos: List<Photo>): Data = Data.Builder()
-                .putString(KEY_PHOTO, photos.toJson())
-                .build()
     }
 }

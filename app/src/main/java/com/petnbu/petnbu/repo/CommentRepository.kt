@@ -1,12 +1,9 @@
 package com.petnbu.petnbu.repo
 
-import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.MediatorLiveData
-import android.arch.lifecycle.MutableLiveData
+import android.arch.lifecycle.*
 import android.arch.lifecycle.Observer
-import android.arch.lifecycle.Transformations
 import android.net.Uri
-
+import androidx.work.*
 import com.petnbu.petnbu.AppExecutors
 import com.petnbu.petnbu.SharedPrefUtil
 import com.petnbu.petnbu.api.ApiResponse
@@ -14,35 +11,17 @@ import com.petnbu.petnbu.api.WebService
 import com.petnbu.petnbu.db.PetDb
 import com.petnbu.petnbu.jobs.CompressPhotoWorker
 import com.petnbu.petnbu.jobs.CreateCommentWorker
-import com.petnbu.petnbu.jobs.PhotoWorker
 import com.petnbu.petnbu.jobs.UploadPhotoWorker
-import com.petnbu.petnbu.model.Comment
-import com.petnbu.petnbu.model.CommentEntity
-import com.petnbu.petnbu.model.CommentUI
-import com.petnbu.petnbu.model.Feed
-import com.petnbu.petnbu.model.FeedUser
-import com.petnbu.petnbu.model.LocalStatus
-import com.petnbu.petnbu.model.Paging
-import com.petnbu.petnbu.model.Resource
-import com.petnbu.petnbu.model.Status
+import com.petnbu.petnbu.model.*
 import com.petnbu.petnbu.util.IdUtil
 import com.petnbu.petnbu.util.RateLimiter
 import com.petnbu.petnbu.util.Toaster
 import com.petnbu.petnbu.util.TraceUtils
-
-import java.util.ArrayList
-import java.util.Date
+import timber.log.Timber
+import java.util.*
 import java.util.concurrent.TimeUnit
-
 import javax.inject.Inject
 import javax.inject.Singleton
-
-import androidx.work.Constraints
-import androidx.work.Data
-import androidx.work.NetworkType
-import androidx.work.OneTimeWorkRequest
-import androidx.work.WorkManager
-import timber.log.Timber
 
 @Singleton
 class CommentRepository @Inject
@@ -266,7 +245,7 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, 
             val key = Uri.parse(comment.photo.originUrl).lastPathSegment
             val uploadWork = OneTimeWorkRequest.Builder(UploadPhotoWorker::class.java)
                     .setConstraints(uploadConstraints)
-                    .setInputData(Data.Builder().putString(PhotoWorker.KEY_PHOTO, key).build())
+                    .setInputData(Data.Builder().putString(UploadPhotoWorker.KEY_PHOTO, key).build())
                     .build()
             WorkManager.getInstance()
                     .beginWith(compressionWork)
