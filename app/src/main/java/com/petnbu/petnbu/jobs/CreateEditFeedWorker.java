@@ -84,7 +84,7 @@ public class CreateEditFeedWorker extends Worker {
                         ,feedEntity.getContent(), feedEntity.getTimeCreated()
                         , feedEntity.getTimeUpdated(), feedEntity.getStatus());
 
-                if (feed.getStatus() == STATUS_UPLOADING) {
+                if (data.getBoolean("result", false) && feed.getStatus() == STATUS_UPLOADING) {
                     feed.setTimeUpdated(new Date());
 
                     Gson gson = new Gson();
@@ -125,7 +125,7 @@ public class CreateEditFeedWorker extends Worker {
                     } else {
                         updateLocalFeedError(feed);
                     }
-                }
+                } else updateLocalFeedError(feed);
             }
         }
         return workerResult;

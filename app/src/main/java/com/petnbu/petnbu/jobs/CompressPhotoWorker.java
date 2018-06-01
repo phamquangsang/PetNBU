@@ -28,13 +28,13 @@ public class CompressPhotoWorker extends PhotoWorker {
     @NonNull
     @Override
     public WorkerResult doWork() {
-        WorkerResult workerResult = WorkerResult.FAILURE;
-
         String photoJson = getInputData().getString(KEY_PHOTO, "");
+        Data.Builder outputDataBuilder = new Data.Builder();
+        boolean isSuccess = false;
+
         if(!TextUtils.isEmpty(photoJson)) {
             try {
                 List<Photo> photos = new Gson().fromJson(photoJson, new TypeToken<List<Photo>>(){}.getType());
-                Data.Builder outputDataBuilder = new Data.Builder();
 
                 for (Photo photo : photos) {
                     Uri photoUri = Uri.parse(photo.getOriginUrl());
@@ -43,15 +43,15 @@ public class CompressPhotoWorker extends PhotoWorker {
                     }
                     outputDataBuilder.putString(photoUri.getLastPathSegment(), toJson(photo));
                 }
-                setOutputData(outputDataBuilder.build());
-
-                workerResult = WorkerResult.SUCCESS;
+                isSuccess = true;
             } catch (Exception e) {
                 e.printStackTrace();
                 Timber.i("compress failed %s", e.getMessage());
             }
         }
-        return workerResult;
+        outputDataBuilder.putBoolean("result", isSuccess);
+        setOutputData(outputDataBuilder.build());
+        return WorkerResult.SUCCESS;
     }
 
     private void generateCompressedPhotos(Photo photo) throws IOException {

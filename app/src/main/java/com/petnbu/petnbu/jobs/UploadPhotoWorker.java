@@ -14,38 +14,40 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import androidx.work.Data;
+import timber.log.Timber;
 
 public class UploadPhotoWorker extends PhotoWorker {
+
+    private final Data.Builder outputDataBuilder = new Data.Builder();
 
     @NonNull
     @Override
     public WorkerResult doWork() {
-        WorkerResult workerResult = WorkerResult.FAILURE;
-
+        boolean isSuccess = false;
         String photoName = getInputData().getString(KEY_PHOTO, "");
-        if(!TextUtils.isEmpty(photoName)) {
+
+        if(getInputData().getBoolean("result", false) && !TextUtils.isEmpty(photoName)) {
             String jsonPhoto = getInputData().getString(photoName, "");
             try {
                 if(!TextUtils.isEmpty(jsonPhoto)) {
                     Photo photo = fromJson(jsonPhoto);
+                    String key = Uri.parse(photo.getOriginUrl()).getLastPathSegment();
                     if (!URLUtil.isHttpUrl(photo.getOriginUrl()) && !URLUtil.isHttpsUrl(photo.getOriginUrl())) {
                         CountDownLatch countDownLatch = new CountDownLatch(1);
                         uploadPhoto(photo, countDownLatch);
                         countDownLatch.await();
                     } else {
-                        String key = Uri.parse(photo.getOriginUrl()).getLastPathSegment();
-                        Data data = new Data.Builder()
-                                .putString(key, toJson(photo))
-                                .build();
-                        setOutputData(data);
+                        outputDataBuilder.putString(key, toJson(photo));
                     }
-                    workerResult = WorkerResult.SUCCESS;
+                    isSuccess = true;
                 }
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
-        return workerResult;
+        outputDataBuilder.putBoolean("result", isSuccess);
+        setOutputData(outputDataBuilder.build());
+        return WorkerResult.SUCCESS;
     }
 
     private void uploadPhoto(Photo photo, CountDownLatch countDownLatch) {
@@ -82,11 +84,7 @@ public class UploadPhotoWorker extends PhotoWorker {
                         file.delete();
                     }
                 }
-
-                Data data = new Data.Builder()
-                        .putString(key, toJson(photo))
-                        .build();
-                setOutputData(data);
+                outputDataBuilder.putString(key, toJson(photo));
                 countDownLatch.countDown();
             }
 
