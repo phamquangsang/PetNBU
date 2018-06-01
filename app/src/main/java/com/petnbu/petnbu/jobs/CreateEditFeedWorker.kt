@@ -53,7 +53,9 @@ class CreateEditFeedWorker : Worker() {
                 val userEntity = userDao.findUserById(feedEntity.fromUserId)
                 val feedUser = FeedUser(userEntity.userId, userEntity.avatar, userEntity.name)
                 val feed = Feed(feedEntity.feedId, feedUser, feedEntity.photos,
-                        feedEntity.commentCount, null, feedEntity.likeCount, feedEntity.isLiked, feedEntity.isLikeInProgress, feedEntity.content, feedEntity.timeCreated, feedEntity.timeUpdated, feedEntity.status)
+                        feedEntity.commentCount, null, feedEntity.likeCount,
+                        feedEntity.isLiked, feedEntity.isLikeInProgress, feedEntity.content,
+                        feedEntity.timeCreated, feedEntity.timeUpdated, feedEntity.status)
 
                 if (inputData.getBoolean("result", false) && feed.isUploading()) {
                     feed.timeUpdated = Date()

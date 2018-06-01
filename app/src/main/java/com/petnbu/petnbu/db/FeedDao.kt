@@ -104,7 +104,7 @@ abstract class FeedDao {
     abstract fun getFeedUI(feedId: String): FeedUI?
 
     @Query("SELECT * FROM feeds WHERE feedId = :feedId")
-    abstract fun findFeedEntityById(feedId: String): FeedEntity
+    abstract fun findFeedEntityById(feedId: String): FeedEntity?
 
     @Query("DELETE FROM feeds")
     abstract fun deleteAll()
