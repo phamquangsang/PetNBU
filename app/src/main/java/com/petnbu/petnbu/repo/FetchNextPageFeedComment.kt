@@ -36,7 +36,8 @@ class FetchNextPageFeedComment(private val mFeedId: String,
                     result.removeObserver(this)
                     if (listApiResponse.isSucceed) {
                         if (listApiResponse.body != null && listApiResponse.body.isNotEmpty()) {
-                            val ids = listApiResponse.body.map { it.id }
+                            val ids = ArrayList<String>(currentPaging.ids)
+                            listApiResponse.body.forEach { ids.add(it.id) }
                             val newPaging = Paging(mPagingId, ids, false, ids[ids.size - 1])
                             mAppExecutors.diskIO().execute {
                                 mPetDb.runInTransaction {

@@ -38,7 +38,8 @@ class FetchNextPageGlobalFeed(private val mPagingId: String, private val mWebSer
                     result.removeObserver(this)
                     if (listApiResponse.isSucceed) {
                         if (listApiResponse.body != null && listApiResponse.body.isNotEmpty()) {
-                            var ids :List<String> = listApiResponse.body.map { it -> it.feedId}
+                            val ids = ArrayList(currentPaging.ids)
+                            listApiResponse.body.forEach { ids.add(it.feedId) }
                             val newPaging = Paging(Paging.GLOBAL_FEEDS_PAGING_ID, ids, false, ids[ids.size - 1])
                             mAppExecutors.diskIO().execute {
                                 mPetDb.runInTransaction {
