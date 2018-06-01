@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            app:startDestination="@+id/feeds_fragment">
+
+    <fragment
+        android:id="@+id/feeds_fragment"
+        android:name="com.petnbu.petnbu.feed.FeedsFragment"
+        android:label="@string/feeds_fragment_title">
+        <action
+            android:id="@+id/action_feedsFragment_to_Notification"
+            app:destination="@id/notification_fragment"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/notification_fragment"
+        android:name="com.petnbu.petnbu.notification.NotificationsFragment"
+        android:label="@string/title_notifications" />
+
+</navigation>

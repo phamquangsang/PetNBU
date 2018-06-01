@@ -10,6 +10,8 @@ apply plugin: 'io.fabric'
 
 apply plugin: 'com.google.firebase.firebase-perf'
 
+apply plugin: "androidx.navigation.safeargs"
+
 gradle.projectsEvaluated {
     tasks.withType(JavaCompile) {
         options.compilerArgs << "-Xmaxerrs" << "500"
@@ -141,6 +143,13 @@ dependencies {
     implementation "android.arch.persistence.room:guava:$room_version"
     // Test helpers
     testImplementation "android.arch.persistence.room:testing:$room_version"
+
+
+    def nav_version = "1.0.0-alpha01"
+
+    implementation "android.arch.navigation:navigation-fragment:$nav_version"
+    implementation "android.arch.navigation:navigation-ui:$nav_version"
+
 }
 
 apply plugin: 'com.google.gms.google-services'

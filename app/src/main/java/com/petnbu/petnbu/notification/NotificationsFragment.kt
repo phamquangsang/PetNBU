@@ -33,16 +33,19 @@ class NotificationsFragment : Fragment() {
     }
 
     private fun initialize() {
-        mNotificationViewModel = ViewModelProviders.of(this).get(NotificationViewModel::class.java)
-        mBinding.viewModel = mNotificationViewModel
-        mNotificationViewModel.loadNotifications().observe(this, Observer { notifications ->
-            if (notifications != null) {
-                mAdapter?.submitList(notifications)
-            }
-        })
+        activity?.let {
+            mNotificationViewModel = ViewModelProviders.of(it).get(NotificationViewModel::class.java)
+            mBinding.viewModel = mNotificationViewModel
+            mNotificationViewModel.loadNotifications().observe(this, Observer { notifications ->
+                if (notifications != null) {
+                    mAdapter?.submitList(notifications)
+                }
+            })
 
-        mBinding.rvNotifications.layoutManager = LinearLayoutManager(activity)
-        mAdapter = activity?.let { NotificationsRecyclerViewAdapter(context = it) }
-        mBinding.rvNotifications.adapter = mAdapter
+            mBinding.rvNotifications.layoutManager = LinearLayoutManager(activity)
+            mAdapter = NotificationsRecyclerViewAdapter(context = it)
+            mBinding.rvNotifications.adapter = mAdapter
+        }
+
     }
 }
