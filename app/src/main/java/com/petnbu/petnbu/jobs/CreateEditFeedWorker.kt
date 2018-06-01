@@ -189,6 +189,7 @@ class CreateEditFeedWorker : Worker() {
         private const val KEY_FEED_ID = "key-feed-id"
         private const val KEY_FLAG_UPDATING = "extra-updating"
 
+        @JvmStatic
         fun data(feed: Feed, isUpdating: Boolean): Data = Data.Builder()
                     .putString(KEY_FEED_ID, feed.feedId)
                     .putBoolean(KEY_FLAG_UPDATING, isUpdating)
