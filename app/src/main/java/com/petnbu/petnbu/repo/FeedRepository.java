@@ -8,9 +8,7 @@ import android.arch.lifecycle.Transformations;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.widget.Toast;
 
-import com.google.android.gms.common.api.Api;
 import com.petnbu.petnbu.AppExecutors;
 import com.petnbu.petnbu.SharedPrefUtil;
 import com.petnbu.petnbu.api.ApiResponse;
@@ -18,10 +16,7 @@ import com.petnbu.petnbu.api.WebService;
 import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.jobs.CompressPhotoWorker;
 import com.petnbu.petnbu.jobs.CreateEditFeedWorker;
-import com.petnbu.petnbu.jobs.PhotoWorker;
 import com.petnbu.petnbu.jobs.UploadPhotoWorker;
-import com.petnbu.petnbu.model.Comment;
-import com.petnbu.petnbu.model.CommentEntity;
 import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedEntity;
 import com.petnbu.petnbu.model.FeedUI;
@@ -306,7 +301,7 @@ public class FeedRepository {
             OneTimeWorkRequest uploadWork =
                     new OneTimeWorkRequest.Builder(UploadPhotoWorker.class)
                             .setConstraints(uploadConstraints)
-                            .setInputData(new Data.Builder().putString(PhotoWorker.KEY_PHOTO, key).build())
+                            .setInputData(new Data.Builder().putString(UploadPhotoWorker.KEY_PHOTO, key).build())
                             .build();
             uploadWorks.add(uploadWork);
         }
@@ -315,7 +310,7 @@ public class FeedRepository {
             OneTimeWorkRequest createFeedWork =
                     new OneTimeWorkRequest.Builder(CreateEditFeedWorker.class)
                             .setConstraints(uploadConstraints)
-                            .setInputData(CreateEditFeedWorker.data(feed, isUpdating))
+                            .setInputData(CreateEditFeedWorker.Companion.data(feed, isUpdating))
                             .build();
 
             WorkManager.getInstance()

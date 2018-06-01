@@ -34,6 +34,7 @@ class NotificationRepository
                 for (item in items) {
                     listId.add(item.id)
                 }
+
                 val oldestId = if (listId.isEmpty()) null else listId[listId.size - 1]
                 val paging = Paging(pagingId, listId, false, oldestId)
 

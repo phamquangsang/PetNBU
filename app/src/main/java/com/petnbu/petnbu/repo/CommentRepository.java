@@ -20,7 +20,6 @@ import com.petnbu.petnbu.db.PetDb;
 import com.petnbu.petnbu.db.UserDao;
 import com.petnbu.petnbu.jobs.CompressPhotoWorker;
 import com.petnbu.petnbu.jobs.CreateCommentWorker;
-import com.petnbu.petnbu.jobs.PhotoWorker;
 import com.petnbu.petnbu.jobs.UploadPhotoWorker;
 import com.petnbu.petnbu.model.Comment;
 import com.petnbu.petnbu.model.CommentEntity;
@@ -318,7 +317,7 @@ public class CommentRepository {
                 .build();
         OneTimeWorkRequest createCommentWork =
                 new OneTimeWorkRequest.Builder(CreateCommentWorker.class)
-                        .setInputData(CreateCommentWorker.data(comment))
+                        .setInputData(CreateCommentWorker.Companion.data(comment))
                         .setConstraints(uploadConstraints)
                         .build();
 
@@ -332,7 +331,7 @@ public class CommentRepository {
             OneTimeWorkRequest uploadWork =
                     new OneTimeWorkRequest.Builder(UploadPhotoWorker.class)
                             .setConstraints(uploadConstraints)
-                            .setInputData(new Data.Builder().putString(PhotoWorker.KEY_PHOTO, key).build())
+                            .setInputData(new Data.Builder().putString(CompressPhotoWorker.KEY_PHOTO, key).build())
                             .build();
             WorkManager.getInstance()
                     .beginWith(compressionWork)
