@@ -95,9 +95,9 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, 
     private fun createCommentUIFromFeed(feed: Feed): CommentUI {
         val comment = CommentUI()
         comment.id = feed.feedId
-        comment.setOwner(feed.feedUser)
-        comment.setContent(feed.content)
-        comment.setTimeCreated(feed.timeCreated)
+        comment.owner = feed.feedUser
+        comment.content = feed.content
+        comment.timeCreated = feed.timeCreated
         return comment
     }
 

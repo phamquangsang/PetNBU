@@ -101,7 +101,7 @@ abstract class FeedDao {
             "LEFT JOIN comments ON feeds.latestCommentId = comments.id " +
             "LEFT JOIN users AS commentUsers ON comments.ownerId = commentUsers.userId " +
             "WHERE feeds.feedId = :feedId")
-    abstract fun getFeedUI(feedId: String): FeedUI
+    abstract fun getFeedUI(feedId: String): FeedUI?
 
     @Query("SELECT * FROM feeds WHERE feedId = :feedId")
     abstract fun findFeedEntityById(feedId: String): FeedEntity

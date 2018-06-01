@@ -16,7 +16,7 @@ abstract class PagingDao {
     abstract fun loadFeedPaging(id: String): LiveData<Paging>
 
     @Query("SELECT * FROM paging WHERE pagingId = :id")
-    abstract fun findFeedPaging(id: String): Paging
+    abstract fun findFeedPaging(id: String): Paging?
 
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

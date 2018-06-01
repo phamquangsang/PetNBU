@@ -2,17 +2,12 @@ package com.petnbu.petnbu.feed.comment;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
-import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.RecyclerView;
 import android.text.SpannableStringBuilder;
@@ -25,14 +20,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.bumptech.glide.RequestManager;
-import com.bumptech.glide.load.DataSource;
-import com.bumptech.glide.load.engine.GlideException;
-import com.bumptech.glide.request.RequestListener;
-import com.bumptech.glide.request.RequestOptions;
-import com.bumptech.glide.request.target.BitmapImageViewTarget;
-import com.bumptech.glide.request.target.Target;
-import com.bumptech.glide.request.transition.Transition;
 import com.google.android.gms.common.internal.Preconditions;
 import com.petnbu.petnbu.BaseBindingViewHolder;
 import com.petnbu.petnbu.GlideApp;
@@ -40,7 +27,6 @@ import com.petnbu.petnbu.GlideRequests;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.databinding.ViewLoadingBinding;
 import com.petnbu.petnbu.model.LocalStatus;
-import com.petnbu.petnbu.util.Utils;
 import com.petnbu.petnbu.databinding.ViewCommentBinding;
 import com.petnbu.petnbu.model.CommentUI;
 import com.petnbu.petnbu.model.Photo;
@@ -49,7 +35,6 @@ import com.petnbu.petnbu.util.ColorUtils;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Locale;
 
 public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<BaseBindingViewHolder> {
 
@@ -259,7 +244,7 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<BaseBinding
         }
 
         private void displayLikeInfo() {
-            if (mComment.getLocalStatus() == LocalStatus.STATUS_UPLOADING || mComment.isLikeInProgress()) {
+            if (mComment.getLocalStatus() == LocalStatus.STATUS_UPLOADING || mComment.getLikeInProgress()) {
                 mBinding.imgLike.setVisibility(View.INVISIBLE);
                 mBinding.progressBar.setVisibility(View.VISIBLE);
             } else {
@@ -333,7 +318,7 @@ public class RepliesRecyclerViewAdapter extends RecyclerView.Adapter<BaseBinding
             Bundle bundle = new Bundle();
             CommentUI oldComment = oldData.get(oldItemPosition);
             CommentUI newComment = newData.get(newItemPosition);
-            if(oldComment.isLikeInProgress() != newComment.isLikeInProgress() || oldComment.isLiked() != newComment.isLiked()) {
+            if(oldComment.getLikeInProgress() != newComment.getLikeInProgress() || oldComment.isLiked() != newComment.isLiked()) {
                 bundle.putBoolean("like_status", true);
                 return bundle;
             }
