@@ -1,53 +1,38 @@
-package com.petnbu.petnbu.db;
+package com.petnbu.petnbu.db
 
-import android.arch.lifecycle.LiveData;
-import android.arch.persistence.room.Dao;
-import android.arch.persistence.room.Insert;
-import android.arch.persistence.room.OnConflictStrategy;
-import android.arch.persistence.room.Query;
-import android.arch.persistence.room.RoomWarnings;
-import android.arch.persistence.room.Transaction;
-import android.arch.persistence.room.Update;
-import android.support.annotation.Nullable;
-
-import com.petnbu.petnbu.model.Comment;
-import com.petnbu.petnbu.model.CommentEntity;
-import com.petnbu.petnbu.model.CommentUI;
-
-import java.util.List;
-
-import timber.log.Timber;
+import android.arch.lifecycle.LiveData
+import android.arch.persistence.room.*
+import com.petnbu.petnbu.model.Comment
+import com.petnbu.petnbu.model.CommentEntity
+import com.petnbu.petnbu.model.CommentUI
+import timber.log.Timber
 
 @Dao
-public abstract class CommentDao {
+abstract class CommentDao {
 
     @Transaction
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    public abstract void insert(CommentEntity... comments);
+    abstract fun insert(vararg comments: CommentEntity)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    public abstract void insertIfNotExists(CommentEntity... comments);
+    abstract fun insertIfNotExists(vararg comments: CommentEntity)
 
     @Transaction
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    public abstract void insert(List<CommentEntity> comments);
+    abstract fun insert(comments: List<CommentEntity>)
 
-    public void insertFromComment(@Nullable Comment comment) {
-        if (comment != null) {
-            Timber.i("insertComment: %s", comment);
-            insert(comment.toEntity());
-        }
+    fun insertFromComment(comment: Comment?) {
+        Timber.i("insertComment: %s", comment)
+        comment?.toEntity()?.let { insert(it) }
     }
 
     @Transaction
-    public void insertListComment(List<Comment> comments){
-        for (Comment comment : comments) {
-            insertFromComment(comment);
-        }
+    open fun insertListComment(comments: List<Comment>) {
+        comments.forEach({ insertFromComment(it) })
     }
 
     @Query("SELECT * FROM comments where id = :commentId")
-    public abstract CommentEntity getCommentById(String commentId);
+    abstract fun getCommentById(commentId: String): CommentEntity
 
     @Query("SELECT comments.id, users.userId, users.avatar, users.name, comments.content, " +
             "comments.photo, comments.likeCount, comments.isLiked, comments.likeInProgress, comments.commentCount, comments.parentCommentId, " +
@@ -61,9 +46,9 @@ public abstract class CommentDao {
             "left join users as subCommentUser on subComments.ownerId = subCommentUser.userId " +
             "where comments.id in (:ids) or (comments.parentFeedId = :feedId and comments.localStatus = 1)" +
             "order by comments.timeCreated DESC")
-    public abstract LiveData<List<CommentUI>> loadFeedComments(List<String> ids, String feedId);
+    abstract fun loadFeedComments(ids: List<String>, feedId: String): LiveData<List<CommentUI>>
 
-    @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)//sub comments does not have latestComment fields
+    //sub comments does not have latestComment fields
     @Query("SELECT comments.id, users.userId, users.avatar, users.name, comments.content, " +
             "comments.photo, comments.likeCount, comments.isLiked, comments.likeInProgress, comments.commentCount, comments.parentCommentId, " +
             "comments.parentFeedId, comments.localStatus, comments.timeCreated " +
@@ -71,11 +56,11 @@ public abstract class CommentDao {
             "left join users on comments.ownerId = users.userId " +
             "where comments.id in (:ids) or (comments.parentCommentId = :parentCommentId and comments.localStatus = 1)" +
             "order by comments.timeCreated DESC")
-    public abstract LiveData<List<CommentUI>> loadSubComments(List<String> ids, String parentCommentId);
+    abstract fun loadSubComments(ids: List<String>, parentCommentId: String): LiveData<List<CommentUI>>
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
-    public abstract void update(CommentEntity commentEntity);
+    abstract fun update(commentEntity: CommentEntity)
 
     @Query("UPDATE comments set id = :newId where id = :oldId")
-    public abstract void updateCommentId(String oldId, String newId);
+    abstract fun updateCommentId(oldId: String, newId: String)
 }
