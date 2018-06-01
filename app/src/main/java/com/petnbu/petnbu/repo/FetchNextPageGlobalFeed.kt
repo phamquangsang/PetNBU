@@ -1,21 +1,23 @@
 package com.petnbu.petnbu.repo
 
+import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.Observer
+
 import com.petnbu.petnbu.AppExecutors
 import com.petnbu.petnbu.api.ApiResponse
 import com.petnbu.petnbu.api.WebService
 import com.petnbu.petnbu.db.PetDb
-import com.petnbu.petnbu.model.Comment
+import com.petnbu.petnbu.model.CommentEntity
+import com.petnbu.petnbu.model.Feed
 import com.petnbu.petnbu.model.Paging
 import com.petnbu.petnbu.model.Resource
 import com.petnbu.petnbu.model.Status
 
-class FetchNextPageFeedComment(private val mFeedId: String,
-                               private val mPagingId: String,
-                               private val mWebService: WebService,
-                               private val mPetDb: PetDb,
-                               private val mAppExecutors: AppExecutors) : Runnable {
+import java.util.ArrayList
+
+class FetchNextPageGlobalFeed(private val mPagingId: String, private val mWebService: WebService,
+                              private val mPetDb: PetDb, private val mAppExecutors: AppExecutors) : Runnable {
 
     //data boolean return if new feed has more item or not
     val liveData = MutableLiveData<Resource<Boolean>>()
@@ -28,22 +30,26 @@ class FetchNextPageFeedComment(private val mFeedId: String,
             return
         }
 
-        liveData.postValue(Resource(Status.LOADING, null, null))
-        val result = mWebService.getCommentsPaging(mFeedId, currentPaging.oldestId, CommentRepository.COMMENT_PER_PAGE)
-        result.observeForever(object : Observer<ApiResponse<List<Comment>>> {
-            override fun onChanged(listApiResponse: ApiResponse<List<Comment>>?) {
+        liveData.postValue(Resource(Status.LOADING, false, null))
+        val result = mWebService.getGlobalFeeds(currentPaging.oldestId, FeedRepository.FEEDS_PER_PAGE)
+        result.observeForever(object : Observer<ApiResponse<List<Feed>>> {
+            override fun onChanged(listApiResponse: ApiResponse<List<Feed>>?) {
                 if (listApiResponse != null) {
                     result.removeObserver(this)
                     if (listApiResponse.isSucceed) {
                         if (listApiResponse.body != null && listApiResponse.body.isNotEmpty()) {
-                            val ids = listApiResponse.body.map { it.id }
-                            val newPaging = Paging(mPagingId, ids, false, ids[ids.size - 1])
+                            var ids :List<String> = listApiResponse.body.map { it -> it.feedId}
+                            val newPaging = Paging(Paging.GLOBAL_FEEDS_PAGING_ID, ids, false, ids[ids.size - 1])
                             mAppExecutors.diskIO().execute {
                                 mPetDb.runInTransaction {
-                                    mPetDb.commentDao().insertListComment(listApiResponse.body)
-                                    for (item in listApiResponse.body) {
-                                        mPetDb.userDao().insert(item.feedUser)
-                                        mPetDb.commentDao().insertFromComment(item.latestComment)
+                                    mPetDb.feedDao().insertFromFeedList(listApiResponse.body)
+                                    listApiResponse.body.forEach {
+                                        mPetDb.userDao().insert(it.feedUser)
+                                        it.latestComment?.apply {
+                                            //the latestComment return from server does not have latestSubComment
+                                            mPetDb.commentDao().insertIfNotExists(toEntity())
+                                            mPetDb.userDao().insert(feedUser)
+                                        }
                                     }
                                     mPetDb.pagingDao().insert(newPaging)
                                 }
@@ -62,5 +68,4 @@ class FetchNextPageFeedComment(private val mFeedId: String,
             }
         })
     }
-
 }
