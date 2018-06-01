@@ -22,6 +22,8 @@ import java.util.ArrayList;
 
 import javax.inject.Inject;
 
+import timber.log.Timber;
+
 public class CreateEditFeedViewModel extends ViewModel {
 
     @Inject
@@ -41,7 +43,10 @@ public class CreateEditFeedViewModel extends ViewModel {
 
     private String mFeedId;
 
+    private ArrayList<Photo> mSelectedPhotos = new ArrayList<>();
+
     public CreateEditFeedViewModel() {
+        Timber.i("create CreateEditFeedViewModel");
         PetApplication.getAppComponent().inject(this);
     }
 
@@ -57,16 +62,23 @@ public class CreateEditFeedViewModel extends ViewModel {
         });
     }
 
-    public LiveData<Feed> loadFeed(String feedId) {
+    public ArrayList<Photo> getSelectedPhotos() {
+        return mSelectedPhotos;
+    }
+
+    public LiveData<Feed> getFeed(String feedId) {
         if(!TextUtils.isEmpty(feedId)) {
-            return Transformations.switchMap(mFeedRepository.getFeed(feedId), input -> {
-                feedLiveData.setValue(input.data);
-                if(input.data != null) {
-                    mFeedId = feedId;
-                }
-                showLoading.set(Status.LOADING.equals(input.status));
-                return feedLiveData;
-            });
+            if(feedLiveData.getValue() == null){
+                return Transformations.switchMap(mFeedRepository.getFeed(feedId), input -> {
+                    feedLiveData.setValue(input.data);
+                    if(input.data != null) {
+                        mFeedId = feedId;
+                    }
+                    showLoading.set(Status.LOADING.equals(input.status));
+                    return feedLiveData;
+                });
+            }
+            return feedLiveData;
         } else {
             mIsNewFeed = true;
             feedLiveData.setValue(null);
@@ -87,5 +99,11 @@ public class CreateEditFeedViewModel extends ViewModel {
             feed.setPhotos(photos);
             mFeedRepository.updateFeed(feed);
         }
+    }
+
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        Timber.i("onCleared CreateEditFeedViewModel");
     }
 }

@@ -36,7 +36,8 @@ import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.util.ColorUtils;
 import com.petnbu.petnbu.views.HorizontalSpaceItemDecoration;
 
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import timber.log.Timber;
 
@@ -46,12 +47,13 @@ public class CreateEditFeedActivity extends AppCompatActivity {
     private final int REQUEST_READ_EXTERNAL_PERMISSIONS = 1;
     private final int OPEN_GALLERY_REQUEST_CODE = 1;
 
+    private final String SELECTED_PHOTOS = "selected-photos";
+
     private ActivityCreateFeedBinding mBinding;
-    private CreateEditFeedViewModel mCreateEditFeedViewModel;
+    private CreateEditFeedViewModel mViewModel;
     private MenuItem mPostMenuItem;
 
     private PhotosAdapter mPhotosAdapter;
-    private ArrayList<Photo> mSelectedPhotos = new ArrayList<>();
     private boolean mCameraClicked = false;
     private String mPostMenuTitle;
 
@@ -64,12 +66,20 @@ public class CreateEditFeedActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Timber.i("onCreate : savedInstanceState = %s", savedInstanceState);
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_create_feed);
         getWindow().setBackgroundDrawable(null);
-        initialize();
+        initialize(savedInstanceState);
     }
 
-    private void initialize() {
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList(SELECTED_PHOTOS, mViewModel.getSelectedPhotos());
+    }
+
+    private void initialize(Bundle savedInstanceState) {
+        Timber.i("initialize: ");
         setSupportActionBar(mBinding.toolBar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
@@ -82,12 +92,18 @@ public class CreateEditFeedActivity extends AppCompatActivity {
         }
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        mCreateEditFeedViewModel = ViewModelProviders.of(this).get(CreateEditFeedViewModel.class);
-        mBinding.setViewModel(mCreateEditFeedViewModel);
+        mViewModel = ViewModelProviders.of(this).get(CreateEditFeedViewModel.class);
+        mBinding.setViewModel(mViewModel);
 
-        mCreateEditFeedViewModel.loadFeed(feedId).observe(this, feed -> {
-            if (feed != null) {
-                mSelectedPhotos.addAll(feed.getPhotos());
+        if (savedInstanceState != null && mViewModel.getSelectedPhotos().isEmpty()) {
+            List<Photo> previousPhotos = savedInstanceState.getParcelableArrayList(SELECTED_PHOTOS);
+            mViewModel.getSelectedPhotos().clear();
+            mViewModel.getSelectedPhotos().addAll(previousPhotos);
+
+        }
+        mViewModel.getFeed(feedId).observe(this, feed -> {
+            if (feed != null && savedInstanceState == null) {
+                mViewModel.getSelectedPhotos().addAll(feed.getPhotos());
                 mPhotosAdapter.notifyDataSetChanged();
                 mBinding.edText.setText(feed.getContent());
             }
@@ -96,7 +112,7 @@ public class CreateEditFeedActivity extends AppCompatActivity {
         });
 
         setPlaceHolderLayoutVisibility(true);
-        mCreateEditFeedViewModel.loadUserInfo().observe(this, user -> {
+        mViewModel.loadUserInfo().observe(this, user -> {
             if (user != null) {
                 Timber.i("user : %s", user.toString());
                 GlideApp.with(this).asBitmap()
@@ -141,7 +157,7 @@ public class CreateEditFeedActivity extends AppCompatActivity {
         });
 
         int imageSize = Utils.getDeviceWidth(this) * 9 / 16;
-        mPhotosAdapter = new PhotosAdapter(this, mSelectedPhotos, new PhotosAdapter.ItemClickListener() {
+        mPhotosAdapter = new PhotosAdapter(this, mViewModel.getSelectedPhotos(), new PhotosAdapter.ItemClickListener() {
             @Override
             public void onCameraIconClicked() {
                 mCameraClicked = true;
@@ -205,7 +221,7 @@ public class CreateEditFeedActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_post) {
-            mCreateEditFeedViewModel.saveFeed(mBinding.edText.getText().toString().trim(), mSelectedPhotos);
+            mViewModel.saveFeed(mBinding.edText.getText().toString().trim(), mViewModel.getSelectedPhotos());
             finish();
 
         } else if (item.getItemId() == android.R.id.home) {
@@ -242,8 +258,8 @@ public class CreateEditFeedActivity extends AppCompatActivity {
                     photo.setWidth(options.outWidth);
                     photo.setHeight(options.outHeight);
 
-                    mSelectedPhotos.add(photo);
-                    mPhotosAdapter.notifyItemInserted(mSelectedPhotos.size() - 1);
+                    mViewModel.getSelectedPhotos().add(photo);
+                    mPhotosAdapter.notifyItemInserted(mViewModel.getSelectedPhotos().size() - 1);
                 } else {
                     ClipData clipData = data.getClipData();
                     if (clipData != null) {
@@ -258,9 +274,9 @@ public class CreateEditFeedActivity extends AppCompatActivity {
                             photo.setWidth(options.outWidth);
                             photo.setHeight(options.outHeight);
 
-                            mSelectedPhotos.add(photo);
+                            mViewModel.getSelectedPhotos().add(photo);
                         }
-                        mPhotosAdapter.notifyItemRangeInserted(mSelectedPhotos.size() - clipData.getItemCount(),
+                        mPhotosAdapter.notifyItemRangeInserted(mViewModel.getSelectedPhotos().size() - clipData.getItemCount(),
                                 clipData.getItemCount());
                     }
                 }
