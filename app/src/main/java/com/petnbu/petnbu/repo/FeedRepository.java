@@ -310,7 +310,7 @@ public class FeedRepository {
             OneTimeWorkRequest createFeedWork =
                     new OneTimeWorkRequest.Builder(CreateEditFeedWorker.class)
                             .setConstraints(uploadConstraints)
-                            .setInputData(CreateEditFeedWorker.Companion.data(feed, isUpdating))
+                            .setInputData(CreateEditFeedWorker.data(feed, isUpdating))
                             .build();
 
             WorkManager.getInstance()
