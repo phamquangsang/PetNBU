@@ -56,10 +56,10 @@ class CommentsViewModel : ViewModel() {
     fun loadUserInfo(): LiveData<UserEntity> {
         return Transformations.switchMap(mUserRepository.getUserById(SharedPrefUtil.getUserId())) { userResource ->
             val userLiveData = MutableLiveData<UserEntity>()
-            if (userResource.data != null) {
-                userLiveData.setValue(userResource.data)
-            } else {
-                if (userResource.status == Status.ERROR) {
+            userResource?.run {
+                data?.run {
+                    userLiveData.value = this
+                } ?: takeIf { status == Status.ERROR }?.run {
                     userLiveData.value = null
                 }
             }
@@ -72,7 +72,7 @@ class CommentsViewModel : ViewModel() {
         return Transformations.switchMap(mCommentRepository.getFeedCommentsIncludeFeedContentHeader(feedId, Date().time, CommentRepository.COMMENT_PER_PAGE)) { commentsResource ->
             showLoadingFeedReplies.set(false)
             val commentsByFeedLiveData = MutableLiveData<List<CommentUI>>()
-            commentsResource?.data?.apply {
+            commentsResource?.data?.run {
                 commentsByFeedLiveData.value = this
             }
             commentsByFeedLiveData
@@ -85,7 +85,7 @@ class CommentsViewModel : ViewModel() {
         return Transformations.switchMap(mCommentRepository.getSubComments(commentId, Date().time, CommentRepository.COMMENT_PER_PAGE)) { commentsResource ->
             showLoadingCommentReplies.set(false)
             val mCommentsByCommentLiveData = MutableLiveData<List<CommentUI>>()
-            commentsResource?.data?.apply {
+            commentsResource?.data?.run {
                 mCommentsByCommentLiveData.value = this
             }
             mCommentsByCommentLiveData
@@ -134,7 +134,7 @@ class CommentsViewModel : ViewModel() {
         mCommentRepository.likeSubCommentHandler(SharedPrefUtil.getUserId(), subCommentId)
     }
 
-    class LoadMoreHandler(private val commentRepo: CommentRepository,
+    private class LoadMoreHandler(private val commentRepo: CommentRepository,
                           val loadMoreState: MutableLiveData<LoadMoreState> = MutableLiveData()) : Observer<Resource<Boolean>> {
 
         private lateinit var nextPageLiveData: LiveData<Resource<Boolean>>
@@ -178,8 +178,9 @@ class CommentsViewModel : ViewModel() {
         }
 
         private fun unregister() {
-            if (this::nextPageLiveData.isInitialized)
+            if (this::nextPageLiveData.isInitialized) {
                 nextPageLiveData.removeObserver(this)
+            }
         }
 
         private fun reset() {
@@ -192,7 +193,7 @@ class CommentsViewModel : ViewModel() {
     private class SubCommentLoadMoreHandler(private val commentRepo: CommentRepository,
                                             val loadMoreState: MutableLiveData<LoadMoreState> = MutableLiveData()) : Observer<Resource<Boolean>> {
 
-        lateinit var nextPageLiveData: LiveData<Resource<Boolean>>
+        private lateinit var nextPageLiveData: LiveData<Resource<Boolean>>
 
         private var hasMore = true
 
@@ -233,8 +234,9 @@ class CommentsViewModel : ViewModel() {
         }
 
         private fun unregister() {
-            if (this::nextPageLiveData.isInitialized)
+            if (this::nextPageLiveData.isInitialized) {
                 nextPageLiveData.removeObserver(this)
+            }
         }
 
         private fun reset() {

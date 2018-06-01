@@ -19,10 +19,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.petnbu.petnbu.Fragment3;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.SharedPrefUtil;
-import com.petnbu.petnbu.util.Utils;
 import com.petnbu.petnbu.databinding.FragmentFeedsBinding;
 import com.petnbu.petnbu.feed.comment.CommentsActivity;
 import com.petnbu.petnbu.model.Feed;
@@ -33,6 +31,8 @@ import com.petnbu.petnbu.model.Resource;
 import com.petnbu.petnbu.model.Status;
 import com.petnbu.petnbu.userprofile.UserProfileActivity;
 import com.petnbu.petnbu.util.RateLimiter;
+import com.petnbu.petnbu.util.SnackbarUtils;
+import com.petnbu.petnbu.util.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,25 +66,9 @@ public class FeedsFragment extends Fragment {
         if (activity != null) {
             mUserId = SharedPrefUtil.getUserId();
             mFeedsViewModel = ViewModelProviders.of(getActivity()).get(FeedsViewModel.class);
-            mFeedsViewModel.getFeeds(Paging.GLOBAL_FEEDS_PAGING_ID, SharedPrefUtil.getUserId()).observe(this, feeds -> {
-                Timber.i("onChanged: global feeds");
-                if (feeds != null) {
-                    Timber.i("status: %s", feeds.status);
-                    if (feeds.status == Status.LOADING) {
-                        mBinding.pullToRefresh.setRefreshing(true);
-                    } else {
-                        mBinding.pullToRefresh.setRefreshing(false);
-                    }
-                    if (feeds.status == Status.ERROR) {
-                        Snackbar.make(mBinding.getRoot(), feeds.message, Snackbar.LENGTH_LONG).show();
-                    }
-                    if (feeds.data != null) {
-                        Timber.i("global feeds set data");
-                        mAdapter.setFeeds(feeds.data);
-                    }
-                }
-            });
-
+            mFeedsViewModel.getFeeds(Paging.GLOBAL_FEEDS_PAGING_ID, SharedPrefUtil.getUserId()).observe(this, feeds -> mAdapter.setFeeds(feeds));
+            mFeedsViewModel.getShowLoadingEvent().observe(getActivity(), value -> mBinding.pullToRefresh.setRefreshing(value));
+            mFeedsViewModel.getShowLoadingErrorEvent().observe(getActivity(), value -> SnackbarUtils.showSnackbar(mBinding.getRoot(), value));
             mFeedsViewModel.getLoadMoreState().observe(this, state -> {
                 Timber.i(state != null ? state.toString() : "null");
                 if (state != null) {
