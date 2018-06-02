@@ -82,8 +82,8 @@ class CreateEditFeedWorker : Worker() {
                             photo.mediumUrl = it.mediumUrl
                             photo.smallUrl = it.smallUrl
                             photo.thumbnailUrl = it.thumbnailUrl
-                            true
-                        } ?: false
+                            false
+                        } ?: true
                     }
                     if (!uploadedPhotosFailed) {
                         try {
