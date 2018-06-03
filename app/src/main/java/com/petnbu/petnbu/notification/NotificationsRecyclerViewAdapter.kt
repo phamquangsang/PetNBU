@@ -15,7 +15,6 @@ import android.text.style.StyleSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-
 import com.petnbu.petnbu.BaseBindingViewHolder
 import com.petnbu.petnbu.GlideApp
 import com.petnbu.petnbu.GlideRequests
@@ -25,8 +24,7 @@ import com.petnbu.petnbu.model.Notification
 import com.petnbu.petnbu.model.NotificationUI
 import com.petnbu.petnbu.util.ColorUtils
 import com.petnbu.petnbu.util.Objects
-
-import java.util.Calendar
+import java.util.*
 
 class NotificationsRecyclerViewAdapter(context: Context)
     : ListAdapter<NotificationUI, BaseBindingViewHolder<*, *>>(NotificationDiffCallback()) {
@@ -49,8 +47,8 @@ class NotificationsRecyclerViewAdapter(context: Context)
 
     override fun onBindViewHolder(holder: BaseBindingViewHolder<*, *>, position: Int) {
         val item: NotificationUI? = getItem(position)
-        if(item != null) {
-            (holder as? ViewHolder)?.bindData(item)
+        item?.run {
+            (holder as? ViewHolder)?.bindData(this)
         }
     }
 
@@ -95,11 +93,8 @@ class NotificationsRecyclerViewAdapter(context: Context)
         }
 
         private fun displayMessageContent() {
-            val messageSpanBuilder = SpannableStringBuilder(notification.fromUser.name)
-            messageSpanBuilder.setSpan(StyleSpan(Typeface.BOLD), 0, messageSpanBuilder.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-            messageSpanBuilder.append("  ")
-
             val context = itemView.context
+            val messageSpanBuilder = SpannableStringBuilder(notification.fromUser.name)
             val message = when (notification.type) {
                 Notification.TYPE_LIKE_FEED -> context.getString(R.string.notification_message_like, "post")
                 Notification.TYPE_LIKE_COMMENT -> context.getString(R.string.notification_message_like, "comment")
@@ -108,14 +103,19 @@ class NotificationsRecyclerViewAdapter(context: Context)
                 Notification.TYPE_NEW_REPLY -> context.getString(R.string.notification_message_reply)
                 else -> ""
             }
-            val start = messageSpanBuilder.length
-            messageSpanBuilder.append(message)
-            messageSpanBuilder.setSpan(ForegroundColorSpan(ColorUtils.modifyAlpha(Color.BLACK, 0.8f)), start, messageSpanBuilder.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+
+            messageSpanBuilder.apply {
+                setSpan(StyleSpan(Typeface.BOLD), 0, messageSpanBuilder.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                append("  ")
+                val start = length
+                append(message)
+                setSpan(ForegroundColorSpan(ColorUtils.modifyAlpha(Color.BLACK, 0.8f)), start, messageSpanBuilder.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            }
             mBinding.tvNotificationMessage.text = messageSpanBuilder
         }
     }
 
-    private inner class ViewLoadingHolder(itemView: View) : BaseBindingViewHolder<ViewNotificationBinding, NotificationUI>(itemView) {
+    private class ViewLoadingHolder(itemView: View) : BaseBindingViewHolder<ViewNotificationBinding, NotificationUI>(itemView) {
 
         override fun bindData(item: NotificationUI) {
 

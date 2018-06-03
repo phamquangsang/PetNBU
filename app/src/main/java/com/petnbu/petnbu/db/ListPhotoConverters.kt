@@ -1,28 +1,21 @@
 package com.petnbu.petnbu.db
 
 import android.arch.persistence.room.TypeConverter
-
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.petnbu.petnbu.PetApplication
 import com.petnbu.petnbu.model.Photo
 
 
-public object ListPhotoConverters {
+object ListPhotoConverters {
 
-    var gson = PetApplication.getAppComponent().gson
-
-    @TypeConverter
-    @JvmStatic
-    fun listPhotosToJson(photos: List<Photo>?): String {
-        return gson.toJson(photos)
-    }
+    var gson: Gson = PetApplication.getAppComponent().gson
 
     @TypeConverter
     @JvmStatic
-    fun jsonToListPhoto(photosJson: String?): List<Photo>? {
-        return gson.fromJson(photosJson, object : TypeToken<List<Photo>?>() {
+    fun listPhotosToJson(photos: List<Photo>?): String = gson.toJson(photos)
 
-        }.type)
-    }
+    @TypeConverter
+    @JvmStatic
+    fun jsonToListPhoto(photosJson: String?): List<Photo>? = gson.fromJson(photosJson, object : TypeToken<List<Photo>?>() {}.type)
 }
