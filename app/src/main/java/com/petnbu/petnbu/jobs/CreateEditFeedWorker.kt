@@ -2,7 +2,6 @@ package com.petnbu.petnbu.jobs
 
 import android.arch.lifecycle.Observer
 import android.net.Uri
-import android.text.TextUtils
 import androidx.work.Data
 import androidx.work.Worker
 import com.google.gson.Gson
@@ -47,7 +46,7 @@ class CreateEditFeedWorker : Worker() {
         val feedId = inputData.getString(KEY_FEED_ID, "")
         val isUpdating = inputData.getBoolean(KEY_FLAG_UPDATING, false)
 
-        if (!TextUtils.isEmpty(feedId)) {
+        if (!feedId.isNullOrEmpty()) {
             val feedEntity = feedDao.findFeedEntityById(feedId)
             if (feedEntity != null) {
                 val userEntity = userDao.findUserById(feedEntity.fromUserId)

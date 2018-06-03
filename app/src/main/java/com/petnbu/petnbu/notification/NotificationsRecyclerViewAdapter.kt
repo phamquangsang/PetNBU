@@ -8,7 +8,6 @@ import android.support.v7.util.DiffUtil
 import android.support.v7.widget.RecyclerView
 import android.text.SpannableStringBuilder
 import android.text.Spanned
-import android.text.TextUtils
 import android.text.format.DateUtils
 import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
@@ -75,10 +74,10 @@ class NotificationsRecyclerViewAdapter(context: Context)
         override fun bindData(item: NotificationUI) {
             notification = item
 
-            val avatarUrl = if (TextUtils.isEmpty(notification.fromUser.avatar.thumbnailUrl))
-                notification.fromUser.avatar.originUrl
-            else
+            val avatarUrl = if (!notification.fromUser.avatar.thumbnailUrl.isNullOrEmpty())
                 notification.fromUser.avatar.thumbnailUrl
+            else
+                notification.fromUser.avatar.originUrl
             glideRequests
                     .load(avatarUrl)
                     .centerInside()
