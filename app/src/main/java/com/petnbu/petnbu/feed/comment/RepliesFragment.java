@@ -25,7 +25,6 @@ import com.petnbu.petnbu.GlideApp;
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.databinding.FragmentRepliesCommentsBinding;
 import com.petnbu.petnbu.model.Photo;
-import com.petnbu.petnbu.userprofile.UserProfileActivity;
 import com.petnbu.petnbu.util.NavigationUtils;
 import com.petnbu.petnbu.util.PermissionUtils;
 import com.petnbu.petnbu.util.SnackbarUtils;
@@ -73,7 +72,7 @@ public class RepliesFragment extends Fragment {
         mCommentsViewModel = ViewModelProviders.of(getActivity()).get(CommentsViewModel.class);
         mBinding.setViewModel(mCommentsViewModel);
 
-        mCommentsViewModel.loadSubComments(mCommentId).observe(this, comments -> mAdapter.setComments(comments));
+        mCommentsViewModel.loadSubComments(mCommentId).observe(this, comments -> mAdapter.submitList(comments));
         mCommentsViewModel.getSubCommentLoadMoreState().observe(this, loadMoreState -> {
             if (loadMoreState != null) {
                 mBinding.rvComments.post(() -> mAdapter.setAddLoadMore(loadMoreState.isRunning()));
@@ -86,9 +85,7 @@ public class RepliesFragment extends Fragment {
         });
 
         mBinding.rvComments.setLayoutManager(new LinearLayoutManager(getActivity()));
-        mAdapter = new RepliesRecyclerViewAdapter(getActivity(), null, mCommentId,
-                new RepliesRecyclerViewAdapter.OnItemClickListener() {
-
+        mAdapter = new RepliesRecyclerViewAdapter(getActivity(), mCommentId, new RepliesRecyclerViewAdapter.OnItemClickListener() {
             @Override
             public void onPhotoClicked(Photo photo) {
 

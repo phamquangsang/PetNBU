@@ -17,21 +17,22 @@ import android.view.View
 import android.view.ViewGroup
 import com.petnbu.petnbu.BaseBindingViewHolder
 import com.petnbu.petnbu.GlideApp
-import com.petnbu.petnbu.GlideRequests
 import com.petnbu.petnbu.R
 import com.petnbu.petnbu.databinding.ViewCommentBinding
 import com.petnbu.petnbu.databinding.ViewLoadingBinding
 import com.petnbu.petnbu.model.CommentUI
 import com.petnbu.petnbu.model.LocalStatus
+import com.petnbu.petnbu.model.Photo
 import com.petnbu.petnbu.util.ColorUtils
 import java.util.*
 
-class CommentsRecyclerViewAdapter(context: Context,
-                                  private val feedId: String,
-                                  private val commentsViewModel: CommentsViewModel)
+class RepliesRecyclerViewAdapter(context: Context,
+                                 private val commentId: String,
+                                 private val onItemClickListener: OnItemClickListener,
+                                 private val commentsViewModel: CommentsViewModel)
     : ListAdapter<CommentUI, BaseBindingViewHolder<*, *>>(CommentDiffCallback()) {
 
-    private val glideRequests: GlideRequests = GlideApp.with(context)
+    private val glideRequests = GlideApp.with(context)
 
     var addLoadMore: Boolean = false
         set(value) {
@@ -67,34 +68,22 @@ class CommentsRecyclerViewAdapter(context: Context,
     }
 
     override fun onBindViewHolder(holder: BaseBindingViewHolder<*, *>, position: Int, payloads: List<Any>) {
-        if (payloads.isNotEmpty())
+        if (!payloads.isEmpty())
             (holder as? ViewHolder)?.bindData(getItem(position), payloads)
         else
             super.onBindViewHolder(holder, position, payloads)
-
     }
 
     override fun getItemCount() = dataItemCount + if (addLoadMore) 1 else 0
 
     override fun getItemViewType(position: Int) = if (position < dataItemCount && dataItemCount > 0) VIEW_TYPE_COMMENT else VIEW_TYPE_LOADING
 
-    inner class ViewHolder(itemView: View) : BaseBindingViewHolder<ViewCommentBinding, CommentUI>(itemView) {
+    private inner class ViewHolder(itemView: View) : BaseBindingViewHolder<ViewCommentBinding, CommentUI>(itemView) {
 
         private lateinit var comment: CommentUI
-        private val openRepliesClickListener = { _: View ->
-            if (adapterPosition != RecyclerView.NO_POSITION) {
-                getItem(adapterPosition).run {
-                    if (localStatus != LocalStatus.STATUS_UPLOADING)
-                        commentsViewModel.openRepliesForComment(id)
-                }
-            }
-        }
 
         init {
-            mBinding.tvReply.setOnClickListener(openRepliesClickListener)
-            mBinding.tvLatestComment.setOnClickListener(openRepliesClickListener)
-            mBinding.tvPreviousReplies.setOnClickListener(openRepliesClickListener)
-            mBinding.imgProfile.setOnClickListener { _: View ->
+            mBinding.imgProfile.setOnClickListener { v ->
                 if (adapterPosition != RecyclerView.NO_POSITION) {
                     getItem(adapterPosition).run {
                         owner?.run {
@@ -105,11 +94,11 @@ class CommentsRecyclerViewAdapter(context: Context,
                 }
             }
 
-            mBinding.imgLike.setOnClickListener { _: View ->
+            mBinding.imgLike.setOnClickListener { v ->
                 if (adapterPosition != RecyclerView.NO_POSITION) {
                     getItem(adapterPosition).run {
                         if (localStatus != LocalStatus.STATUS_UPLOADING)
-                            commentsViewModel.likeCommentClicked(id)
+                            commentsViewModel.likeSubCommentClicked(id)
                     }
                 }
             }
@@ -120,17 +109,14 @@ class CommentsRecyclerViewAdapter(context: Context,
             displayUserInfo()
             displayContent()
             displayInfo()
-            displayReplies()
         }
 
         override fun bindData(item: CommentUI, payloads: List<Any>) {
             comment = item
 
             (payloads[0] as? Bundle)?.run {
-                if(getBoolean("like_status"))
+                if (getBoolean("like_status"))
                     displayLikeInfo()
-                if(getBoolean("latest_comment"))
-                    displayReplies()
             }
         }
 
@@ -185,16 +171,10 @@ class CommentsRecyclerViewAdapter(context: Context,
                         Calendar.getInstance().timeInMillis, 0L, DateUtils.FORMAT_ABBREV_RELATIVE)
             }
 
-            if (comment.id != feedId) {
+            if (comment.id != commentId) {
                 mBinding.divider.visibility = View.INVISIBLE
-                mBinding.tvLikesCount.visibility = View.VISIBLE
-                mBinding.tvReply.visibility = View.VISIBLE
-                mBinding.imgLike.visibility = View.VISIBLE
                 displayLikeInfo()
             } else {
-                mBinding.tvLikesCount.visibility = View.GONE
-                mBinding.tvReply.visibility = View.GONE
-                mBinding.imgLike.visibility = View.GONE
                 mBinding.divider.visibility = View.VISIBLE
                 mBinding.progressBar.visibility = View.GONE
             }
@@ -216,50 +196,9 @@ class CommentsRecyclerViewAdapter(context: Context,
                 mBinding.tvLikesCount.visibility = View.GONE
             }
         }
-
-        private fun displayReplies() {
-            if (comment.latestCommentId != null) {
-                mBinding.imgLatestCommentOwnerProfile.visibility = View.VISIBLE
-                mBinding.tvLatestComment.visibility = View.VISIBLE
-                mBinding.tvPreviousReplies.visibility = View.VISIBLE
-
-                val repliesBuilder = SpannableStringBuilder()
-                repliesBuilder.apply {
-                    var start = 0
-                    append(comment.latestCommentOwnerName)
-                    setSpan(StyleSpan(Typeface.BOLD), start, repliesBuilder.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                    setSpan(ForegroundColorSpan(Color.BLACK), start, repliesBuilder.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                    append("  ")
-
-                    start = repliesBuilder.length
-                    append(if (comment.latestCommentPhoto != null) "replied" else comment.latestCommentContent)
-                    setSpan(ForegroundColorSpan(ColorUtils.modifyAlpha(Color.BLACK, 0.8f)), start, repliesBuilder.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                }
-                mBinding.tvLatestComment.text = repliesBuilder
-
-                if (comment.commentCount > 1) {
-                    mBinding.tvPreviousReplies.visibility = View.VISIBLE
-                    mBinding.tvPreviousReplies.text = itemView.context.getString(R.string.feed_view_previous_replies, comment.commentCount - 1)
-                } else {
-                    mBinding.tvPreviousReplies.visibility = View.GONE
-                }
-
-                comment.latestCommentOwnerAvatar?.run {
-                    val latestCommentOwnerAvatarUrl = if (!thumbnailUrl.isNullOrEmpty()) thumbnailUrl else originUrl
-                    glideRequests
-                            .load(latestCommentOwnerAvatarUrl)
-                            .centerInside()
-                            .into(mBinding.imgLatestCommentOwnerProfile)
-                }
-            } else {
-                mBinding.imgLatestCommentOwnerProfile.visibility = View.GONE
-                mBinding.tvLatestComment.visibility = View.GONE
-                mBinding.tvPreviousReplies.visibility = View.GONE
-            }
-        }
     }
 
-    inner class ViewLoadingHolder(itemView: View) : BaseBindingViewHolder<ViewLoadingBinding, Void>(itemView) {
+    private class ViewLoadingHolder(itemView: View) : BaseBindingViewHolder<ViewLoadingBinding, Void>(itemView) {
 
         override fun bindData(item: Void) {}
 
@@ -284,6 +223,13 @@ class CommentsRecyclerViewAdapter(context: Context,
             }
             return if(!bundle.isEmpty) bundle else super.getChangePayload(oldItem, newItem)
         }
+    }
+
+    interface OnItemClickListener {
+
+        fun onPhotoClicked(photo: Photo)
+
+        fun onLikeClicked(commentId: String)
     }
 
     companion object {
