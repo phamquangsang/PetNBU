@@ -286,7 +286,7 @@ class CommentsRecyclerViewAdapter(context: Context,
                     putBoolean("latest_comment", true)
                 }
             }
-            return if (!bundle.isEmpty) bundle else super.getChangePayload(oldItem, newItem)
+            return bundle
         }
     }
 
