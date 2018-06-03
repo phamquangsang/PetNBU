@@ -1,7 +1,6 @@
 package com.petnbu.petnbu.jobs
 
 import android.net.Uri
-import android.text.TextUtils
 import android.webkit.URLUtil
 import androidx.work.Data
 import androidx.work.Worker
@@ -27,10 +26,10 @@ class UploadPhotoWorker : Worker() {
         var isSuccess = false
         val photoName = inputData.getString(KEY_PHOTO, "")
 
-        if (!TextUtils.isEmpty(photoName)) {
+        if (!photoName.isNullOrEmpty()) {
             val jsonPhoto = inputData.getString(photoName, "")
             try {
-                if (!TextUtils.isEmpty(jsonPhoto)) {
+                if (!jsonPhoto.isNullOrEmpty()) {
                     val photo = Gson().fromJson(jsonPhoto, Photo::class.java)
                     val key = Uri.parse(photo.originUrl).lastPathSegment
                     if (!URLUtil.isHttpUrl(photo.originUrl) && !URLUtil.isHttpsUrl(photo.originUrl)) {

@@ -19,9 +19,7 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewPropertyAnimator;
 
-import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.petnbu.petnbu.GlideApp;
 import com.petnbu.petnbu.R;
@@ -75,7 +73,7 @@ public class CommentsFragment extends Fragment {
         mCommentsViewModel = ViewModelProviders.of(getActivity()).get(CommentsViewModel.class);
         mBinding.setViewModel(mCommentsViewModel);
 
-        mCommentsViewModel.loadComments(mFeedId).observe(this, comments -> mAdapter.setComments(comments));
+        mCommentsViewModel.loadComments(mFeedId).observe(this, comments -> mAdapter.submitList(comments));
         mCommentsViewModel.getCommentLoadMoreState().observe(this, loadMoreState -> {
             if (loadMoreState != null) {
                 mBinding.rvComments.post(() -> mAdapter.setAddLoadMore(loadMoreState.isRunning()));
@@ -88,7 +86,7 @@ public class CommentsFragment extends Fragment {
         });
 
         mBinding.rvComments.setLayoutManager(new LinearLayoutManager(getActivity()));
-        mAdapter = new CommentsRecyclerViewAdapter(getActivity(), null, mFeedId, mCommentsViewModel);
+        mAdapter = new CommentsRecyclerViewAdapter(getActivity(), mFeedId, mCommentsViewModel);
         mBinding.rvComments.setAdapter(mAdapter);
         mBinding.rvComments.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
