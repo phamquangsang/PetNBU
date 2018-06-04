@@ -15,7 +15,7 @@ class ApiResponse<T> {
         errorMessage = error.message
     }
 
-    constructor(responseType: T, isSucceed: Boolean, errorMsg: String?) {
+    constructor(responseType: T?, isSucceed: Boolean, errorMsg: String?) {
         this.isSuccessful = isSucceed
         if (isSucceed) {
             body = responseType

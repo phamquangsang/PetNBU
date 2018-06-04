@@ -47,7 +47,7 @@ interface WebService {
 
     fun unLikeSubComment(userId: String, subCommentId: String): LiveData<ApiResponse<Comment>>
 
-    fun createReplyComment(comment: Comment, parentCommentId: String): LiveData<ApiResponse<Comment>>
+    fun createReplyComment(subComment: Comment, parentCommentId: String): LiveData<ApiResponse<Comment>>
 
     fun getSubComments(commentId: String, after: Long, limit: Int): LiveData<ApiResponse<List<Comment>>>
 

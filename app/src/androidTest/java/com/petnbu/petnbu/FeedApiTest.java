@@ -59,35 +59,27 @@ public class FeedApiTest {
         
         webService.getAllUser().observeForever(listApiResponse -> {
             if(listApiResponse != null){
-                if(listApiResponse.getIsSuccessful()){
+                if(listApiResponse.isSuccessful()){
                     List<UserEntity> users = listApiResponse.getBody();
                     feedUsers = translateToFeedUsers(users);
                     webService.getGlobalFeeds(new Date().getTime(), 200).observeForever(listApiResponse1 -> {
                         if(listApiResponse1 != null){
-                            if(listApiResponse1.getIsSuccessful() && listApiResponse1.getBody() != null){
+                            if(listApiResponse1.isSuccessful() && listApiResponse1.getBody() != null){
                                 List<Feed> feeds = listApiResponse1.getBody();
                                 WriteBatch batch = firestore.batch();
 
                                 for (Feed feed : feeds) {
                                     feed.setFeedUser(feedUsers.get(feed.getFeedUser().getUserId()));
-                                    DocumentReference doc = firestore.collection(GLOBAL_FEEDS).document(feed.getFeedId());
+                                    DocumentReference doc = firestore.collection("global_feeds").document(feed.getFeedId());
                                     batch.set(doc, feed);
                                     DocumentReference userFeed =
                                             firestore.document(String.format("users/%s/feeds/%s", feed.getFeedUser().getUserId(), feed.getFeedId()));
                                     batch.set(userFeed, feed);
                                 }
-                                batch.commit().addOnSuccessListener(new OnSuccessListener<Void>() {
-                                    @Override
-                                    public void onSuccess(Void aVoid) {
-                                        Timber.i("succeed");
-                                        countDownLatch.countDown();
-                                    }
-                                }).addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        Timber.e(e);
-                                    }
-                                });
+                                batch.commit().addOnSuccessListener(aVoid -> {
+                                    Timber.i("succeed");
+                                    countDownLatch.countDown();
+                                }).addOnFailureListener(Timber::e);
 
                             }
                         }
