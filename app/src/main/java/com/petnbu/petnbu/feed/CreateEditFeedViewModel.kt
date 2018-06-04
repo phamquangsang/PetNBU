@@ -36,11 +36,11 @@ class CreateEditFeedViewModel : ViewModel() {
     val selectedPhotos = ArrayList<Photo>()
 
     init {
-        PetApplication.getAppComponent().inject(this)
+        PetApplication.appComponent.inject(this)
     }
 
     fun loadUserInfo(): LiveData<UserEntity> {
-        return Transformations.switchMap<Resource<UserEntity>, UserEntity>(userRepository.getUserById(SharedPrefUtil.getUserId())) { userResource ->
+        return Transformations.switchMap<Resource<UserEntity>, UserEntity>(userRepository.getUserById(SharedPrefUtil.userId)) { userResource ->
             val userLiveData = MutableLiveData<UserEntity>()
             userLiveData.value = userResource?.data
             userLiveData

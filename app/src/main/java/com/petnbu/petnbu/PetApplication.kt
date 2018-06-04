@@ -2,11 +2,9 @@ package com.petnbu.petnbu
 
 import android.app.Application
 import android.os.StrictMode
-
+import com.petnbu.petnbu.di.AppComponent
 import com.petnbu.petnbu.di.AppModule
 import com.petnbu.petnbu.di.DaggerAppComponent
-import com.petnbu.petnbu.di.AppComponent
-
 import timber.log.Timber
 
 
@@ -27,7 +25,6 @@ class PetApplication : Application() {
                     .build())
         }
         appComponent = DaggerAppComponent.builder().appModule(AppModule(this)).build()
-
     }
 
     companion object {
