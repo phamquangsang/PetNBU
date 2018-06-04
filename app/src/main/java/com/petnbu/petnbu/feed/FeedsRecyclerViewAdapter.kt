@@ -72,32 +72,28 @@ class FeedsRecyclerViewAdapter(context: Context,
 
         private lateinit var feed: FeedUI
         private val openProfileClickListener = { _: View ->
-            if (adapterPosition != RecyclerView.NO_POSITION) {
+            if (adapterPosition != RecyclerView.NO_POSITION)
                 feedsViewModel.openUserProfile(getItem(adapterPosition).ownerId)
-            }
         }
         private val openCommentsClickListener = { _: View ->
-            if (adapterPosition != RecyclerView.NO_POSITION) {
+            if (adapterPosition != RecyclerView.NO_POSITION)
                 feedsViewModel.openComments(getItem(adapterPosition).feedId)
-            }
         }
 
         init {
             mBinding.imgProfile.setOnClickListener(openProfileClickListener)
             mBinding.tvName.setOnClickListener(openProfileClickListener)
             mBinding.imgLike.setOnClickListener {
-                if (onItemClickListener != null && adapterPosition != RecyclerView.NO_POSITION) {
+                if (onItemClickListener != null && adapterPosition != RecyclerView.NO_POSITION)
                     onItemClickListener.onLikeClicked(getItem(adapterPosition).feedId)
-                }
             }
             mBinding.imgComment.setOnClickListener(openCommentsClickListener)
             mBinding.tvViewComments.setOnClickListener(openCommentsClickListener)
             mBinding.tvContent.setOnClickListener(openCommentsClickListener)
 
             mBinding.imgOptions.setOnClickListener {
-                if (onItemClickListener != null && adapterPosition != RecyclerView.NO_POSITION) {
+                if (onItemClickListener != null && adapterPosition != RecyclerView.NO_POSITION)
                     onItemClickListener.onOptionClicked(it, getItem(adapterPosition))
-                }
             }
 
             mBinding.rvPhotos.layoutManager = LinearLayoutManager(itemView.context, LinearLayoutManager.HORIZONTAL, false)
@@ -223,12 +219,11 @@ class FeedsRecyclerViewAdapter(context: Context,
             val layoutParams = mBinding.layoutMedia.layoutParams as ConstraintLayout.LayoutParams
             val height = (photoHeight / photoWidth.toFloat() * deviceWidth).toInt()
 
-            layoutParams.height = if (height > maxPhotoHeight)
-                maxPhotoHeight
-            else if (height < minPhotoHeight)
-                minPhotoHeight
-            else
-                height
+            layoutParams.height = when {
+                height > maxPhotoHeight -> maxPhotoHeight
+                height < minPhotoHeight -> minPhotoHeight
+                else -> height
+            }
             mBinding.layoutMedia.layoutParams = layoutParams
         }
 
