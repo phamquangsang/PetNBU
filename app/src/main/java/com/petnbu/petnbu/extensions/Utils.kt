@@ -1,5 +1,5 @@
 package com.petnbu.petnbu.extensions
 
-import com.google.gson.Gson
+import com.petnbu.petnbu.PetApplication
 
-inline fun Any.toJson(): String = Gson().toJson(this)
+fun Any.toJson(): String = PetApplication.getAppComponent().gson.toJson(this)
