@@ -115,10 +115,7 @@ public class FeedApiTest {
 
         AppExecutors appExecutors = PetApplication.getAppComponent().getAppExecutor();
         PetDb petDb = PetApplication.getAppComponent().getPetDb();
-        appExecutors.diskIO().execute(() -> {
-            petDb.feedDao().insertFromFeed(feed1);
-
-        });
+        appExecutors.diskIO().execute(() -> petDb.feedDao().insertFromFeed(feed1));
 
 
     }
@@ -182,22 +179,16 @@ public class FeedApiTest {
 
         FeedRepository repository = PetApplication.getAppComponent().getFeedRepo();
 
-        appExecutors.mainThread().execute(new Runnable() {
-            @Override
-            public void run() {
-                LiveData<Resource<List<FeedUI>>> resultLive = repository.loadFeeds(Paging.GLOBAL_FEEDS_PAGING_ID, "701Gx5cLL9W7H3RmLz4ZxEdFlpb2");
-                resultLive.observeForever(new Observer<Resource<List<FeedUI>>>() {
-                    @Override
-                    public void onChanged(@Nullable Resource<List<FeedUI>> listResource) {
-                        if (listResource != null) {
-                            Timber.i(listResource.toString());
-                            if (listResource.data != null) {
-                                Timber.i(String.valueOf(listResource.data.size()));
-                            }
-                        }
+        appExecutors.mainThread().execute(() -> {
+            LiveData<Resource<List<FeedUI>>> resultLive = repository.loadFeeds(Paging.GLOBAL_FEEDS_PAGING_ID, "701Gx5cLL9W7H3RmLz4ZxEdFlpb2");
+            resultLive.observeForever(listResource -> {
+                if (listResource != null) {
+                    Timber.i(listResource.toString());
+                    if (listResource.data != null) {
+                        Timber.i(String.valueOf(listResource.data.size()));
                     }
-                });
-            }
+                }
+            });
         });
 
         signal.await(20, TimeUnit.SECONDS);

@@ -40,7 +40,7 @@ class CreateEditFeedWorker : Worker() {
     lateinit var appExecutors: AppExecutors
 
     override fun doWork(): WorkerResult {
-        PetApplication.getAppComponent().inject(this)
+        PetApplication.appComponent.inject(this)
         var workerResult = WorkerResult.FAILURE
 
         val feedId = inputData.getString(KEY_FEED_ID, "")

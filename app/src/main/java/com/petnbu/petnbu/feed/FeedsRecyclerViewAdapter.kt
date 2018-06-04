@@ -30,6 +30,7 @@ import com.petnbu.petnbu.model.LocalStatus.STATUS_UPLOADING
 import com.petnbu.petnbu.model.Photo
 import com.petnbu.petnbu.util.TraceUtils
 import com.petnbu.petnbu.util.Utils
+import timber.log.Timber
 import java.util.*
 
 class FeedsRecyclerViewAdapter(context: Context,
@@ -53,6 +54,7 @@ class FeedsRecyclerViewAdapter(context: Context,
     }
 
     override fun onBindViewHolder(holder: BaseBindingViewHolder<*, *>, position: Int) {
+        Timber.i("bind feed :%s", getItem(position).toString())
         (holder as? ViewHolder)?.bindData(getItem(position))
     }
 

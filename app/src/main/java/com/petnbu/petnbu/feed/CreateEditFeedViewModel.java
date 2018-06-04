@@ -51,7 +51,7 @@ public class CreateEditFeedViewModel extends ViewModel {
     }
 
     public LiveData<UserEntity> loadUserInfo() {
-        return Transformations.switchMap(mUserRepository.getUserById(SharedPrefUtil.getUserId()), userResource -> {
+        return Transformations.switchMap(mUserRepository.getUserById(SharedPrefUtil.INSTANCE.getUserId()), userResource -> {
             MutableLiveData<UserEntity> userLiveData = new MutableLiveData<>();
             if (userResource != null && userResource.data != null) {
                 userLiveData.setValue(userResource.data);

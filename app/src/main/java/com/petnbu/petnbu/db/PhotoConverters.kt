@@ -8,7 +8,7 @@ import com.petnbu.petnbu.model.Photo
 
 public object PhotoConverters {
 
-    public var gson = PetApplication.getAppComponent().gson
+    public var gson = PetApplication.appComponent.gson
 
     @TypeConverter
     @JvmStatic

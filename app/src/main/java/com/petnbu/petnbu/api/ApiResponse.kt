@@ -1,5 +1,7 @@
 package com.petnbu.petnbu.api
 
+import timber.log.Timber
+
 /**
  * Common class used by API responses.
  * @param <T>
@@ -13,6 +15,7 @@ class ApiResponse<T> {
         isSuccessful = false
         body = null
         errorMessage = error.message
+        Timber.e(error)
     }
 
     constructor(responseType: T?, isSucceed: Boolean, errorMsg: String?) {

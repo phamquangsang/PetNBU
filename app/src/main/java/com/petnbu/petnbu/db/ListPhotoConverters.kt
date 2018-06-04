@@ -9,7 +9,7 @@ import com.petnbu.petnbu.model.Photo
 
 object ListPhotoConverters {
 
-    var gson: Gson = PetApplication.getAppComponent().gson
+    val gson: Gson = PetApplication.appComponent.gson
 
     @TypeConverter
     @JvmStatic
