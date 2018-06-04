@@ -57,6 +57,9 @@ class FetchNextPageFeedComment(private val mFeedId: String,
                             liveData.postValue(Resource(Status.SUCCESS, false, null))
                         }
                     } else {
+                        currentPaging.isEnded = true
+                        currentPaging.oldestId = null
+                        mAppExecutors.diskIO().execute { mPetDb.pagingDao().update(currentPaging) }
                         liveData.postValue(Resource(Status.ERROR, true, listApiResponse.errorMessage))
                     }
                 }

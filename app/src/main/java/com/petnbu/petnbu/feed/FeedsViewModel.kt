@@ -26,7 +26,7 @@ class FeedsViewModel : ViewModel() {
         get() = loadMoreHandler.loadMoreState
 
     init {
-        PetApplication.getAppComponent().inject(this)
+        PetApplication.appComponent.inject(this)
         loadMoreHandler = LoadMoreHandler(feedRepository)
     }
 

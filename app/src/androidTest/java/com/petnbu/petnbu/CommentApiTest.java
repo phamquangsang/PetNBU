@@ -101,7 +101,7 @@ public class CommentApiTest {
 
         appExecutors.networkIO().execute(() ->{
 
-            UserEntity owner = petDb.userDao().findUserById(SharedPrefUtil.getUserId());
+            UserEntity owner = petDb.userDao().findUserById(SharedPrefUtil.INSTANCE.getUserId());
 
             Comment comment = new Comment();
             comment.setParentCommentId(parentCommentId);

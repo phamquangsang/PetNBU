@@ -33,7 +33,7 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors,
     fun createComment(comment: Comment) {
         mAppExecutors.diskIO().execute {
             mPetDb.runInTransaction {
-                val userEntity = mPetDb.userDao().findUserById(SharedPrefUtil.getUserId())
+                val userEntity = mPetDb.userDao().findUserById(SharedPrefUtil.userId)
                 val feedUser = FeedUser(userEntity.userId, userEntity.avatar, userEntity.name)
                 comment.feedUser = feedUser
                 comment.localStatus = LocalStatus.STATUS_UPLOADING

@@ -186,7 +186,7 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, 
     fun createNewFeed(feed: Feed) {
         mAppExecutors.diskIO().execute {
             mPetDb.runInTransaction {
-                val userEntity = mPetDb.userDao().findUserById(SharedPrefUtil.getUserId())
+                val userEntity = mPetDb.userDao().findUserById(SharedPrefUtil.userId)
                 val feedUser = FeedUser(userEntity.userId, userEntity.avatar, userEntity.name)
                 feed.status = STATUS_UPLOADING
                 feed.feedUser = feedUser
@@ -363,6 +363,6 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, 
 
     companion object {
 
-        const val FEEDS_PER_PAGE = 50
+        const val FEEDS_PER_PAGE = 10
     }
 }

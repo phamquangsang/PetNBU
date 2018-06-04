@@ -28,7 +28,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                         }
                     }
                     .addOnFailureListener { e ->
-                        result.setValue(ApiResponse(null, false, e.message))
+                        result.setValue(ApiResponse(e))
                     }
 
             return result
@@ -57,7 +57,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                 }
                 .addOnFailureListener { e ->
                     feed.feedId = oldId
-                    result.setValue(ApiResponse(null, false, e.message))
+                    result.setValue(ApiResponse(e))
                 }
         return result
     }
@@ -90,7 +90,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                         result.postValue(ApiResponse(feed, true, null))
                     }
                 }
-                .addOnFailureListener { e -> result.setValue(ApiResponse(null, false, e.message)) }
+                .addOnFailureListener { e -> result.setValue(ApiResponse(e)) }
         return result
     }
 
@@ -112,11 +112,10 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                         result.postValue(ApiResponse(feedResponse, true, null))
                     }
                 }.addOnFailureListener { e ->
-                    Timber.e("onFailure: %s", e.message)
-                    result.setValue(ApiResponse(null, false, e.message))
+                    result.setValue(ApiResponse(e))
                 }
 
-        return processUserLikeFeeds(result, SharedPrefUtil.getUserId())
+        return processUserLikeFeeds(result, SharedPrefUtil.userId)
     }
 
     override fun getGlobalFeeds(afterFeedId: String, limit: Int): LiveData<ApiResponse<List<Feed>>> {
@@ -138,16 +137,15 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                                 result.postValue(ApiResponse(feedResponse, true, null))
                             }
                         }.addOnFailureListener { e ->
-                            Timber.e("onFailure: %s", e.message)
-                            result.setValue(ApiResponse(null, false, e.message))
+                            result.setValue(ApiResponse(e))
                         }
             } else {
                 result.setValue(ApiResponse(null, false, "feedId not exists"))
             }
 
-        }.addOnFailureListener { e -> result.setValue(ApiResponse(null, false, e.message)) }
+        }.addOnFailureListener { e -> result.setValue(ApiResponse(e)) }
 
-        return processUserLikeFeeds(result, SharedPrefUtil.getUserId())
+        return processUserLikeFeeds(result, SharedPrefUtil.userId)
     }
 
 
@@ -167,7 +165,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                         }
                         result.postValue(ApiResponse(feedResponse, true, null))
                     }
-                }.addOnFailureListener { e -> result.setValue(ApiResponse(null, false, e.message)) }
+                }.addOnFailureListener { e -> result.setValue(ApiResponse(e)) }
         return processUserLikeFeeds(result, userId)
     }
 
@@ -188,13 +186,13 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                                             feedResponse.add(doc.toObject(Feed::class.java))
                                         }
                                         result.postValue(ApiResponse(feedResponse, true, null))
-                                    }.addOnFailureListener { e -> result.setValue(ApiResponse(null, false, e.message)) }
+                                    }.addOnFailureListener { e -> result.setValue(ApiResponse(e)) }
                         } else {
                             result.setValue(ApiResponse(null, false, "feedId $afterFeedId does not exist"))
                         }
 
                     }
-                }.addOnFailureListener { e -> result.setValue(ApiResponse(null, false, e.message)) }
+                }.addOnFailureListener { e -> result.setValue(ApiResponse(e)) }
 
         return processUserLikeFeeds(result, userId)
     }
@@ -211,7 +209,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                     }
                 }.addOnFailureListener { e ->
                     Timber.e("onFailure: %s", e.message)
-                    result.setValue(ApiResponse(null, false, e.message))
+                    result.setValue(ApiResponse(e))
                 }
         return result
     }
@@ -255,9 +253,9 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                         transactionResult = ApiResponse(feed, true, null)
                         transactionResult
                     }.addOnSuccessListener({ result.setValue(it) })
-                            .addOnFailureListener { e -> result.setValue(ApiResponse(null, false, e.message)) }
+                            .addOnFailureListener { e -> result.setValue(ApiResponse(e)) }
                 }
-                .addOnFailureListener { e -> result.setValue(ApiResponse(null, false, e.message)) }
+                .addOnFailureListener { e -> result.setValue(ApiResponse(e)) }
 
         return result
     }
@@ -295,7 +293,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
 
             transactionResult = ApiResponse(feed, true, null)
             transactionResult
-        }.addOnSuccessListener({ result.setValue(it) }).addOnFailureListener { e -> result.setValue(ApiResponse(null, false, e.message)) }
+        }.addOnSuccessListener({ result.setValue(it) }).addOnFailureListener { e -> result.setValue(ApiResponse(e)) }
         return result
     }
 
@@ -344,8 +342,12 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                 transactionResult = ApiResponse(comment, true, null)
                 transactionResult
             }.addOnSuccessListener({ result.setValue(it) })
-                    .addOnFailureListener { e -> result.setValue(ApiResponse(null, false, e.message)) }
-                    .addOnFailureListener { e -> result.setValue(ApiResponse(null, false, e.message)) }
+                    .addOnFailureListener {
+                        e -> result.setValue(ApiResponse(e))
+                    }
+                    .addOnFailureListener {
+                        e -> result.setValue(ApiResponse(e))
+                    }
         }
         return result
     }
@@ -384,7 +386,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
             transactionResult = ApiResponse(comment, true, null)
             transactionResult
         }.addOnSuccessListener({ result.setValue(it) })
-                .addOnFailureListener { e -> result.setValue(ApiResponse(null, false, e.message)) }
+                .addOnFailureListener { e -> result.setValue(ApiResponse(e)) }
         return result
     }
 
@@ -425,9 +427,9 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                 subComment.likeCount = newLikeCount
                 ApiResponse(subComment, true, null)
             }.addOnSuccessListener({ result.setValue(it) })
-                    .addOnFailureListener { e -> result.setValue(ApiResponse(null, false, e.message)) }
+                    .addOnFailureListener { e -> result.setValue(ApiResponse(e)) }
         }
-                .addOnFailureListener { e -> result.setValue(ApiResponse(null, false, e.message)) }
+                .addOnFailureListener { e -> result.setValue(ApiResponse(e)) }
         return result
     }
 
@@ -457,7 +459,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
             subComment.likeCount = newLikeCount
             ApiResponse(subComment, true, null)
         }.addOnSuccessListener({ result.setValue(it) })
-                .addOnFailureListener { e -> result.setValue(ApiResponse(null, false, e.message)) }
+                .addOnFailureListener { e -> result.setValue(ApiResponse(e)) }
         return result
     }
 
@@ -466,7 +468,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
         val userDoc = mDb.collection(USERS).document(userEntity.userId)
         userDoc.set(userEntity)
                 .addOnSuccessListener { result.setValue(ApiResponse(userEntity, true, null)) }
-                .addOnFailureListener { e -> result.setValue(ApiResponse(null, false, e.message)) }
+                .addOnFailureListener { e -> result.setValue(ApiResponse(e)) }
         return result
     }
 
@@ -485,7 +487,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                         }
                     }
                 }
-                .addOnFailureListener { e -> result.setValue(ApiResponse(null, false, e.message)) }
+                .addOnFailureListener { e -> result.setValue(ApiResponse(e)) }
 
         return result
     }
@@ -502,7 +504,6 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
         val result = MutableLiveData<ApiResponse<Comment>>()
         val oldId = comment.id
         mDb.runTransaction { transaction ->
-            val transResult: ApiResponse<Comment> = ApiResponse(comment, true, null)
             val feedRef = mDb.collection(GLOBAL_FEEDS).document(feedId)
             val feed = transaction.get(feedRef).toObject(Feed::class.java)
                     ?: throw FirebaseFirestoreException(String.format("feed Id %s does not found", feedId),
@@ -537,18 +538,18 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
 
             transaction.set(commentRef, commentMap)
 
-            val userFeedCommentPath = "users/%${feed.feedUser.userId}/feeds/${feed.feedId}/comments/${comment.id}"
+            val userFeedCommentPath = "users/${feed.feedUser.userId}/feeds/${feed.feedId}/comments/${comment.id}"
             val userFeedCommentRef = mDb.document(userFeedCommentPath)
             transaction.set(userFeedCommentRef, commentMap)
 
-            val feedCommentPath = "global_feeds/$feedId/comments/$commentRef.id"
+            val feedCommentPath = "global_feeds/$feedId/comments/${comment.id}"
             val feedCommentRef = mDb.document(feedCommentPath)
             transaction.set(feedCommentRef, commentMap)
-
+            val transResult = ApiResponse(comment, true, null)
             transResult
         }.addOnSuccessListener({ result.setValue(it) }).addOnFailureListener { e ->
             comment.id = oldId
-            result.setValue(ApiResponse(comment, false, e.message))
+            result.setValue(ApiResponse(e))
         }
         return result
     }
@@ -609,7 +610,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
 
         }.addOnSuccessListener({ result.setValue(it) }).addOnFailureListener { e ->
             subComment.id = oldId
-            result.setValue(ApiResponse(subComment, false, e.message))
+            result.setValue(ApiResponse(e))
         }
         return result
     }
@@ -628,8 +629,8 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                         }
                         result.postValue(ApiResponse(comments, true, null))
                     }
-                }.addOnFailureListener { e -> result.setValue(ApiResponse(null, false, e.message)) }
-        return processUserLikeComment(false, result, SharedPrefUtil.getUserId())
+                }.addOnFailureListener { e -> result.setValue(ApiResponse(e)) }
+        return processUserLikeComment(false, result, SharedPrefUtil.userId)
     }
 
     override fun getCommentsPaging(feedId: String, commentId: String, limit: Int): LiveData<ApiResponse<List<Comment>>> {
@@ -653,11 +654,11 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                                         }
                                         result.postValue(ApiResponse(comments, true, null))
                                     }
-                                }.addOnFailureListener { e -> result.setValue(ApiResponse(null, false, e.message)) }
+                                }.addOnFailureListener { e -> result.setValue(ApiResponse(e)) }
                     }
-                }.addOnFailureListener { e -> result.setValue(ApiResponse(null, false, e.message)) }
+                }.addOnFailureListener { e -> result.setValue(ApiResponse(e)) }
 
-        return processUserLikeComment(false, result, SharedPrefUtil.getUserId())
+        return processUserLikeComment(false, result, SharedPrefUtil.userId)
     }
 
     override fun getSubComments(commentId: String, after: Long, limit: Int): LiveData<ApiResponse<List<Comment>>> {
@@ -674,8 +675,8 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                         }
                         result.postValue(ApiResponse(subComments, true, null))
                     }
-                }.addOnFailureListener { e -> result.setValue(ApiResponse(null, false, e.message)) }
-        return processUserLikeComment(true, result, SharedPrefUtil.getUserId())
+                }.addOnFailureListener { e -> result.setValue(ApiResponse(e)) }
+        return processUserLikeComment(true, result, SharedPrefUtil.userId)
     }
 
     override fun getSubCommentsPaging(commentId: String, afterCommentId: String, limit: Int): LiveData<ApiResponse<List<Comment>>> {
@@ -699,11 +700,11 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                                         }
                                         result.postValue(ApiResponse(subComments, true, null))
                                     }
-                                }.addOnFailureListener { e -> result.setValue(ApiResponse(null, false, e.message)) }
+                                }.addOnFailureListener { e -> result.setValue(ApiResponse(e)) }
                     }
-                }.addOnFailureListener { e -> result.setValue(ApiResponse(null, false, e.message)) }
+                }.addOnFailureListener { e -> result.setValue(ApiResponse(e)) }
 
-        return processUserLikeComment(true, result, SharedPrefUtil.getUserId())
+        return processUserLikeComment(true, result, SharedPrefUtil.userId)
     }
 
     private fun updateFeedTransaction(transaction: Transaction, feed: Feed, update: Map<String, Any>) {
@@ -715,7 +716,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
 
     private fun updateCommentTransaction(transaction: Transaction, comment: Comment, update: Map<String, Any>) {
         val commentRef = mDb.document("comments/${comment.id}")
-        val feedCommentRef = mDb.document("global_feeds/${comment.parentFeedId}/comments/%${commentRef.id}")
+        val feedCommentRef = mDb.document("global_feeds/${comment.parentFeedId}/comments/${commentRef.id}")
         transaction.update(commentRef, update)
         transaction.update(feedCommentRef, update)
     }
@@ -827,13 +828,13 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                         }
                         result.postValue(ApiResponse(notifications, true, null))
                     }
-                }.addOnFailureListener { e -> result.postValue(ApiResponse(null, false, e.message)) }
+                }.addOnFailureListener { e -> result.postValue(ApiResponse(e)) }
         return result
     }
 
     companion object {
 
-        public const val GLOBAL_FEEDS = "global_feeds"
+        const val GLOBAL_FEEDS = "global_feeds"
 
         private const val FEEDS = "feeds"
 

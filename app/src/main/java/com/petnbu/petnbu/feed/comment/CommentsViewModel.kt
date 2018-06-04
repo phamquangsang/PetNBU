@@ -48,13 +48,13 @@ class CommentsViewModel : ViewModel() {
         get() = mOpenUserProfileEvent
 
     init {
-        PetApplication.getAppComponent().inject(this)
+        PetApplication.appComponent.inject(this)
         loadMoreHandler = LoadMoreHandler(mCommentRepository)
         subCommentLoadMoreHandler = SubCommentLoadMoreHandler(mCommentRepository)
     }
 
     fun loadUserInfo(): LiveData<UserEntity> {
-        return Transformations.switchMap(mUserRepository.getUserById(SharedPrefUtil.getUserId())) { userResource ->
+        return Transformations.switchMap(mUserRepository.getUserById(SharedPrefUtil.userId)) { userResource ->
             val userLiveData = MutableLiveData<UserEntity>()
             userResource?.run {
                 data?.run {
@@ -127,11 +127,11 @@ class CommentsViewModel : ViewModel() {
     }
 
     fun likeCommentClicked(commentId: String) {
-        mCommentRepository.likeCommentHandler(SharedPrefUtil.getUserId(), commentId)
+        mCommentRepository.likeCommentHandler(SharedPrefUtil.userId, commentId)
     }
 
     fun likeSubCommentClicked(subCommentId: String) {
-        mCommentRepository.likeSubCommentHandler(SharedPrefUtil.getUserId(), subCommentId)
+        mCommentRepository.likeSubCommentHandler(SharedPrefUtil.userId, subCommentId)
     }
 
     private class LoadMoreHandler(private val commentRepo: CommentRepository,

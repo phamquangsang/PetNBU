@@ -39,7 +39,7 @@ class CreateCommentWorker : Worker() {
     lateinit var mAppExecutors: AppExecutors
 
     override fun doWork(): WorkerResult {
-        PetApplication.getAppComponent().inject(this)
+        PetApplication.appComponent.inject(this)
 
         var workerResult: WorkerResult = WorkerResult.FAILURE
         val data = inputData

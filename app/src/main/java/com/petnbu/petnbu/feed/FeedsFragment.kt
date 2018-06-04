@@ -44,7 +44,7 @@ class FeedsFragment : Fragment() {
 
     private fun initialize() {
         activity?.run activity@ {
-            userId = SharedPrefUtil.getUserId()
+            userId = SharedPrefUtil.userId
             feedsViewModel = ViewModelProviders.of(this).get(FeedsViewModel::class.java)
             feedsAdapter = FeedsRecyclerViewAdapter(this, object : FeedsRecyclerViewAdapter.OnItemClickListener {
 
@@ -72,7 +72,7 @@ class FeedsFragment : Fragment() {
             }, feedsViewModel)
         }
 
-        feedsViewModel.getFeeds(Paging.GLOBAL_FEEDS_PAGING_ID, SharedPrefUtil.getUserId()).observe(this, Observer { feeds -> feedsAdapter.submitList(feeds) })
+        feedsViewModel.getFeeds(Paging.GLOBAL_FEEDS_PAGING_ID, SharedPrefUtil.userId).observe(this, Observer { feeds -> feedsAdapter.submitList(feeds) })
         feedsViewModel.showLoadingEvent.observe(this, Observer { value -> mBinding.pullToRefresh.isRefreshing = value ?: false })
         feedsViewModel.showLoadingErrorEvent.observe(this, Observer { value -> SnackbarUtils.showSnackbar(mBinding.root, value) })
         feedsViewModel.loadMoreState.observe(this, Observer { state ->
