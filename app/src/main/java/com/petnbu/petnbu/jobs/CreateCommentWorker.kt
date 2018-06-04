@@ -121,7 +121,10 @@ class CreateCommentWorker : Worker() {
                             newComment.localStatus = STATUS_DONE
                             mCommentDao.update(newComment.toEntity())
                             val parentFeed = mPetDb.feedDao().findFeedEntityById(newComment.parentFeedId)
-                            mPetDb.feedDao().updateLatestCommentId(newComment.id, parentFeed?.commentCount ?: 0 + 1, newComment.parentFeedId)
+                            parentFeed?.apply {
+                                mPetDb.feedDao().updateLatestCommentId(newComment.id,parentFeed.commentCount + 1, newComment.parentFeedId)
+                            }
+
                         }
                     }
                 } else {

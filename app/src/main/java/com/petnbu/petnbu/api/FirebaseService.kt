@@ -510,6 +510,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                             FirebaseFirestoreException.Code.NOT_FOUND)
 
             val newCommentCount = (feed.commentCount + 1).toDouble()
+            Timber.i("createFeedComment : new comment Count %4.2f", newCommentCount)
             val commentRef = mDb.collection("comments").document()
             comment.id = commentRef.id
 
@@ -568,12 +569,13 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                         FirebaseFirestoreException.Code.DATA_LOSS)
             }
 
-            val feedContainerRef = mDb.document("global_feeds/" + parentComment.parentFeedId)
-            val feedContainer = transaction.get(feedContainerRef).toObject(Feed::class.java)
-                    ?: throw FirebaseFirestoreException("the feed you're trying to comment does not exist",
-                            FirebaseFirestoreException.Code.NOT_FOUND)
+//            val feedContainerRef = mDb.document("global_feeds/" + parentComment.parentFeedId)
+//            val feedContainer = transaction.get(feedContainerRef).toObject(Feed::class.java)
+//                    ?: throw FirebaseFirestoreException("the feed you're trying to comment does not exist",
+//                            FirebaseFirestoreException.Code.NOT_FOUND)
 
             val newCommentCount = (parentComment.commentCount + 1).toDouble()
+            Timber.i("createReplyComment : new comment Count %6.0f", newCommentCount)
             val subCommentRef = mDb.collection("subComments").document()
             subComment.id = subCommentRef.id
             val commentMap = subComment.toMap()
@@ -588,8 +590,8 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
             latestCommentUpdate["latestComment"] = commentMap
 
 
-            //                update feed subComment count
-            this@FirebaseService.updateFeedTransaction(transaction, feedContainer, updatesCount)
+//            //                update feed subComment count
+//            this@FirebaseService.updateFeedTransaction(transaction, feedContainer, updatesCount)
             //                update parent's subComment count
             this@FirebaseService.updateCommentTransaction(transaction, parentComment, updatesCount)
             this@FirebaseService.updateCommentTransaction(transaction, parentComment, latestCommentUpdate)
