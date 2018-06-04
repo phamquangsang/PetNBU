@@ -41,7 +41,7 @@ public class UserEntityApiTest {
             @Override
             public void onChanged(@Nullable ApiResponse<UserEntity> userApiResponse) {
                 if(userApiResponse != null){
-                    if(userApiResponse.isSucceed && userApiResponse.body != null){
+                    if(userApiResponse.getIsSuccessful() && userApiResponse.getBody() != null){
                         signal.countDown();
                     }
                     apiResponse.removeObserver(this);

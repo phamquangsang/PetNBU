@@ -34,16 +34,16 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, 
 
     fun loadFeeds(pagingId: String, userId: String): LiveData<Resource<List<FeedUI>>> {
         return object : NetworkBoundResource<List<FeedUI>, List<Feed>>(mAppExecutors) {
-            override fun saveCallResult(items: List<Feed>) {
-                val listId = ArrayList<String>(items.size)
+            override fun saveCallResult(item: List<Feed>) {
+                val listId = ArrayList<String>(item.size)
                 val paging: Paging
-                items.forEach { listId.add(it.feedId) }
+                item.forEach { listId.add(it.feedId) }
                 paging = Paging(pagingId,
                         listId, listId.isEmpty(),
                         if (listId.isEmpty()) null else listId[listId.size - 1])
                 mPetDb.runInTransaction {
-                    mPetDb.feedDao().insertFromFeedList(items)
-                    items.forEach {
+                    mPetDb.feedDao().insertFromFeedList(item)
+                    item.forEach {
                         mPetDb.userDao().insert(it.feedUser)
                         it.latestComment?.apply {
                             //the latestComment return from server does not have latestSubComment
@@ -67,7 +67,7 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, 
                         return@switchMap data
                     } else {
                         Timber.i("loadFeedsFromDb paging: %s", input.toString())
-                        return@switchMap mPetDb . feedDao ().loadFeedsIds(input.ids, userId)
+                        return@switchMap mPetDb.feedDao().loadFeedsIds(input.ids, userId)
                     }
                 }
             }
@@ -76,11 +76,11 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, 
                 return mWebService.getGlobalFeeds(System.currentTimeMillis(), FEEDS_PER_PAGE)
             }
 
-            override fun shouldDeleteOldData(body: List<Feed>): Boolean {
+            override fun shouldDeleteOldData(body: List<Feed>?): Boolean {
                 return true
             }
 
-            override fun deleteDataFromDb(body: List<Feed>) {
+            override fun deleteDataFromDb(body: List<Feed>?) {
                 mPetDb.pagingDao().deleteFeedPaging(pagingId)
             }
         }.asLiveData()
@@ -102,7 +102,7 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, 
                 return data == null
             }
 
-            override fun deleteDataFromDb(body: Feed) {
+            override fun deleteDataFromDb(body: Feed?) {
                 mPetDb.feedDao().deleteFeedById(feedId)
             }
 
@@ -118,18 +118,16 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, 
 
     fun loadUserFeeds(userId: String, pagingId: String): LiveData<Resource<List<FeedUI>>> {
         return object : NetworkBoundResource<List<FeedUI>, List<Feed>>(mAppExecutors) {
-            override fun saveCallResult(items: List<Feed>) {
-                val listId = ArrayList<String>(items.size)
-                for (item in items) {
-                    listId.add(item.feedId)
-                }
+            override fun saveCallResult(item: List<Feed>) {
+                val listId = ArrayList<String>(item.size)
+                item.forEach { listId.add(it.feedId) }
                 val paging = Paging(pagingId,
                         listId, listId.isEmpty(),
                         if (listId.isEmpty()) null else listId[listId.size - 1])
 
                 mPetDb.runInTransaction {
-                    mPetDb.feedDao().insertFromFeedList(items)
-                    items.forEach {
+                    mPetDb.feedDao().insertFromFeedList(item)
+                    item.forEach {
                         mPetDb.userDao().insert(it.feedUser)
                         it.latestComment?.apply {
                             mPetDb.commentDao().insertIfNotExists(this.toEntity())
@@ -152,7 +150,7 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, 
                         return@switchMap data
                     } else {
                         Timber.i("loadFeedsFromDb paging: %s", input.toString())
-                        return@switchMap mPetDb . feedDao ().loadFeedsIds(input.ids, userId)
+                        return@switchMap mPetDb.feedDao().loadFeedsIds(input.ids, userId)
                     }
                 }
             }
@@ -160,13 +158,13 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, 
             override fun createCall(): LiveData<ApiResponse<List<Feed>>> = mWebService.getUserFeed(userId, Date().time, FEEDS_PER_PAGE)
 
 
-            override fun shouldDeleteOldData(body: List<Feed>): Boolean {
-                val shouldDelete = body.isEmpty() || mRateLimiter.shouldFetch(pagingId)
+            override fun shouldDeleteOldData(body: List<Feed>?): Boolean {
+                val shouldDelete = body?.isEmpty() ?: true || mRateLimiter.shouldFetch(pagingId)
                 Timber.i("loadUserProfile: should delete = %s", shouldDelete)
                 return shouldDelete
             }
 
-            override fun deleteDataFromDb(body: List<Feed>) {
+            override fun deleteDataFromDb(body: List<Feed>?) {
                 Timber.i("deleting old query for userId: %s", pagingId)
                 mPetDb.pagingDao().deleteFeedPaging(pagingId)
             }
@@ -251,18 +249,16 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, 
     }
 
     fun refresh(): LiveData<Resource<List<Feed>>> {
-        return object :NetworkBoundResource<List<Feed>, List<Feed>>(mAppExecutors) {
-            override fun saveCallResult(items: List<Feed>) {
-                val listId = ArrayList<String>(items.size)
-                for (item in items) {
-                    listId.add(item.feedId)
-                }
+        return object : NetworkBoundResource<List<Feed>, List<Feed>>(mAppExecutors) {
+            override fun saveCallResult(item: List<Feed>) {
+                val listId = ArrayList<String>(item.size)
+                item.forEach { listId.add(it.feedId) }
                 val paging = Paging(Paging.GLOBAL_FEEDS_PAGING_ID,
                         listId, listId.isEmpty(),
                         if (listId.isEmpty()) null else listId[listId.size - 1])
                 mPetDb.runInTransaction {
-                    mPetDb.feedDao().insertFromFeedList(items)
-                    items.forEach {
+                    mPetDb.feedDao().insertFromFeedList(item)
+                    item.forEach {
                         mPetDb.userDao().insert(it.feedUser)
                         it.latestComment?.apply {
                             //the latestComment return from server does not have latestSubComment
@@ -288,11 +284,11 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, 
                 return mWebService.getGlobalFeeds(System.currentTimeMillis(), FEEDS_PER_PAGE)
             }
 
-            override fun shouldDeleteOldData(body: List<Feed>): Boolean {
+            override fun shouldDeleteOldData(body: List<Feed>?): Boolean {
                 return true
             }
 
-            override fun deleteDataFromDb(body: List<Feed>) {
+            override fun deleteDataFromDb(body: List<Feed>?) {
                 mPetDb.pagingDao().deleteFeedPaging(Paging.GLOBAL_FEEDS_PAGING_ID)
             }
         }.asLiveData()
@@ -323,7 +319,7 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, 
                     result.removeObserver(this)
                     mAppExecutors.diskIO().execute {
                         mPetDb.runInTransaction {
-                            if (feedApiResponse.isSucceed && feedApiResponse.body != null) {
+                            if (feedApiResponse.isSuccessful && feedApiResponse.body != null) {
                                 val feedResult = feedApiResponse.body.toEntity()
                                 feedResult.isLikeInProgress = false
                                 mPetDb.feedDao().update(feedResult)
@@ -347,7 +343,7 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, 
                     result.removeObserver(this)
                     mAppExecutors.diskIO().execute {
                         mPetDb.runInTransaction {
-                            if (feedApiResponse.isSucceed && feedApiResponse.body != null) {
+                            if (feedApiResponse.isSuccessful && feedApiResponse.body != null) {
                                 val feedResult = feedApiResponse.body.toEntity()
                                 feedResult.isLikeInProgress = false
                                 mPetDb.feedDao().update(feedResult)

@@ -36,7 +36,7 @@ class FetchNextPageSubComment(private val mParentCommentId: String, private val 
             override fun onChanged(listApiResponse: ApiResponse<List<Comment>>?) {
                 if (listApiResponse != null) {
                     result.removeObserver(this)
-                    if (listApiResponse.isSucceed) {
+                    if (listApiResponse.isSuccessful) {
                         if (listApiResponse.body != null && listApiResponse.body.isNotEmpty()) {
                             val ids = ArrayList(currentPaging.ids)
                             listApiResponse.body.forEach { ids.add(it.id) }

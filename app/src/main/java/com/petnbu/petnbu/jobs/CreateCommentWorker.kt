@@ -106,7 +106,7 @@ class CreateCommentWorker : Worker() {
             override fun onChanged(commentApiResponse: ApiResponse<Comment>?) {
                 apiResponse.removeObserver(this)
 
-                if (commentApiResponse != null && commentApiResponse.isSucceed && commentApiResponse.body != null) {
+                if (commentApiResponse != null && commentApiResponse.isSuccessful && commentApiResponse.body != null) {
                     Timber.d("create comment %s success", comment.id)
                     val newComment = commentApiResponse.body
 
@@ -145,7 +145,7 @@ class CreateCommentWorker : Worker() {
             override fun onChanged(commentApiResponse: ApiResponse<Comment>?) {
                 apiResponse.removeObserver(this)
 
-                if (commentApiResponse != null && commentApiResponse.isSucceed && commentApiResponse.body != null) {
+                if (commentApiResponse != null && commentApiResponse.isSuccessful && commentApiResponse.body != null) {
                     Timber.d("create comment %s success", comment.id)
                     val newComment = commentApiResponse.body
 
@@ -161,10 +161,12 @@ class CreateCommentWorker : Worker() {
                             newComment.localStatus = STATUS_DONE
                             mCommentDao.update(newComment.toEntity())
 
-                            val parentComment = mCommentDao.getCommentById(comment.parentCommentId)
-                            parentComment.latestCommentId = comment.id
-                            parentComment.commentCount = parentComment.commentCount + 1
-                            mCommentDao.update(parentComment)
+                            mCommentDao.getCommentById(comment.parentCommentId)?.apply {
+                                this.latestCommentId = comment.id
+                                this.commentCount = this.commentCount + 1
+                                mCommentDao.update(this)
+                            }
+
                         }
                     }
                 } else {

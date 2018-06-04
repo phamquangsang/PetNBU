@@ -32,7 +32,7 @@ abstract class CommentDao {
     }
 
     @Query("SELECT * FROM comments where id = :commentId")
-    abstract fun getCommentById(commentId: String): CommentEntity
+    abstract fun getCommentById(commentId: String): CommentEntity?
 
     @Query("SELECT comments.id, users.userId, users.avatar, users.name, comments.content, " +
             "comments.photo, comments.likeCount, comments.isLiked, comments.likeInProgress, comments.commentCount, comments.parentCommentId, " +

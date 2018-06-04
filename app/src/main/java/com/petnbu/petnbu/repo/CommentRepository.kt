@@ -25,7 +25,8 @@ import javax.inject.Singleton
 
 @Singleton
 class CommentRepository @Inject
-constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, private val mWebService: WebService, private val mToaster: Toaster) {
+constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors,
+            private val mWebService: WebService, private val mToaster: Toaster) {
 
     private val mRateLimiter = RateLimiter<String>(10, TimeUnit.MINUTES)
 
@@ -58,7 +59,7 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, 
 
             override fun shouldFetch(data: Feed?) = data == null
 
-            override fun deleteDataFromDb(body: Feed) = mPetDb.feedDao().deleteFeedById(feedId)
+            override fun deleteDataFromDb(body: Feed?) = mPetDb.feedDao().deleteFeedById(feedId)
 
             override fun loadFromDb(): LiveData<Feed> = mPetDb.feedDao().loadFeedById(feedId)
 
@@ -131,11 +132,11 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, 
                 return data == null || data.isEmpty() || mRateLimiter.shouldFetch(Paging.feedCommentsPagingId(feedId))
             }
 
-            override fun deleteDataFromDb(body: List<Comment>) {
+            override fun deleteDataFromDb(body: List<Comment>?) {
                 mPetDb.pagingDao().deleteFeedPaging(Paging.feedCommentsPagingId(feedId))
             }
 
-            override fun shouldDeleteOldData(body: List<Comment>): Boolean {
+            override fun shouldDeleteOldData(body: List<Comment>?): Boolean {
                 return false
             }
 
@@ -188,11 +189,11 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, 
                 return data == null || data.isEmpty() || mRateLimiter.shouldFetch(Paging.subCommentsPagingId(parentCommentId))
             }
 
-            override fun deleteDataFromDb(body: List<Comment>) {
+            override fun deleteDataFromDb(body: List<Comment>?) {
                 mPetDb.pagingDao().deleteFeedPaging(Paging.subCommentsPagingId(parentCommentId))
             }
 
-            override fun shouldDeleteOldData(body: List<Comment>): Boolean {
+            override fun shouldDeleteOldData(body: List<Comment>?): Boolean {
                 return false
             }
 
@@ -260,7 +261,7 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, 
     fun likeCommentHandler(userId: String, commentId: String) {
         mAppExecutors.diskIO().execute {
             val comment = mPetDb.commentDao().getCommentById(commentId)
-            if (comment.isLikeInProgress) {
+            if (comment == null || comment.isLikeInProgress) {
                 return@execute
             }
             comment.isLikeInProgress = true
@@ -283,7 +284,7 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, 
                     result.removeObserver(this)
                     mAppExecutors.diskIO().execute {
                         mPetDb.runInTransaction {
-                            if (feedApiResponse.isSucceed && feedApiResponse.body != null) {
+                            if (feedApiResponse.isSuccessful && feedApiResponse.body != null) {
                                 val commentResult = feedApiResponse.body.toEntity()
                                 commentResult.isLikeInProgress = false
                                 mPetDb.commentDao().update(commentResult)
@@ -307,7 +308,7 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, 
                     result.removeObserver(this)
                     mAppExecutors.diskIO().execute {
                         mPetDb.runInTransaction {
-                            if (feedApiResponse.isSucceed && feedApiResponse.body != null) {
+                            if (feedApiResponse.isSuccessful && feedApiResponse.body != null) {
                                 val feedResult = feedApiResponse.body.toEntity()
                                 feedResult.isLikeInProgress = false
                                 mPetDb.commentDao().update(feedResult)
@@ -327,7 +328,7 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, 
     fun likeSubCommentHandler(userId: String, subCommentId: String) {
         mAppExecutors.diskIO().execute {
             val subComment = mPetDb.commentDao().getCommentById(subCommentId)
-            if (subComment.isLikeInProgress) {
+            if (subComment == null || subComment.isLikeInProgress) {
                 return@execute
             }
             subComment.isLikeInProgress = true
@@ -350,7 +351,7 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, 
                     result.removeObserver(this)
                     mAppExecutors.diskIO().execute {
                         mPetDb.runInTransaction {
-                            if (feedApiResponse.isSucceed && feedApiResponse.body != null) {
+                            if (feedApiResponse.isSuccessful && feedApiResponse.body != null) {
                                 val commentResult = feedApiResponse.body.toEntity()
                                 commentResult.isLikeInProgress = false
                                 mPetDb.commentDao().update(commentResult)
@@ -374,7 +375,7 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, 
                     result.removeObserver(this)
                     mAppExecutors.diskIO().execute {
                         mPetDb.runInTransaction {
-                            if (feedApiResponse.isSucceed && feedApiResponse.body != null) {
+                            if (feedApiResponse.isSuccessful && feedApiResponse.body != null) {
                                 val feedResult = feedApiResponse.body.toEntity()
                                 feedResult.isLikeInProgress = false
                                 mPetDb.commentDao().update(feedResult)

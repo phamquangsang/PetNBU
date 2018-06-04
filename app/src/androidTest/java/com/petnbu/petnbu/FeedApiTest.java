@@ -59,13 +59,13 @@ public class FeedApiTest {
         
         webService.getAllUser().observeForever(listApiResponse -> {
             if(listApiResponse != null){
-                if(listApiResponse.isSucceed){
-                    List<UserEntity> users = listApiResponse.body;
+                if(listApiResponse.getIsSuccessful()){
+                    List<UserEntity> users = listApiResponse.getBody();
                     feedUsers = translateToFeedUsers(users);
                     webService.getGlobalFeeds(new Date().getTime(), 200).observeForever(listApiResponse1 -> {
                         if(listApiResponse1 != null){
-                            if(listApiResponse1.isSucceed && listApiResponse1.body != null){
-                                List<Feed> feeds = listApiResponse1.body;
+                            if(listApiResponse1.getIsSuccessful() && listApiResponse1.getBody() != null){
+                                List<Feed> feeds = listApiResponse1.getBody();
                                 WriteBatch batch = firestore.batch();
 
                                 for (Feed feed : feeds) {
@@ -174,7 +174,7 @@ public class FeedApiTest {
         LiveData<ApiResponse<List<Feed>>> result = webService.getGlobalFeeds(date.getTime(), 30);
         result.observeForever(listApiResponse -> {
             assert listApiResponse != null;
-            List<Feed> feedRespons = listApiResponse.body;
+            List<Feed> feedRespons = listApiResponse.getBody();
             Log.i(TAG, "onChanged: feedRespons == null ? " + (feedRespons == null));
             signal.countDown();
             if (feedRespons != null) {

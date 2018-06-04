@@ -3,6 +3,7 @@ package com.petnbu.petnbu.api;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.Transformations;
+import android.support.annotation.NonNull;
 
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
@@ -22,6 +23,8 @@ import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.Notification;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.UserEntity;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -138,8 +141,9 @@ public class FirebaseService implements WebService {
         return processUserLikeFeeds(result, SharedPrefUtil.getUserId());
     }
 
+    @NonNull
     @Override
-    public LiveData<ApiResponse<List<Feed>>> getGlobalFeeds(String afterFeedId, int limit) {
+    public LiveData<ApiResponse<List<Feed>>> getGlobalFeeds(@NotNull String afterFeedId, int limit) {
         MutableLiveData<ApiResponse<List<Feed>>> result = new MutableLiveData<>();
         DocumentReference feedDoc = mDb.collection(GLOBAL_FEEDS).document(afterFeedId);
         feedDoc.get().addOnSuccessListener(documentSnapshot -> {
@@ -793,8 +797,8 @@ public class FirebaseService implements WebService {
     private LiveData<ApiResponse<List<Feed>>> processUserLikeFeeds(LiveData<ApiResponse<List<Feed>>> feedsResponse, String userId) {
         return Transformations.switchMap(feedsResponse, input -> {
             MutableLiveData<ApiResponse<List<Feed>>> result = new MutableLiveData<>();
-            if (input.isSucceed) {
-                List<Feed> inputFeeds = input.body;
+            if (input.isSuccessful()) {
+                List<Feed> inputFeeds = input.getBody();
                 if (inputFeeds == null || inputFeeds.isEmpty()) {
                     result.setValue(input);
                     return result;
@@ -817,7 +821,7 @@ public class FirebaseService implements WebService {
                             result.postValue(new ApiResponse<>(inputFeeds, true, null));
                         })).addOnFailureListener(e -> result.setValue(new ApiResponse<>(inputFeeds, false, e.getMessage())));
             } else {
-                result.setValue(new ApiResponse<>(null, false, input.errorMessage));
+                result.setValue(new ApiResponse<>(null, false, input.getErrorMessage()));
             }
             return result;
         });
@@ -828,8 +832,8 @@ public class FirebaseService implements WebService {
                                                                         String userId) {
         return Transformations.switchMap(commentsResponse, input -> {
             MutableLiveData<ApiResponse<List<Comment>>> result = new MutableLiveData<>();
-            if (input.isSucceed) {
-                List<Comment> inputFeeds = input.body;
+            if (input.isSuccessful()) {
+                List<Comment> inputFeeds = input.getBody();
                 if (inputFeeds == null || inputFeeds.isEmpty()) {
                     result.setValue(input);
                     return result;
@@ -852,7 +856,7 @@ public class FirebaseService implements WebService {
                             result.postValue(new ApiResponse<>(inputFeeds, true, null));
                         })).addOnFailureListener(e -> result.setValue(new ApiResponse<>(inputFeeds, false, e.getMessage())));
             } else {
-                result.setValue(new ApiResponse<>(null, false, input.errorMessage));
+                result.setValue(new ApiResponse<>(null, false, input.getErrorMessage()));
             }
             return result;
         });
