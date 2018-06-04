@@ -34,7 +34,6 @@ import com.petnbu.petnbu.util.RateLimiter;
 import com.petnbu.petnbu.util.SnackbarUtils;
 import com.petnbu.petnbu.util.Utils;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -66,7 +65,7 @@ public class FeedsFragment extends Fragment {
         if (activity != null) {
             mUserId = SharedPrefUtil.getUserId();
             mFeedsViewModel = ViewModelProviders.of(getActivity()).get(FeedsViewModel.class);
-            mFeedsViewModel.getFeeds(Paging.GLOBAL_FEEDS_PAGING_ID, SharedPrefUtil.getUserId()).observe(this, feeds -> mAdapter.setFeeds(feeds));
+            mFeedsViewModel.getFeeds(Paging.GLOBAL_FEEDS_PAGING_ID, SharedPrefUtil.getUserId()).observe(this, feeds -> mAdapter.submitList(feeds));
             mFeedsViewModel.getShowLoadingEvent().observe(getActivity(), value -> mBinding.pullToRefresh.setRefreshing(value));
             mFeedsViewModel.getShowLoadingErrorEvent().observe(getActivity(), value -> SnackbarUtils.showSnackbar(mBinding.getRoot(), value));
             mFeedsViewModel.getLoadMoreState().observe(this, state -> {
@@ -87,8 +86,7 @@ public class FeedsFragment extends Fragment {
             mFeedsViewModel.getOpenCommentsEvent().observe(this, this::showCommentsByFeed);
         }
 
-        mAdapter = new FeedsRecyclerViewAdapter(getActivity(), new ArrayList<>(), new FeedsRecyclerViewAdapter.OnItemClickListener() {
-
+        mAdapter = new FeedsRecyclerViewAdapter(getActivity(), new FeedsRecyclerViewAdapter.OnItemClickListener() {
             @Override
             public void onPhotoClicked(Photo photo) {
 
