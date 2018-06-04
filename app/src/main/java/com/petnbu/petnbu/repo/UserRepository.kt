@@ -26,7 +26,7 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, 
 
             override fun createCall(): LiveData<ApiResponse<UserEntity>> = mWebService.getUser(id)
 
-            override fun deleteDataFromDb(body: UserEntity) {}
+            override fun deleteDataFromDb(body: UserEntity?) {}
         }.asLiveData()
     }
 }

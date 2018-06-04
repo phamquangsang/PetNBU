@@ -200,8 +200,8 @@ public class LoginJavaActivity extends AppCompatActivity implements View.OnClick
             @Override
             public void onChanged(@Nullable ApiResponse<UserEntity> userApiResponse) {
                 if(userApiResponse != null){
-                    if (userApiResponse.isSucceed && userApiResponse.body != null){
-                        UserEntity userEntity = userApiResponse.body;
+                    if (userApiResponse.isSuccessful() && userApiResponse.getBody() != null){
+                        UserEntity userEntity = userApiResponse.getBody();
                         //user existed -> go to Main screen
                         SharedPrefUtil.saveUserId(userEntity.getUserId());
                         mAppExecutors.diskIO().execute(() -> mUserDao.insert(userEntity));
@@ -220,11 +220,11 @@ public class LoginJavaActivity extends AppCompatActivity implements View.OnClick
         LiveData<ApiResponse<UserEntity>> apiResponse = mWebService.createUser(userEntity);
         apiResponse.observe(LoginJavaActivity.this, createUserApiResponse -> {
             if(createUserApiResponse != null){
-                if(createUserApiResponse.isSucceed && createUserApiResponse.body != null){
-                    SharedPrefUtil.saveUserId(createUserApiResponse.body.getUserId());
+                if(createUserApiResponse.isSuccessful() && createUserApiResponse.getBody() != null){
+                    SharedPrefUtil.saveUserId(createUserApiResponse.getBody().getUserId());
                     openMainActivity();
                 }else{
-                    Snackbar.make(mBinding.getRoot(), "Error: "+ createUserApiResponse.errorMessage, Snackbar.LENGTH_LONG).show();
+                    Snackbar.make(mBinding.getRoot(), "Error: "+ createUserApiResponse.getErrorMessage(), Snackbar.LENGTH_LONG).show();
                 }
             }
         });

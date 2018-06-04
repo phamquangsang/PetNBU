@@ -45,9 +45,9 @@ public class CommentApiTest {
             feedApiResponse.observeForever(new Observer<ApiResponse<Feed>>() {
                 @Override
                 public void onChanged(@Nullable ApiResponse<Feed> feedResponseApiResponse) {
-                    if(feedResponseApiResponse!= null && feedResponseApiResponse.isSucceed){
+                    if(feedResponseApiResponse!= null && feedResponseApiResponse.isSuccessful()){
                         feedApiResponse.removeObserver(this);
-                        Feed feed = feedResponseApiResponse.body;
+                        Feed feed = feedResponseApiResponse.getBody();
                         Comment comment = new Comment();
                         comment.setParentFeedId(feed.getFeedId());
                         comment.setContent("this is the test comment");
@@ -60,22 +60,22 @@ public class CommentApiTest {
                             @Override
                             public void onChanged(@Nullable ApiResponse<Comment> commentApiResponse) {
                                 if(commentApiResponse != null){
-                                    if(commentApiResponse.isSucceed){
+                                    if(commentApiResponse.isSuccessful()){
                                         createCommentResult.removeObserver(this);
-                                        Comment commentCreated = commentApiResponse.body;
+                                        Comment commentCreated = commentApiResponse.getBody();
                                         Timber.i("comment create succeed: %s", commentCreated);
                                         assertThat(commentCreated.getId().equals(comment.getId()), is(true));
                                         signalFeed.countDown();
                                     }else{
                                         createCommentResult.removeObserver(this);
-                                        Timber.e("create Comment Error: %s", commentApiResponse.errorMessage);
+                                        Timber.e("create Comment Error: %s", commentApiResponse.getErrorMessage());
                                         signalFeed.countDown();
                                     }
                                 }
                             }
                         });
                     }else if(feedResponseApiResponse != null){
-                        Timber.e("Error %s", feedResponseApiResponse.errorMessage);
+                        Timber.e("Error %s", feedResponseApiResponse.getErrorMessage());
                     }
                 }
             });
@@ -115,15 +115,15 @@ public class CommentApiTest {
                 @Override
                 public void onChanged(@Nullable ApiResponse<Comment> commentApiResponse) {
                     if(commentApiResponse != null){
-                        if(commentApiResponse.isSucceed){
+                        if(commentApiResponse.isSuccessful()){
                             createCommentResult.removeObserver(this);
-                            Comment commentCreated = commentApiResponse.body;
+                            Comment commentCreated = commentApiResponse.getBody();
                             Timber.i("comment create succeed: %s", commentCreated);
                             assertThat(commentCreated.getId().equals(comment.getId()), is(true));
                             signalFeed.countDown();
                         }else{
                             createCommentResult.removeObserver(this);
-                            Timber.e("create Comment Error: %s", commentApiResponse.errorMessage);
+                            Timber.e("create Comment Error: %s", commentApiResponse.getErrorMessage());
                             signalFeed.countDown();
                         }
                     }

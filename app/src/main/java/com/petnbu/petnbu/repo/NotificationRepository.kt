@@ -51,7 +51,7 @@ class NotificationRepository
                     data == null || data.isEmpty() || rateLimiter.shouldFetch(Paging.notificationsPagingId())
 
 
-            override fun deleteDataFromDb(body: List<Notification>) {
+            override fun deleteDataFromDb(body: List<Notification>?) {
                 petDb.pagingDao().deleteFeedPaging(Paging.notificationsPagingId())
             }
 

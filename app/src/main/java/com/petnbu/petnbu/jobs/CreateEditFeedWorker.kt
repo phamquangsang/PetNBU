@@ -117,7 +117,7 @@ class CreateEditFeedWorker : Worker() {
             override fun onChanged(feedApiResponse: ApiResponse<Feed>?) {
                 apiResponse.removeObserver(this)
 
-                if (feedApiResponse != null && feedApiResponse.isSucceed && feedApiResponse.body != null) {
+                if (feedApiResponse != null && feedApiResponse.isSuccessful && feedApiResponse.body != null) {
                     val newFeed = feedApiResponse.body
 
                     Timber.i("create feed succeed %s", newFeed.toString())
@@ -156,7 +156,7 @@ class CreateEditFeedWorker : Worker() {
 
         apiResponse.observeForever(object : Observer<ApiResponse<Feed>> {
             override fun onChanged(feedApiResponse: ApiResponse<Feed>?) {
-                if (feedApiResponse != null && feedApiResponse.isSucceed && feedApiResponse.body != null) {
+                if (feedApiResponse != null && feedApiResponse.isSuccessful && feedApiResponse.body != null) {
                     Timber.i("update feed succeed %s", feedApiResponse.body.toString())
                     val newFeed = feedApiResponse.body
                     newFeed.status = STATUS_DONE
