@@ -29,7 +29,21 @@ class NotificationsRecyclerViewAdapter(context: Context)
     : ListAdapter<NotificationUI, BaseBindingViewHolder<*, *>>(NotificationDiffCallback()) {
 
     private val glideRequests: GlideRequests = GlideApp.with(context)
-    private var addLoadMore: Boolean = false
+    var addLoadMore: Boolean = false
+        set(value) {
+            if (field != value) {
+                if (value) {
+                    field = value
+                    notifyItemInserted(loadingMoreItemPosition)
+                } else {
+                    notifyItemRemoved(loadingMoreItemPosition)
+                    field = value
+                }
+            }
+        }
+
+    private val dataItemCount: Int
+        get() = super.getItemCount()
 
     private val loadingMoreItemPosition: Int
         get() = if (addLoadMore) itemCount - 1 else RecyclerView.NO_POSITION
@@ -45,27 +59,12 @@ class NotificationsRecyclerViewAdapter(context: Context)
     }
 
     override fun onBindViewHolder(holder: BaseBindingViewHolder<*, *>, position: Int) {
-        val item: NotificationUI? = getItem(position)
-        item?.run {
-            (holder as? ViewHolder)?.bindData(this)
-        }
+        (holder as? ViewHolder)?.bindData(getItem(position))
     }
 
-    override fun getItemCount() = super.getItemCount() + if (addLoadMore) 1 else 0
+    override fun getItemCount() = dataItemCount + if (addLoadMore) 1 else 0
 
-    override fun getItemViewType(position: Int) = if (position < itemCount && itemCount > 0) VIEW_TYPE_NOTIFICATION else VIEW_TYPE_LOADING
-
-    fun setAddLoadMore(addLoadMore: Boolean) {
-        if (this.addLoadMore != addLoadMore) {
-            if (addLoadMore) {
-                this.addLoadMore = addLoadMore
-                notifyItemInserted(loadingMoreItemPosition)
-            } else {
-                notifyItemRemoved(loadingMoreItemPosition)
-                this.addLoadMore = addLoadMore
-            }
-        }
-    }
+    override fun getItemViewType(position: Int) = if (position < dataItemCount && dataItemCount > 0) VIEW_TYPE_NOTIFICATION else VIEW_TYPE_LOADING
 
     private inner class ViewHolder(itemView: View) : BaseBindingViewHolder<ViewNotificationBinding, NotificationUI>(itemView) {
 
