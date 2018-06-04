@@ -211,7 +211,7 @@ class CommentsRecyclerViewAdapter(context: Context,
             }
             if (comment.likeCount > 0) {
                 mBinding.tvLikesCount.visibility = View.VISIBLE
-                mBinding.tvLikesCount.text = String.format("%d %s", comment.likeCount, if (comment.likeCount > 1) "likes" else "like")
+                mBinding.tvLikesCount.text = "${comment.likeCount} ${if (comment.likeCount > 1) "likes" else "like"}"
             } else {
                 mBinding.tvLikesCount.visibility = View.GONE
             }

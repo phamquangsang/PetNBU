@@ -57,11 +57,10 @@ class FeedsRecyclerViewAdapter(context: Context,
     }
 
     override fun onBindViewHolder(holder: BaseBindingViewHolder<*, *>, position: Int, payloads: List<Any>) {
-        if (payloads.isNotEmpty()) {
+        if (payloads.isNotEmpty())
             (holder as? ViewHolder)?.bindData(getItem(position), payloads)
-        } else {
+        else
             super.onBindViewHolder(holder, position, payloads)
-        }
     }
 
     fun setMaxPhotoHeight(maxPhotoHeight: Int) {
@@ -181,21 +180,22 @@ class FeedsRecyclerViewAdapter(context: Context,
         }
 
         private fun displayPhotos() {
-            if (feed.photos != null && !feed.photos.isEmpty()) {
+            if (feed.photos != null && feed.photos.isNotEmpty()) {
                 constraintHeightForPhoto(feed.photos[0].width, feed.photos[0].height)
 
-                mBinding.rvPhotos.adapter = FeedPhotosAdapter(feed, glideRequests, { }, deviceWidth)
+                mBinding.rvPhotos.adapter = FeedPhotosAdapter(feed, glideRequests, object : FeedPhotosAdapter.OnItemClickListener {
 
-                var currentPos = 0
-                val value = lastSelectedPhotoPositions[feed.feedId]
-                if (value != null) {
-                    currentPos = value.toInt()
-                }
+                    override fun onPhotoClicked() {
+
+                    }
+                }, deviceWidth)
+
+                val currentPos = lastSelectedPhotoPositions[feed.feedId] ?: 0
                 mBinding.rvPhotos.scrollToPosition(currentPos)
 
                 if (feed.photos.size > 1) {
                     mBinding.tvPhotosCount.visibility = View.VISIBLE
-                    mBinding.tvPhotosCount.text = String.format(Locale.getDefault(), "%d/%d", currentPos + 1, feed.photos.size)
+                    mBinding.tvPhotosCount.text = "${currentPos + 1}/${feed.photos.size}"
                 } else {
                     mBinding.tvPhotosCount.visibility = View.GONE
                 }
@@ -207,7 +207,7 @@ class FeedsRecyclerViewAdapter(context: Context,
                         if (newState == AbsListView.OnScrollListener.SCROLL_STATE_IDLE) {
                             val linearLayoutManager = recyclerView!!.layoutManager as LinearLayoutManager
                             val position = linearLayoutManager.findFirstVisibleItemPosition()
-                            mBinding.tvPhotosCount.text = String.format(Locale.getDefault(), "%d/%d", position + 1, feed.photos.size)
+                            mBinding.tvPhotosCount.text = "${position + 1}/${feed.photos.size}"
                             lastSelectedPhotoPositions[feed.feedId] = position
                         }
                     }
@@ -262,7 +262,7 @@ class FeedsRecyclerViewAdapter(context: Context,
                 mBinding.imgLike.setImageResource(if (feed.isLiked) R.drawable.ic_favorite_red_24dp else R.drawable.ic_favorite_border_black_24dp)
             }
             if (feed.getLikeCount() > 0) {
-                mBinding.tvLikesCount.text = String.format("%d %s", feed.getLikeCount(), if (feed.getLikeCount() > 1) "likes" else "like")
+                mBinding.tvLikesCount.text = "${feed.getLikeCount()} ${if (feed.getLikeCount() > 1) "likes" else "like"}"
                 mBinding.tvLikesCount.visibility = View.VISIBLE
             } else {
                 mBinding.tvLikesCount.visibility = View.GONE
@@ -272,7 +272,7 @@ class FeedsRecyclerViewAdapter(context: Context,
         private fun displayCommentCount() {
             if (feed.getCommentCount() > 1) {
                 mBinding.tvViewComments.visibility = View.VISIBLE
-                mBinding.tvViewComments.text = String.format("View all %d comments", feed.getCommentCount())
+                mBinding.tvViewComments.text = "View all ${feed.getCommentCount()} comments"
             } else {
                 mBinding.tvViewComments.visibility = View.GONE
             }

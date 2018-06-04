@@ -47,9 +47,8 @@ class FeedsFragment : Fragment() {
             userId = SharedPrefUtil.getUserId()
             feedsViewModel = ViewModelProviders.of(this).get(FeedsViewModel::class.java)
             feedsAdapter = FeedsRecyclerViewAdapter(this, object : FeedsRecyclerViewAdapter.OnItemClickListener {
-                override fun onPhotoClicked(photo: Photo) {
 
-                }
+                override fun onPhotoClicked(photo: Photo) {}
 
                 override fun onLikeClicked(feedId: String) {
                     Timber.i("like clicked")
