@@ -55,7 +55,8 @@ public class FirebaseService implements WebService {
     }
 
     @Override
-    public LiveData<ApiResponse<Feed>> createFeed(Feed feed) {
+    @NonNull
+    public LiveData<ApiResponse<Feed>> createFeed(@NonNull Feed feed) {
         MutableLiveData<ApiResponse<Feed>> result = new MutableLiveData<>();
 
         WriteBatch batch = mDb.batch();
@@ -84,7 +85,8 @@ public class FirebaseService implements WebService {
     }
 
     @Override
-    public LiveData<ApiResponse<Feed>> updateFeed(Feed feed) {
+    @NonNull
+    public LiveData<ApiResponse<Feed>> updateFeed(@NonNull Feed feed) {
         MutableLiveData<ApiResponse<Feed>> result = new MutableLiveData<>();
         if (feed.getFeedUser() == null) {
             result.setValue(new ApiResponse<>(null, false,
@@ -119,6 +121,8 @@ public class FirebaseService implements WebService {
     }
 
 
+    @Override
+    @NonNull
     public LiveData<ApiResponse<List<Feed>>> getGlobalFeeds(long after, int limit) {
         MutableLiveData<ApiResponse<List<Feed>>> result = new MutableLiveData<>();
         Date dateAfter = new Date(after);
@@ -174,7 +178,8 @@ public class FirebaseService implements WebService {
 
 
     @Override
-    public LiveData<ApiResponse<List<Feed>>> getUserFeed(String userId, long after, int limit) {
+    @NonNull
+    public LiveData<ApiResponse<List<Feed>>> getUserFeed(@NonNull String userId, long after, int limit) {
         MutableLiveData<ApiResponse<List<Feed>>> result = new MutableLiveData<>();
         mDb.collection(USERS).document(userId).collection(FEEDS)
                 .orderBy("timeCreated", Query.Direction.DESCENDING)
@@ -194,7 +199,8 @@ public class FirebaseService implements WebService {
     }
 
     @Override
-    public LiveData<ApiResponse<List<Feed>>> getUserFeed(String userId, String afterFeedId, int limit) {
+    @NonNull
+    public LiveData<ApiResponse<List<Feed>>> getUserFeed(@NonNull String userId, @NonNull String afterFeedId, int limit) {
         MutableLiveData<ApiResponse<List<Feed>>> result = new MutableLiveData<>();
         mDb.collection(GLOBAL_FEEDS).document(afterFeedId).get()
                 .addOnSuccessListener(documentSnapshot -> mExecutors.networkIO().execute(() -> {
@@ -221,8 +227,9 @@ public class FirebaseService implements WebService {
         return processUserLikeFeeds(result, userId);
     }
 
+    @NonNull
     @Override
-    public LiveData<ApiResponse<Feed>> getFeed(String feedId) {
+    public LiveData<ApiResponse<Feed>> getFeed(@NonNull String feedId) {
         MutableLiveData<ApiResponse<Feed>> result = new MutableLiveData<>();
         mDb.collection(GLOBAL_FEEDS).document(feedId)
                 .get()
@@ -237,8 +244,9 @@ public class FirebaseService implements WebService {
         return result;
     }
 
+    @NonNull
     @Override
-    public LiveData<ApiResponse<Feed>> likeFeed(String userId, String feedId) {
+    public LiveData<ApiResponse<Feed>> likeFeed(@NonNull String userId, @NonNull String feedId) {
         MutableLiveData<ApiResponse<Feed>> result = new MutableLiveData<>();
         mDb.document("users/"+userId).get().addOnSuccessListener(fromUserSnap -> mDb.runTransaction(transaction -> {
             Timber.i("like feed transaction");
@@ -284,8 +292,9 @@ public class FirebaseService implements WebService {
         return result;
     }
 
+    @NonNull
     @Override
-    public LiveData<ApiResponse<Feed>> unLikeFeed(String userId, String feedId) {
+    public LiveData<ApiResponse<Feed>> unLikeFeed(@NonNull String userId, @NonNull String feedId) {
         MutableLiveData<ApiResponse<Feed>> result = new MutableLiveData<>();
         mDb.runTransaction(transaction -> {
             ApiResponse<Feed> transactionResult;
@@ -325,8 +334,9 @@ public class FirebaseService implements WebService {
         return result;
     }
 
+    @NonNull
     @Override
-    public LiveData<ApiResponse<Comment>> likeComment(String userId, String commentId) {
+    public LiveData<ApiResponse<Comment>> likeComment(@NonNull String userId, @NonNull String commentId) {
         MutableLiveData<ApiResponse<Comment>> result = new MutableLiveData<>();
         mDb.document("users/"+userId).get().addOnSuccessListener(userSnap -> mDb.runTransaction(transaction -> {
             Timber.i("like comment transaction");
@@ -380,8 +390,9 @@ public class FirebaseService implements WebService {
         return result;
     }
 
+    @NonNull
     @Override
-    public LiveData<ApiResponse<Comment>> unLikeComment(String userId, String commentId) {
+    public LiveData<ApiResponse<Comment>> unLikeComment(@NonNull String userId, @NonNull String commentId) {
         MutableLiveData<ApiResponse<Comment>> result = new MutableLiveData<>();
         mDb.runTransaction(transaction -> {
             Timber.i("like comment transaction");
@@ -405,8 +416,6 @@ public class FirebaseService implements WebService {
                 Timber.i("user did not like this comment yet");
                 newLikeCount++;
             }
-            Map<String, Object> timeStamp = new HashMap<>();
-            timeStamp.put("timeCreated", FieldValue.serverTimestamp());
             transaction.delete(likeByUsers);
 
             DocumentReference userLikePosts = mDb.collection("users").document(userId).collection("likeComments").document(commentId);
@@ -426,8 +435,9 @@ public class FirebaseService implements WebService {
         return result;
     }
 
+    @NonNull
     @Override
-    public LiveData<ApiResponse<Comment>> likeSubComment(String userId, String subCommentId) {
+    public LiveData<ApiResponse<Comment>> likeSubComment(@NonNull String userId, @NonNull String subCommentId) {
         MutableLiveData<ApiResponse<Comment>> result = new MutableLiveData<>();
         mDb.document("users/" + userId).get().addOnSuccessListener(userSnap -> mDb.runTransaction(transaction -> {
             DocumentReference subCommentRef = mDb.document(String.format("subComments/%s", subCommentId));
@@ -464,16 +474,17 @@ public class FirebaseService implements WebService {
             subComment.setLiked(true);
             subComment.setLikeCount(newLikeCount);
             return new ApiResponse<>(subComment, true, null);
-        }).addOnSuccessListener(result::setValue).addOnFailureListener(e->{
-            result.setValue(new ApiResponse<>(null, false, e.getMessage()));
-        })).addOnFailureListener(e->{
+        }).addOnSuccessListener(result::setValue)
+                .addOnFailureListener(e-> result.setValue(new ApiResponse<>(null, false, e.getMessage()))))
+                .addOnFailureListener(e->{
             result.setValue(new ApiResponse<>(null, false, e.getMessage()));
         });
         return result;
     }
 
+    @NonNull
     @Override
-    public LiveData<ApiResponse<Comment>> unLikeSubComment(String userId, String subCommentId) {
+    public LiveData<ApiResponse<Comment>> unLikeSubComment(@NonNull String userId, @NonNull String subCommentId) {
         MutableLiveData<ApiResponse<Comment>> result = new MutableLiveData<>();
         mDb.runTransaction(transaction -> {
             DocumentReference subCommentRef = mDb.document(String.format("subComments/%s", subCommentId));
@@ -489,8 +500,6 @@ public class FirebaseService implements WebService {
                 Timber.i("user did not like this comment yet");
                 newLikeCount++;
             }
-            Map<String, Object> timeStamp = new HashMap<>();
-            timeStamp.put("timeCreated", FieldValue.serverTimestamp());
             transaction.delete(likeByUsers);
             DocumentReference userLikePosts = mDb.collection("users").document(userId).collection("likeSubComments").document(subCommentId);
             transaction.delete(userLikePosts);
@@ -508,8 +517,9 @@ public class FirebaseService implements WebService {
         return result;
     }
 
+    @NonNull
     @Override
-    public LiveData<ApiResponse<UserEntity>> createUser(UserEntity userEntity) {
+    public LiveData<ApiResponse<UserEntity>> createUser(@NonNull UserEntity userEntity) {
         MutableLiveData<ApiResponse<UserEntity>> result = new MutableLiveData<>();
         DocumentReference userDoc = mDb.collection(USERS).document(userEntity.getUserId());
         userDoc.set(userEntity)
@@ -518,8 +528,9 @@ public class FirebaseService implements WebService {
         return result;
     }
 
+    @NonNull
     @Override
-    public LiveData<ApiResponse<UserEntity>> getUser(String userId) {
+    public LiveData<ApiResponse<UserEntity>> getUser(@NonNull String userId) {
 
         MutableLiveData<ApiResponse<UserEntity>> result = new MutableLiveData<>();
 
@@ -556,7 +567,7 @@ public class FirebaseService implements WebService {
     }
 
     @Override
-    public void updateUser(UserEntity userEntity, SuccessCallback<Void> callback) {
+    public void updateUser(@NonNull UserEntity userEntity, @NonNull SuccessCallback<Void> callback) {
         DocumentReference userDoc = mDb.collection(USERS).document();
         userEntity.setUserId(userDoc.getId());
         userDoc.set(userEntity, SetOptions.merge())
@@ -564,7 +575,8 @@ public class FirebaseService implements WebService {
                 .addOnFailureListener(callback::onFailed);
     }
 
-    public LiveData<ApiResponse<Comment>> createFeedComment(Comment comment, String feedId) {
+    @NonNull
+    public LiveData<ApiResponse<Comment>> createFeedComment(@NonNull Comment comment, @NonNull String feedId) {
         MutableLiveData<ApiResponse<Comment>> result = new MutableLiveData<>();
         final String oldId = comment.getId();
         mDb.runTransaction(transaction -> {
@@ -622,8 +634,9 @@ public class FirebaseService implements WebService {
         return result;
     }
 
+    @NonNull
     @Override
-    public LiveData<ApiResponse<Comment>> createReplyComment(Comment subComment, String parentCommentId) {
+    public LiveData<ApiResponse<Comment>> createReplyComment(@NonNull Comment subComment, @NonNull String parentCommentId) {
         MutableLiveData<ApiResponse<Comment>> result = new MutableLiveData<>();
         final String oldId = subComment.getId();
         mDb.runTransaction(transaction -> {
@@ -689,8 +702,9 @@ public class FirebaseService implements WebService {
         return result;
     }
 
+    @NonNull
     @Override
-    public LiveData<ApiResponse<List<Comment>>> getFeedComments(String feedId, long after, int limit) {
+    public LiveData<ApiResponse<List<Comment>>> getFeedComments(@NonNull String feedId, long after, int limit) {
         MutableLiveData<ApiResponse<List<Comment>>> result = new MutableLiveData<>();
         String feedCommentsPath = String.format("global_feeds/%s/comments", feedId);
         CollectionReference ref = mDb.collection(feedCommentsPath);
@@ -706,8 +720,9 @@ public class FirebaseService implements WebService {
         return processUserLikeComment(false, result, SharedPrefUtil.getUserId());
     }
 
+    @NonNull
     @Override
-    public LiveData<ApiResponse<List<Comment>>> getCommentsPaging(String feedId, String commentId, int limit) {
+    public LiveData<ApiResponse<List<Comment>>> getCommentsPaging(@NonNull String feedId, @NonNull String commentId, int limit) {
         MutableLiveData<ApiResponse<List<Comment>>> result = new MutableLiveData<>();
         mDb.document(String.format("global_feeds/%s/comments/%s", feedId, commentId))
                 .get().addOnSuccessListener(documentSnapshot -> mExecutors.networkIO().execute(() -> {
@@ -731,8 +746,9 @@ public class FirebaseService implements WebService {
         return processUserLikeComment(false, result, SharedPrefUtil.getUserId());
     }
 
+    @NonNull
     @Override
-    public LiveData<ApiResponse<List<Comment>>> getSubComments(String commentId, long after, int limit) {
+    public LiveData<ApiResponse<List<Comment>>> getSubComments(@NonNull String commentId, long after, int limit) {
         MutableLiveData<ApiResponse<List<Comment>>> result = new MutableLiveData<>();
         String subCommentsPath = String.format("comments/%s/subComments", commentId);
         CollectionReference ref = mDb.collection(subCommentsPath);
@@ -748,8 +764,9 @@ public class FirebaseService implements WebService {
         return processUserLikeComment(true, result, SharedPrefUtil.getUserId());
     }
 
+    @NonNull
     @Override
-    public LiveData<ApiResponse<List<Comment>>> getSubCommentsPaging(String commentId, String afterCommentId, int limit) {
+    public LiveData<ApiResponse<List<Comment>>> getSubCommentsPaging(@NonNull String commentId, @NonNull String afterCommentId, int limit) {
         MutableLiveData<ApiResponse<List<Comment>>> result = new MutableLiveData<>();
         mDb.document(String.format("comments/%s/subComments/%s", commentId, afterCommentId))
                 .get().addOnSuccessListener(documentSnapshot -> mExecutors.networkIO().execute(() -> {
@@ -862,7 +879,7 @@ public class FirebaseService implements WebService {
         });
     }
 
-    public void createNotificationInTransaction(Transaction tran, Notification notification) throws FirebaseFirestoreException {
+    private void createNotificationInTransaction(Transaction tran, Notification notification) {
         if(notification.getTargetUserId()
                 .equals(notification.getFromUser().getUserId())){
             Timber.e("target user and from user is the same");
@@ -898,7 +915,8 @@ public class FirebaseService implements WebService {
         tran.set(userNotiRef, notification);
     }
 
-    public LiveData<ApiResponse<List<Notification>>> getNotifications(String userId, long after, int limit){
+    @NonNull
+    public LiveData<ApiResponse<List<Notification>>> getNotifications(@NonNull String userId, long after, int limit){
         MutableLiveData<ApiResponse<List<Notification>>> result = new MutableLiveData<>();
         mDb.collection(String.format("users/%s/notifications", userId))
                 .orderBy("timeCreated", Query.Direction.DESCENDING)
