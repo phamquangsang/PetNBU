@@ -20,7 +20,6 @@ class FeedsViewModel : ViewModel() {
     val openCommentsEvent = SingleLiveEvent<String>()
 
     private val feedsLiveData: MutableLiveData<List<FeedUI>> = MutableLiveData()
-
     private val loadMoreHandler: LoadMoreHandler
 
     val loadMoreState: LiveData<LoadMoreState>
@@ -52,9 +51,17 @@ class FeedsViewModel : ViewModel() {
         }
     }
 
-    fun refresh(): LiveData<Resource<List<Feed>>> {
+    fun refresh() {
         loadMoreHandler.reset()
-        return feedRepository.refresh()
+        val refreshLiveData = feedRepository.refresh()
+        refreshLiveData.observeForever(object :Observer<Resource<List<Feed>>> {
+            override fun onChanged(resource: Resource<List<Feed>>?) {
+                if(resource != null && resource.status != Status.LOADING) {
+                    showLoadingEvent.value = false
+                    refreshLiveData.removeObserver(this)
+                }
+            }
+        })
     }
 
     fun openUserProfile(userId: String) {
@@ -70,7 +77,8 @@ class FeedsViewModel : ViewModel() {
     }
 
     private class LoadMoreHandler(private val feedRepo: FeedRepository,
-                                  val loadMoreState: MutableLiveData<LoadMoreState> = MutableLiveData()) : Observer<Resource<Boolean>> {
+                                  val loadMoreState: MutableLiveData<LoadMoreState> = MutableLiveData())
+        : Observer<Resource<Boolean>> {
 
         private lateinit var nextPageLiveData: LiveData<Resource<Boolean>>
 
@@ -90,7 +98,6 @@ class FeedsViewModel : ViewModel() {
             nextPageLiveData = feedRepo.fetchNextPage(pagingId)
             loadMoreState.value = LoadMoreState(true, null)
             nextPageLiveData.observeForever(this)
-
         }
 
         override fun onChanged(result: Resource<Boolean>?) {
