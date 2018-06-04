@@ -6,7 +6,6 @@ import android.arch.lifecycle.ViewModelProviders
 import android.content.Intent
 import android.databinding.DataBindingUtil
 import android.os.Bundle
-import android.support.design.widget.Snackbar
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.PopupMenu
@@ -84,7 +83,7 @@ class FeedsFragment : Fragment() {
                 mBinding.progressBar.visibility = if (isRunning) View.VISIBLE else View.GONE
 
                 errorMessageIfNotHandled?.run {
-                    Snackbar.make(mBinding.root, this, Snackbar.LENGTH_LONG).show()
+                    SnackbarUtils.showSnackbar(mBinding.root, this)
                 }
             }
         })
@@ -127,6 +126,8 @@ class FeedsFragment : Fragment() {
     }
 
     private fun showCommentsByFeed(feedId: String) {
-        startActivity(CommentsActivity.newIntent(activity, feedId))
+        activity?.run {
+            startActivity(CommentsActivity.newIntent(this, feedId))
+        }
     }
 }

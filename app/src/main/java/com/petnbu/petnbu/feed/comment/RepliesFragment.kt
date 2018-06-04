@@ -17,20 +17,20 @@ import android.view.View
 import android.view.ViewGroup
 import com.petnbu.petnbu.GlideApp
 import com.petnbu.petnbu.R
-import com.petnbu.petnbu.databinding.FragmentCommentsBinding
+import com.petnbu.petnbu.databinding.FragmentRepliesCommentsBinding
 import com.petnbu.petnbu.model.Photo
 import com.petnbu.petnbu.util.NavigationUtils
 import com.petnbu.petnbu.util.PermissionUtils
 import com.petnbu.petnbu.util.SnackbarUtils
 import com.petnbu.petnbu.util.Utils
 
-class CommentsFragment : Fragment() {
+class RepliesFragment : Fragment() {
 
-    private lateinit var mBinding: FragmentCommentsBinding
+    private lateinit var mBinding: FragmentRepliesCommentsBinding
     private lateinit var commentsViewModel: CommentsViewModel
 
-    private lateinit var commentsRecyclerViewAdapter: CommentsRecyclerViewAdapter
-    private var feedId: String = ""
+    private lateinit var repliesRecyclerViewAdapter: RepliesRecyclerViewAdapter
+    private var commentId: String = ""
     private var isCameraClicked = false
     private var selectedPhoto: Photo? = null
 
@@ -38,14 +38,13 @@ class CommentsFragment : Fragment() {
         super.onCreate(savedInstanceState)
 
         arguments?.run {
-            feedId = getString(EXTRA_FEED_ID) ?: ""
+            commentId = getString(EXTRA_COMMENT_ID) ?: ""
         }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_comments, container, false)
+        mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_replies_comments, container, false)
         initialize()
-        checkToRequestReadExternalPermission()
         return mBinding.root
     }
 
@@ -53,12 +52,20 @@ class CommentsFragment : Fragment() {
         activity?.run {
             commentsViewModel = ViewModelProviders.of(this).get(CommentsViewModel::class.java)
             mBinding.viewModel = commentsViewModel
-            commentsRecyclerViewAdapter = CommentsRecyclerViewAdapter(this, feedId, commentsViewModel)
+
+            repliesRecyclerViewAdapter = RepliesRecyclerViewAdapter(this, commentId, object : RepliesRecyclerViewAdapter.OnItemClickListener {
+
+                override fun onPhotoClicked(photo: Photo) {}
+
+                override fun onLikeClicked(commentId: String) {
+                    commentsViewModel.likeSubCommentClicked(commentId)
+                }
+            }, commentsViewModel)
         }
-        commentsViewModel.loadComments(feedId).observe(this, Observer { comments -> commentsRecyclerViewAdapter.submitList(comments) })
-        commentsViewModel.commentLoadMoreState.observe(this, Observer { loadMoreState ->
+        commentsViewModel.loadSubComments(commentId).observe(this, Observer { comments -> repliesRecyclerViewAdapter.submitList(comments) })
+        commentsViewModel.subCommentLoadMoreState.observe(this, Observer { loadMoreState ->
             loadMoreState?.run {
-                mBinding.rvComments.post { commentsRecyclerViewAdapter.addLoadMore = isRunning }
+                mBinding.rvComments.post { repliesRecyclerViewAdapter.addLoadMore = isRunning }
 
                 errorMessageIfNotHandled?.run {
                     SnackbarUtils.showSnackbar(mBinding.layoutRoot, this)
@@ -67,14 +74,14 @@ class CommentsFragment : Fragment() {
         })
 
         mBinding.rvComments.layoutManager = LinearLayoutManager(activity)
-        mBinding.rvComments.adapter = commentsRecyclerViewAdapter
+        mBinding.rvComments.adapter = repliesRecyclerViewAdapter
         mBinding.rvComments.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
 
                 (recyclerView.layoutManager as? LinearLayoutManager)?.run {
-                    if (findLastVisibleItemPosition() >= commentsRecyclerViewAdapter.itemCount - 2 && commentsRecyclerViewAdapter.itemCount > 0)
-                        commentsViewModel.loadNextPage(feedId)
+                    if (findLastVisibleItemPosition() >= repliesRecyclerViewAdapter.itemCount - 2 && repliesRecyclerViewAdapter.itemCount > 0)
+                        commentsViewModel.loadSubCommentsNextPage(commentId)
                 }
             }
         })
@@ -139,7 +146,7 @@ class CommentsFragment : Fragment() {
     }
 
     private fun checkToEnablePostMenu() {
-        mBinding.layoutInputComment.tvPost.isEnabled = !mBinding.layoutInputComment.edText.text.trim().isNullOrEmpty() || selectedPhoto != null
+        mBinding.layoutInputComment.tvPost.isEnabled = !mBinding.layoutInputComment.edText.text.toString().trim().isNullOrEmpty() || selectedPhoto != null
     }
 
     private fun showSelectedPhoto() {
@@ -150,6 +157,7 @@ class CommentsFragment : Fragment() {
             mBinding.layoutInputComment.imgSelectedPhoto.setImageDrawable(null)
             checkToEnablePostMenu()
         }
+
         activity?.run activity@ {
             selectedPhoto?.run {
                 GlideApp.with(this@activity)
@@ -162,7 +170,7 @@ class CommentsFragment : Fragment() {
 
     private fun doPost() {
         val content = mBinding.layoutInputComment.edText.text.toString().trim()
-        commentsViewModel.sendComment(feedId, content, selectedPhoto)
+        commentsViewModel.sendCommentByComment(commentId, content, selectedPhoto)
 
         mBinding.layoutInputComment.edText.text.clear()
         mBinding.layoutInputComment.layoutSelectedPhoto.visibility = View.GONE
@@ -173,14 +181,14 @@ class CommentsFragment : Fragment() {
     }
 
     companion object {
-        private const val EXTRA_FEED_ID = "extra_feed_id"
+        private const val EXTRA_COMMENT_ID = "extra_comment_id"
         private const val REQUEST_READ_EXTERNAL_PERMISSIONS = 1
         private const val OPEN_GALLERY_REQUEST_CODE = 1
 
-        fun newInstance(feedId: String): CommentsFragment {
-            return CommentsFragment().apply {
+        fun newInstance(commentId: String): RepliesFragment {
+            return RepliesFragment().apply {
                 arguments = Bundle().apply {
-                    putString(EXTRA_FEED_ID, feedId)
+                    putString(EXTRA_COMMENT_ID, commentId)
                 }
             }
         }
