@@ -44,26 +44,9 @@ class FeedsFragment : Fragment() {
     }
 
     private fun initialize() {
-        activity?.run {
+        activity?.run activity@ {
             userId = SharedPrefUtil.getUserId()
             feedsViewModel = ViewModelProviders.of(this).get(FeedsViewModel::class.java)
-            feedsViewModel.getFeeds(Paging.GLOBAL_FEEDS_PAGING_ID, SharedPrefUtil.getUserId()).observe(this, Observer { feeds -> feedsAdapter.submitList(feeds) })
-            feedsViewModel.showLoadingEvent.observe(this, Observer { value -> mBinding.pullToRefresh.isRefreshing = value ?: false })
-            feedsViewModel.showLoadingErrorEvent.observe(this, Observer { value -> SnackbarUtils.showSnackbar(mBinding.root, value) })
-            feedsViewModel.loadMoreState.observe(this, Observer { state ->
-                state?.run {
-                    Timber.i(toString())
-
-                    mBinding.progressBar.visibility = if (isRunning) View.VISIBLE else View.GONE
-
-                    errorMessageIfNotHandled?.run {
-                        Snackbar.make(mBinding.root, this, Snackbar.LENGTH_LONG).show()
-                    }
-                }
-            })
-            feedsViewModel.openUserProfileEvent.observe(this, Observer { it?.run { showUserProfile(this) } })
-            feedsViewModel.openCommentsEvent.observe(this, Observer { it?.run { showCommentsByFeed(this) } })
-
             feedsAdapter = FeedsRecyclerViewAdapter(this, object : FeedsRecyclerViewAdapter.OnItemClickListener {
                 override fun onPhotoClicked(photo: Photo) {
 
@@ -81,7 +64,7 @@ class FeedsFragment : Fragment() {
                         popupMenu.menu.add("Edit")
                         popupMenu.setOnMenuItemClickListener { item ->
                             if ("Edit" == item.title) {
-                                startActivity(CreateEditFeedActivity.newIntent(this@run, feed.feedId))
+                                startActivity(CreateEditFeedActivity.newIntent(this@activity, feed.feedId))
                             }
                             true
                         }
@@ -90,6 +73,23 @@ class FeedsFragment : Fragment() {
                 }
             }, feedsViewModel)
         }
+
+        feedsViewModel.getFeeds(Paging.GLOBAL_FEEDS_PAGING_ID, SharedPrefUtil.getUserId()).observe(this, Observer { feeds -> feedsAdapter.submitList(feeds) })
+        feedsViewModel.showLoadingEvent.observe(this, Observer { value -> mBinding.pullToRefresh.isRefreshing = value ?: false })
+        feedsViewModel.showLoadingErrorEvent.observe(this, Observer { value -> SnackbarUtils.showSnackbar(mBinding.root, value) })
+        feedsViewModel.loadMoreState.observe(this, Observer { state ->
+            state?.run {
+                Timber.i(toString())
+
+                mBinding.progressBar.visibility = if (isRunning) View.VISIBLE else View.GONE
+
+                errorMessageIfNotHandled?.run {
+                    Snackbar.make(mBinding.root, this, Snackbar.LENGTH_LONG).show()
+                }
+            }
+        })
+        feedsViewModel.openUserProfileEvent.observe(this, Observer { it?.run { showUserProfile(this) } })
+        feedsViewModel.openCommentsEvent.observe(this, Observer { it?.run { showCommentsByFeed(this) } })
 
         mBinding.rvFeeds.layoutManager = LinearLayoutManager(activity)
         mBinding.rvFeeds.post {

@@ -219,12 +219,11 @@ class FeedsRecyclerViewAdapter(context: Context,
             val layoutParams = mBinding.layoutMedia.layoutParams as ConstraintLayout.LayoutParams
             val height = (photoHeight / photoWidth.toFloat() * deviceWidth).toInt()
 
-            layoutParams.height = if (height > maxPhotoHeight)
-                maxPhotoHeight
-            else if (height < minPhotoHeight)
-                minPhotoHeight
-            else
-                height
+            layoutParams.height = when {
+                height > maxPhotoHeight -> maxPhotoHeight
+                height < minPhotoHeight -> minPhotoHeight
+                else -> height
+            }
             mBinding.layoutMedia.layoutParams = layoutParams
         }
 

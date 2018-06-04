@@ -11,7 +11,6 @@ import android.view.MenuItem;
 
 import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.databinding.ActivityCommentsBinding;
-import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.userprofile.UserProfileActivity;
 
 public class CommentsActivity extends AppCompatActivity {
@@ -52,7 +51,7 @@ public class CommentsActivity extends AppCompatActivity {
 
         mFeedId = getIntent() != null ? getIntent().getStringExtra(EXTRA_FEED_ID) : "";
         if (!TextUtils.isEmpty(mFeedId)) {
-            mCommentsFragment = CommentsFragment.newInstance(mFeedId);
+            mCommentsFragment = CommentsFragment.Companion.newInstance(mFeedId);
             getSupportFragmentManager()
                     .beginTransaction()
                     .add(R.id.fragmentContainer, mCommentsFragment, CommentsFragment.class.getSimpleName())
