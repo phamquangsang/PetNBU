@@ -1,10 +1,10 @@
-package com.petnbu.petnbu.feed
+package com.petnbu.petnbu.ui.feed
 
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.petnbu.petnbu.BaseBindingViewHolder
+import com.petnbu.petnbu.ui.BaseBindingViewHolder
 import com.petnbu.petnbu.GlideRequests
 import com.petnbu.petnbu.R
 import com.petnbu.petnbu.databinding.ViewFeedPhotosBinding

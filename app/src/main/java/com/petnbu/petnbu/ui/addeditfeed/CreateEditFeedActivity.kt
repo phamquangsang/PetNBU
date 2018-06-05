@@ -1,4 +1,4 @@
-package com.petnbu.petnbu.feed
+package com.petnbu.petnbu.ui.addeditfeed
 
 import android.Manifest
 import android.app.Activity

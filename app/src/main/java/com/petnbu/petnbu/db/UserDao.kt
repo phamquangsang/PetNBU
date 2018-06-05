@@ -26,5 +26,4 @@ abstract class UserDao {
             insert(UserEntity(this.userId, this.avatar, this.name, null, null, null))
         }
     }
-
 }

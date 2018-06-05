@@ -1,4 +1,4 @@
-package com.petnbu.petnbu.notification
+package com.petnbu.petnbu.ui.notification
 
 import android.content.Context
 import android.graphics.Color
@@ -14,7 +14,7 @@ import android.text.style.StyleSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.petnbu.petnbu.BaseBindingViewHolder
+import com.petnbu.petnbu.ui.BaseBindingViewHolder
 import com.petnbu.petnbu.GlideApp
 import com.petnbu.petnbu.GlideRequests
 import com.petnbu.petnbu.R

@@ -8,7 +8,7 @@
 
         <variable
             name="viewModel"
-            type="com.petnbu.petnbu.notification.NotificationViewModel" />
+            type="com.petnbu.petnbu.ui.notification.NotificationViewModel" />
     </data>
 
     <FrameLayout

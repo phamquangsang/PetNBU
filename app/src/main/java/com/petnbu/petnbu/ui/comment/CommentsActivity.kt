@@ -1,4 +1,4 @@
-package com.petnbu.petnbu.feed.comment
+package com.petnbu.petnbu.ui.comment
 
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
@@ -10,7 +10,7 @@ import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
 import com.petnbu.petnbu.R
 import com.petnbu.petnbu.databinding.ActivityCommentsBinding
-import com.petnbu.petnbu.userprofile.UserProfileActivity
+import com.petnbu.petnbu.ui.user.UserProfileActivity
 
 class CommentsActivity : AppCompatActivity() {
 

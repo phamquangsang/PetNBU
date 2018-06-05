@@ -1,4 +1,4 @@
-package com.petnbu.petnbu;
+package com.petnbu.petnbu.ui;
 
 import android.databinding.DataBindingUtil;
 import android.databinding.ViewDataBinding;

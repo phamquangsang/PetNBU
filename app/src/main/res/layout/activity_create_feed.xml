@@ -9,7 +9,7 @@
 
         <variable
             name="viewModel"
-            type="com.petnbu.petnbu.feed.CreateEditFeedViewModel" />
+            type="com.petnbu.petnbu.ui.addeditfeed.CreateEditFeedViewModel" />
     </data>
 
     <LinearLayout

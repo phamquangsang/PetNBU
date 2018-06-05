@@ -8,7 +8,7 @@
 
         <variable
             name="viewModel"
-            type="com.petnbu.petnbu.feed.comment.CommentsViewModel" />
+            type="com.petnbu.petnbu.ui.comment.CommentsViewModel" />
     </data>
 
     <android.support.constraint.ConstraintLayout

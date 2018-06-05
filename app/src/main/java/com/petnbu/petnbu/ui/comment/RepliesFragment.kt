@@ -1,4 +1,4 @@
-package com.petnbu.petnbu.feed.comment
+package com.petnbu.petnbu.ui.comment
 
 import android.Manifest
 import android.app.Activity

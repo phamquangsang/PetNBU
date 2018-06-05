@@ -1,4 +1,4 @@
-package com.petnbu.petnbu.feed
+package com.petnbu.petnbu.ui.feed
 
 import android.arch.lifecycle.*
 import com.petnbu.petnbu.PetApplication
@@ -114,8 +114,7 @@ class FeedsViewModel : ViewModel() {
                     Status.ERROR -> {
                         hasMore = true
                         unregister()
-                        loadMoreState.setValue(LoadMoreState(false,
-                                result.message ?:"Error Unknown"))
+                        loadMoreState.setValue(LoadMoreState(false, result.message ?: "Error Unknown"))
                     }
                 }
             }
