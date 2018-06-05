@@ -78,7 +78,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/imgProfile"
             tools:context=".userprofile.UserProfileFragment"
-            tools:listitem="@layout/fragment_feed_profile_item" />
+            tools:listitem="@layout/view_feed_profile_item" />
     </android.support.constraint.ConstraintLayout>
 </layout>
 

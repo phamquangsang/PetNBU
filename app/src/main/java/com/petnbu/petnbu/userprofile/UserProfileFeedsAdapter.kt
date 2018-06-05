@@ -5,17 +5,17 @@ import android.support.v7.util.DiffUtil
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import com.petnbu.petnbu.R
-import com.petnbu.petnbu.databinding.FragmentFeedProfileItemBinding
+import com.petnbu.petnbu.databinding.ViewFeedProfileItemBinding
 import com.petnbu.petnbu.model.FeedUI
 import com.petnbu.petnbu.ui.DataBoundListAdapter
 
-class ProfileFeedAdapter : DataBoundListAdapter<FeedUI, FragmentFeedProfileItemBinding>(FeedDiffCallback()) {
+class UserProfileFeedsAdapter : DataBoundListAdapter<FeedUI, ViewFeedProfileItemBinding>(FeedDiffCallback()) {
 
-    override fun createBinding(parent: ViewGroup): FragmentFeedProfileItemBinding {
-        return DataBindingUtil.inflate(LayoutInflater.from(parent.context), R.layout.fragment_feed_profile_item, parent, false)
+    override fun createBinding(parent: ViewGroup): ViewFeedProfileItemBinding {
+        return DataBindingUtil.inflate(LayoutInflater.from(parent.context), R.layout.view_feed_profile_item, parent, false)
     }
 
-    override fun bind(binding: FragmentFeedProfileItemBinding, item: FeedUI) {
+    override fun bind(binding: ViewFeedProfileItemBinding, item: FeedUI) {
         binding.feed = item
     }
 

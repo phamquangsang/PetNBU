@@ -25,7 +25,7 @@ class UserProfileFragment : Fragment() {
             getString(ARG_USER_ID)
         } ?: ""
     }
-    private lateinit var profileFeedAdapter: ProfileFeedAdapter
+    private lateinit var userProfileFeedsAdapter: UserProfileFeedsAdapter
     private var columnCount = 3
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -37,20 +37,20 @@ class UserProfileFragment : Fragment() {
     private fun initialize() {
         activity?.run {
             if (!userId.isEmpty()) {
-                profileFeedAdapter = ProfileFeedAdapter()
+                userProfileFeedsAdapter = UserProfileFeedsAdapter()
                 mBinding.list.layoutManager = if (columnCount <= 1)
                     LinearLayoutManager(context)
                 else
                     GridLayoutManager(context, columnCount)
-                mBinding.list.adapter = profileFeedAdapter
+                mBinding.list.adapter = userProfileFeedsAdapter
                 mBinding.list.addOnScrollListener(object : RecyclerView.OnScrollListener() {
                     override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                         (recyclerView.layoutManager as? LinearLayoutManager)?.run {
-                            if (findLastVisibleItemPosition() == profileFeedAdapter.itemCount - 1)
+                            if (findLastVisibleItemPosition() == userProfileFeedsAdapter.itemCount - 1)
                                 userProfileViewModel.loadNextPage(userId)
 
                         } ?: (recyclerView.layoutManager as? GridLayoutManager)?.run {
-                            if (findLastVisibleItemPosition() / 3 == profileFeedAdapter.itemCount / columnCount)
+                            if (findLastVisibleItemPosition() / 3 == userProfileFeedsAdapter.itemCount / columnCount)
                                 userProfileViewModel.loadNextPage(userId)
                         }
                     }
@@ -60,7 +60,7 @@ class UserProfileFragment : Fragment() {
                 userProfileViewModel.apply {
                     getFeeds(userId, Paging.userFeedsPagingId(userId)).observe(this@UserProfileFragment, Observer { feeds ->
                         feeds?.run {
-                            profileFeedAdapter.submitList(this)
+                            userProfileFeedsAdapter.submitList(this)
                         }
                     })
 
