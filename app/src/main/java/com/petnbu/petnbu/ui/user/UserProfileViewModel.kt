@@ -1,4 +1,4 @@
-package com.petnbu.petnbu.userprofile
+package com.petnbu.petnbu.ui.user
 
 import android.arch.lifecycle.*
 import com.petnbu.petnbu.PetApplication

@@ -6,7 +6,7 @@ import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.petnbu.petnbu.BaseBindingViewHolder
+import com.petnbu.petnbu.ui.BaseBindingViewHolder
 import com.petnbu.petnbu.GlideApp
 import com.petnbu.petnbu.R
 import com.petnbu.petnbu.databinding.ViewCreateFeedCameraBinding

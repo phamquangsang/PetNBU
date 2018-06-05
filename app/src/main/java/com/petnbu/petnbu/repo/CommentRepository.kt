@@ -5,7 +5,7 @@ import android.arch.lifecycle.Observer
 import android.net.Uri
 import androidx.work.*
 import com.petnbu.petnbu.AppExecutors
-import com.petnbu.petnbu.SharedPrefUtil
+import com.petnbu.petnbu.util.SharedPrefUtil
 import com.petnbu.petnbu.api.ApiResponse
 import com.petnbu.petnbu.api.WebService
 import com.petnbu.petnbu.db.PetDb

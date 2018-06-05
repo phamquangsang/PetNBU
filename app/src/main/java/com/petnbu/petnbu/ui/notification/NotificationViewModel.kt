@@ -7,7 +7,7 @@ import android.arch.lifecycle.ViewModel
 import android.databinding.ObservableBoolean
 
 import com.petnbu.petnbu.PetApplication
-import com.petnbu.petnbu.SharedPrefUtil
+import com.petnbu.petnbu.util.SharedPrefUtil
 import com.petnbu.petnbu.model.NotificationUI
 import com.petnbu.petnbu.model.Status
 import com.petnbu.petnbu.repo.NotificationRepository

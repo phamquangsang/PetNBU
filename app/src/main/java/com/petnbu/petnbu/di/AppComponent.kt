@@ -16,7 +16,7 @@ import com.petnbu.petnbu.ui.notification.NotificationViewModel
 import com.petnbu.petnbu.repo.FeedRepository
 import com.petnbu.petnbu.repo.NotificationRepository
 import com.petnbu.petnbu.repo.UserRepository
-import com.petnbu.petnbu.userprofile.UserProfileViewModel
+import com.petnbu.petnbu.ui.user.UserProfileViewModel
 
 import javax.inject.Singleton
 

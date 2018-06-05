@@ -5,7 +5,7 @@ import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.Transformations
 import com.google.firebase.firestore.*
 import com.petnbu.petnbu.AppExecutors
-import com.petnbu.petnbu.SharedPrefUtil
+import com.petnbu.petnbu.util.SharedPrefUtil
 import com.petnbu.petnbu.model.*
 import timber.log.Timber
 import java.util.*

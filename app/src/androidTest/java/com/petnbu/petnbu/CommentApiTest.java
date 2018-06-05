@@ -2,7 +2,6 @@ package com.petnbu.petnbu;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
-import android.content.SharedPreferences;
 import android.support.annotation.Nullable;
 import android.support.test.runner.AndroidJUnit4;
 
@@ -16,6 +15,7 @@ import com.petnbu.petnbu.model.Feed;
 import com.petnbu.petnbu.model.FeedUser;
 import com.petnbu.petnbu.model.UserEntity;
 import com.petnbu.petnbu.util.IdUtil;
+import com.petnbu.petnbu.util.SharedPrefUtil;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

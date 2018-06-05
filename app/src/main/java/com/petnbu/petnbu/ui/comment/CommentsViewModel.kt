@@ -4,7 +4,7 @@ import android.arch.lifecycle.*
 import android.arch.lifecycle.Observer
 import android.databinding.ObservableBoolean
 import com.petnbu.petnbu.PetApplication
-import com.petnbu.petnbu.SharedPrefUtil
+import com.petnbu.petnbu.util.SharedPrefUtil
 import com.petnbu.petnbu.SingleLiveEvent
 import com.petnbu.petnbu.api.WebService
 import com.petnbu.petnbu.model.*

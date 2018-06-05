@@ -1,4 +1,4 @@
-package com.petnbu.petnbu.userprofile
+package com.petnbu.petnbu.ui.user
 
 import android.databinding.DataBindingUtil
 import android.support.v7.util.DiffUtil

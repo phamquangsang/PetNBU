@@ -1,4 +1,4 @@
-package com.petnbu.petnbu;
+package com.petnbu.petnbu.ui;
 
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
@@ -11,6 +11,8 @@ import android.support.v4.util.ArrayMap;
 import android.support.v7.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.petnbu.petnbu.Fragment3;
+import com.petnbu.petnbu.R;
 import com.petnbu.petnbu.databinding.ActivityMainBinding;
 import com.petnbu.petnbu.ui.feed.FeedsFragment;
 import com.petnbu.petnbu.login.LoginJavaActivity;
