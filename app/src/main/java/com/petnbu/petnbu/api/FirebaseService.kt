@@ -47,7 +47,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
         feed.timeUpdated = null
         batch.set(doc, feed)
         val userFeed = mDb.collection(USERS)
-                .document(feed.feedUser!!.userId)
+                .document(feed.feedUser.userId)
                 .collection(FEEDS).document(feed.feedId)
         batch.set(userFeed, feed)
         batch.commit()
@@ -249,7 +249,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                         updateFeedTransaction(transaction, feed, updates)
 
                         val notification = Notification()
-                        notification.fromUser = fromUserSnap.toObject(FeedUser::class.java)
+
                         notification.type = Notification.TYPE_LIKE_FEED
                         notification.targetUserId = feed.feedUser.userId
                         notification.targetFeedId = feedId
@@ -337,7 +337,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                 transaction.set(feedContainerRef, feedContainer)
 
                 val notification = Notification()
-                notification.fromUser = userSnap.toObject(FeedUser::class.java)
+                notification.fromUser = userSnap.toObject(FeedUser::class.java)!!
                 notification.type = Notification.TYPE_LIKE_COMMENT
                 notification.targetUserId = comment.feedUser.userId
                 notification.targetCommentId = comment.id
@@ -425,7 +425,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                 val notification = Notification()
                 notification.targetReplyId = subCommentId
                 notification.targetUserId = subComment.feedUser.userId
-                notification.fromUser = userSnap.toObject(FeedUser::class.java)
+                notification.fromUser = userSnap.toObject(FeedUser::class.java)!!
                 notification.type = Notification.TYPE_LIKE_REPLY
                 notification.targetCommentId = subComment.parentCommentId
                 createNotificationInTransaction(transaction, notification)
