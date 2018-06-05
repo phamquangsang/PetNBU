@@ -40,8 +40,7 @@ public class FakeWebService implements WebService {
         List<Feed> feedRespons = new ArrayList<>();
 
         // 1
-        Feed feed = new Feed();
-        feed.setFeedId("1");
+        Feed feed = new Feed("1");
         feed.setContent("SOLID Single Responsibility, Open Close, Liskov, SOLID Single Responsibility, Open Close, Liskov, kkk");
 
         FeedUser feedUser = new FeedUser();
@@ -57,8 +56,7 @@ public class FakeWebService implements WebService {
         feedRespons.add(feed);
 
         // 2
-        feed = new Feed();
-        feed.setFeedId("2");
+        feed = new Feed("2");
         feed.setContent("Researcher");
 
         feedUser = new FeedUser();
@@ -79,7 +77,7 @@ public class FakeWebService implements WebService {
 
 
         // 3
-        feed = new Feed();
+        feed = new Feed("3");
         feed.setFeedId("3");
         feed.setContent("Mingle LTD");
 
@@ -96,7 +94,7 @@ public class FakeWebService implements WebService {
         feedRespons.add(feed);
 
         // 4
-        feed = new Feed();
+        feed = new Feed("4");
         feed.setFeedId("4");
         feed.setContent("JSH");
 
@@ -113,7 +111,7 @@ public class FakeWebService implements WebService {
         feedRespons.add(feed);
 
         // 5
-        feed = new Feed();
+        feed = new Feed("5");
         feed.setFeedId("5");
         feed.setContent("Mingle2");
 
@@ -134,7 +132,7 @@ public class FakeWebService implements WebService {
         feedRespons.add(feed);
 
         // 6
-        feed = new Feed();
+        feed = new Feed("6");
         feed.setFeedId("6");
         feed.setContent("Academy");
 
@@ -151,7 +149,7 @@ public class FakeWebService implements WebService {
         feedRespons.add(feed);
 
         // 7
-        feed = new Feed();
+        feed = new Feed("7");
         feed.setFeedId("7");
         feed.setContent("Mingle2");
 
@@ -168,7 +166,7 @@ public class FakeWebService implements WebService {
         feedRespons.add(feed);
 
         // 8
-        feed = new Feed();
+        feed = new Feed("8");
         feed.setFeedId("8");
         feed.setContent("Mingle2");
 
@@ -185,7 +183,7 @@ public class FakeWebService implements WebService {
         feedRespons.add(feed);
 
         // 9
-        feed = new Feed();
+        feed = new Feed("9");
         feed.setFeedId("9");
         feed.setContent("Manager");
 
@@ -202,7 +200,7 @@ public class FakeWebService implements WebService {
         feedRespons.add(feed);
 
         // 10
-        feed = new Feed();
+        feed = new Feed("10");
         feed.setFeedId("10");
         feed.setContent("Leader");
 

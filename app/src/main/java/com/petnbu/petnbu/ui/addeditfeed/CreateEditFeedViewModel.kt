@@ -68,13 +68,12 @@ class CreateEditFeedViewModel : ViewModel() {
 
     fun saveFeed(content: String, photos: ArrayList<Photo>) {
         if (isNewFeed && feedId.isEmpty()) {
-            feedRepository.createNewFeed(Feed().apply {
+            feedRepository.createNewFeed(Feed(this@CreateEditFeedViewModel.feedId).apply {
                 this.content = content
                 this.photos = photos
             })
         } else {
-            feedRepository.updateFeed(Feed().apply {
-                this.feedId = this@CreateEditFeedViewModel.feedId
+            feedRepository.updateFeed(Feed(this@CreateEditFeedViewModel.feedId).apply {
                 this.content = content
                 this.photos = photos
             })
