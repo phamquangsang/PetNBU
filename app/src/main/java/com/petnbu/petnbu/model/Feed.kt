@@ -36,6 +36,8 @@ data class Feed(var feedId: String) {
     @get:Exclude
     var likeInProgress: Boolean = false
 
+    constructor() : this("")
+
     constructor(feedId: String, feedUser: FeedUser, photos: MutableList<Photo>, commentCount: Int,
                 likeCount: Int, isLiked: Boolean, content: String, latestComment: Comment?,
                 timeCreated: Date?, timeUpdated: Date?, status: Int, likeInProgress: Boolean) : this(feedId) {
