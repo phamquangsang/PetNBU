@@ -1,17 +1,13 @@
 package com.petnbu.petnbu.api
 
 import android.arch.lifecycle.LiveData
-
-import com.petnbu.petnbu.model.Comment
-import com.petnbu.petnbu.model.Feed
-import com.petnbu.petnbu.model.Notification
-import com.petnbu.petnbu.model.UserEntity
+import com.petnbu.petnbu.model.*
 
 interface WebService {
 
     fun createFeed(feed: Feed): LiveData<ApiResponse<Feed>>
 
-    fun updateFeed(feed: Feed): LiveData<ApiResponse<Feed>>
+    fun updateFeed(feedId: String, content: String, photos: List<Photo>): LiveData<ApiResponse<Feed>>
 
     fun getGlobalFeeds(after: Long, limit: Int): LiveData<ApiResponse<List<Feed>>>
 

@@ -21,8 +21,10 @@ abstract class UserDao {
     @Query("SELECT * FROM users WHERE userId = :id")
     abstract fun findUserById(id: String?): UserEntity?
 
-    fun insert(feedUser: FeedUser) {
-        insert(UserEntity(feedUser.userId, feedUser.avatar, feedUser.name, null, null, null))
+    fun insert(feedUser: FeedUser?) {
+        feedUser?.run {
+            insert(UserEntity(this.userId, this.avatar, this.name, null, null, null))
+        }
     }
 
 }

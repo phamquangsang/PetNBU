@@ -2,6 +2,7 @@ package com.petnbu.petnbu.api
 
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
+import android.arch.lifecycle.Observer
 import android.arch.lifecycle.Transformations
 import com.google.firebase.firestore.*
 import com.petnbu.petnbu.AppExecutors
@@ -46,7 +47,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
         feed.timeUpdated = null
         batch.set(doc, feed)
         val userFeed = mDb.collection(USERS)
-                .document(feed.feedUser.userId)
+                .document(feed.feedUser!!.userId)
                 .collection(FEEDS).document(feed.feedId)
         batch.set(userFeed, feed)
         batch.commit()
@@ -62,35 +63,41 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
         return result
     }
 
-    override fun updateFeed(feed: Feed): LiveData<ApiResponse<Feed>> {
+    override fun updateFeed(feedId: String, content: String, photos: List<Photo>): LiveData<ApiResponse<Feed>> {
         val result = MutableLiveData<ApiResponse<Feed>>()
-        if (feed.feedUser == null) {
-            result.value = ApiResponse(null, false,
-                    "to update Feed. It is required feedId, feedUser, feedUserId must not null!")
-            return result
-        }
+        val feedResult = getFeed(feedId)
+        feedResult.observeForever(object : Observer<ApiResponse<Feed>> {
+            override fun onChanged(t: ApiResponse<Feed>?) {
+                if (t != null) {
+                    feedResult.removeObserver(this)
+                    t.body?.run {
+                        val photosMap = ArrayList<Map<String, Any>>()
+                        for (photo in photos) {
+                            photosMap.add(photo.toMap())
+                        }
 
-        val photosMap = ArrayList<Map<String, Any>>()
-        for (photo in feed.photos) {
-            photosMap.add(photo.toMap())
-        }
+                        val updates: Map<String, Any> = mapOf(
+                                "content" to content,
+                                "photos" to photosMap,
+                                "timeUpdated" to FieldValue.serverTimestamp())
 
-        val updates: Map<String, Any> = mapOf("content" to feed.content, "photos" to photosMap)
-
-        val batch = mDb.batch()
-        val doc = mDb.collection(GLOBAL_FEEDS).document(feed.feedId)
-        feed.timeUpdated = null
-        batch.update(doc, updates)
-        val userFeed = mDb.document(String.format("users/%s/feeds/%s", feed.feedUser.userId, feed.feedId))
-        batch.update(userFeed, updates)
-        batch.commit()
-                .addOnSuccessListener {
-                    mExecutors.networkIO().execute {
-                        feed.timeUpdated = Date()
-                        result.postValue(ApiResponse(feed, true, null))
+                        val batch = mDb.batch()
+                        val doc = mDb.collection(GLOBAL_FEEDS).document(feedId)
+                        batch.update(doc, updates)
+                        val userFeed = mDb.document(String.format("users/%s/feeds/%s", this.feedUser.userId, feedId))
+                        batch.update(userFeed, updates)
+                        batch.commit()
+                                .addOnSuccessListener {
+                                    mExecutors.networkIO().execute {
+                                        this.timeUpdated = Date()
+                                        result.postValue(ApiResponse(this, true, null))
+                                    }
+                                }
+                                .addOnFailureListener { e -> result.setValue(ApiResponse(e)) }
                     }
                 }
-                .addOnFailureListener { e -> result.setValue(ApiResponse(e)) }
+            }
+        })
         return result
     }
 
@@ -205,7 +212,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                     mExecutors.networkIO().execute {
                         val feed = queryDocumentSnapshots.toObject(Feed::class.java)
                         Timber.i("onSuccess: loaded %s feed(s)", feed)
-                        result.setValue(ApiResponse(feed, true, null))
+                        result.postValue(ApiResponse(feed, true, null))
                     }
                 }.addOnFailureListener { e ->
                     Timber.e("onFailure: %s", e.message)
@@ -342,11 +349,11 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                 transactionResult = ApiResponse(comment, true, null)
                 transactionResult
             }.addOnSuccessListener({ result.setValue(it) })
-                    .addOnFailureListener {
-                        e -> result.setValue(ApiResponse(e))
+                    .addOnFailureListener { e ->
+                        result.setValue(ApiResponse(e))
                     }
-                    .addOnFailureListener {
-                        e -> result.setValue(ApiResponse(e))
+                    .addOnFailureListener { e ->
+                        result.setValue(ApiResponse(e))
                     }
         }
         return result

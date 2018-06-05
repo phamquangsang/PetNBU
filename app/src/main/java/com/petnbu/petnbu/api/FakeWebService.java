@@ -10,6 +10,8 @@ import com.petnbu.petnbu.model.Notification;
 import com.petnbu.petnbu.model.Photo;
 import com.petnbu.petnbu.model.UserEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -21,8 +23,9 @@ public class FakeWebService implements WebService {
         return null;
     }
 
+    @NotNull
     @Override
-    public LiveData<ApiResponse<Feed>> updateFeed(Feed feed) {
+    public LiveData<ApiResponse<Feed>> updateFeed(@NotNull String feedId, @NotNull String content, @NotNull List<? extends Photo> photos) {
         return null;
     }
 

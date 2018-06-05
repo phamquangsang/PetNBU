@@ -10,7 +10,7 @@ import com.petnbu.petnbu.model.NotificationEntity
 import com.petnbu.petnbu.model.Paging
 import com.petnbu.petnbu.model.UserEntity
 
-@Database(entities = arrayOf((UserEntity::class), (FeedEntity::class), (Paging::class), (CommentEntity::class), (NotificationEntity::class)), version = 16)
+@Database(entities = arrayOf((UserEntity::class), (FeedEntity::class), (Paging::class), (CommentEntity::class), (NotificationEntity::class)), version = 17)
 @TypeConverters(value = arrayOf(PetTypeConverters::class))
 abstract class PetDb : RoomDatabase() {
 

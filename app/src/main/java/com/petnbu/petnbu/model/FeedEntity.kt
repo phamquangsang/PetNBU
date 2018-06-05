@@ -21,15 +21,15 @@ class FeedEntity {
     @PrimaryKey
     lateinit var feedId: String
     @ForeignKey(entity = UserEntity::class, parentColumns = ["userId"], childColumns = ["fromUserId"])
-    var fromUserId: String? = null
-    var photos: MutableList<Photo>? = null
+    lateinit var fromUserId: String
+    lateinit var photos: MutableList<Photo>
     var commentCount: Int = 0
     var latestCommentId: String? = null
     var likeCount: Int = 0
     @Exclude
     @get:Exclude
     var isLiked: Boolean = false
-    var content: String? = null
+    var content: String = ""
     var timeCreated: Date? = null
     var timeUpdated: Date? = null
 
@@ -46,7 +46,7 @@ class FeedEntity {
     @Ignore
     constructor(feedId: String, fromUserId: String, photos: MutableList<Photo>, commentCount: Int,
                 latestCommentId: String?, likeCount: Int, isLiked: Boolean, content: String,
-                timeCreated: Date, timeUpdated: Date, status: Int, likeInProgress: Boolean) {
+                timeCreated: Date?, timeUpdated: Date?, status: Int, likeInProgress: Boolean) {
         this.feedId = feedId
         this.fromUserId = fromUserId
         this.photos = photos
@@ -60,5 +60,6 @@ class FeedEntity {
         this.status = status
         this.likeInProgress = likeInProgress
     }
+
 
 }

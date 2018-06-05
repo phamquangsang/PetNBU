@@ -48,55 +48,55 @@ class CreateEditFeedWorker : Worker() {
 
         if (!feedId.isNullOrEmpty()) {
             val feedEntity = feedDao.findFeedEntityById(feedId)
-            if (feedEntity != null) {
-                val userEntity = userDao.findUserById(feedEntity.fromUserId)
-                userEntity?.run {
-                    val feedUser = FeedUser(userEntity.userId, userEntity.avatar, userEntity.name)
-                    val feed = Feed(feedEntity.feedId, feedUser, feedEntity.photos,
-                            feedEntity.commentCount, null, feedEntity.likeCount,
-                            feedEntity.isLiked, feedEntity.likeInProgress, feedEntity.content,
-                            feedEntity.timeCreated, feedEntity.timeUpdated, feedEntity.status)
+            val userEntity = userDao.findUserById(feedEntity?.fromUserId)
+            petDb.commentDao().getCommentById(feedEntity?.latestCommentId)
+            if (feedEntity != null && userEntity != null) {
+                val feedUser = FeedUser(userEntity.userId, userEntity.avatar, userEntity.name)
+                val feed = Feed(feedEntity.feedId, feedUser, feedEntity.photos,
+                        feedEntity.commentCount, feedEntity.likeCount,
+                        feedEntity.isLiked, feedEntity.content, null ,
+                        feedEntity.timeCreated, feedEntity.timeUpdated, feedEntity.status, feedEntity.likeInProgress)
 
-                    if (inputData.getBoolean("result", false) && feed.isUploading()) {
-                        feed.timeUpdated = Date()
+                if (inputData.getBoolean("result", false) && feed.isUploading()) {
+                    feed.timeUpdated = Date()
 
-                        val gson = Gson()
-                        var uploadedPhotosFailed = false
-                        for (photo in feed.photos) {
-                            val key = Uri.parse(photo.originUrl).lastPathSegment
-                            val jsonPhotoArray = inputData.getStringArray(key)
-                            var uploadedPhoto: Photo? = null
+                    val gson = Gson()
+                    var uploadedPhotosFailed = false
+                    for (photo in feed.photos) {
+                        val key = Uri.parse(photo.originUrl).lastPathSegment
+                        val jsonPhotoArray = inputData.getStringArray(key)
+                        var uploadedPhoto: Photo? = null
 
-                            if (jsonPhotoArray != null && jsonPhotoArray.isNotEmpty() && !jsonPhotoArray[0].isNullOrEmpty()) {
-                                uploadedPhoto = gson.fromJson(jsonPhotoArray[0], Photo::class.java)
-                            } else {
-                                val jsonPhoto = inputData.getString(key, "")
-                                if (!jsonPhoto.isNullOrEmpty()) {
-                                    uploadedPhoto = gson.fromJson(jsonPhoto, Photo::class.java)
-                                }
-                            }
-
-                            uploadedPhotosFailed = uploadedPhoto?.let {
-                                photo.originUrl = it.originUrl
-                                photo.largeUrl = it.largeUrl
-                                photo.mediumUrl = it.mediumUrl
-                                photo.smallUrl = it.smallUrl
-                                photo.thumbnailUrl = it.thumbnailUrl
-                                false
-                            } ?: true
-                        }
-                        if (!uploadedPhotosFailed) {
-                            try {
-                                feed.save(isUpdating)
-                                workerResult = WorkerResult.SUCCESS
-                            } catch (e: InterruptedException) {
-                                e.printStackTrace()
-                            }
+                        if (jsonPhotoArray != null && jsonPhotoArray.isNotEmpty() && !jsonPhotoArray[0].isNullOrEmpty()) {
+                            uploadedPhoto = gson.fromJson(jsonPhotoArray[0], Photo::class.java)
                         } else {
-                            updateLocalFeedError(feed)
+                            val jsonPhoto = inputData.getString(key, "")
+                            if (!jsonPhoto.isNullOrEmpty()) {
+                                uploadedPhoto = gson.fromJson(jsonPhoto, Photo::class.java)
+                            }
                         }
-                    } else updateLocalFeedError(feed)
-                }
+
+                        uploadedPhotosFailed = uploadedPhoto?.let {
+                            photo.originUrl = it.originUrl
+                            photo.largeUrl = it.largeUrl
+                            photo.mediumUrl = it.mediumUrl
+                            photo.smallUrl = it.smallUrl
+                            photo.thumbnailUrl = it.thumbnailUrl
+                            false
+                        } ?: true
+                    }
+                    if (!uploadedPhotosFailed) {
+                        try {
+                            feed.save(isUpdating)
+                            workerResult = WorkerResult.SUCCESS
+                        } catch (e: InterruptedException) {
+                            e.printStackTrace()
+                        }
+                    } else {
+                        updateLocalFeedError(feed)
+                    }
+                } else updateLocalFeedError(feed)
+
             }
         }
         return workerResult
@@ -154,7 +154,7 @@ class CreateEditFeedWorker : Worker() {
 
     private fun updateFeed(feed: Feed) {
         val countDownLatch = CountDownLatch(1)
-        val apiResponse = webService.updateFeed(feed)
+        val apiResponse = webService.updateFeed(feed.feedId, feed.content, feed.photos)
 
         apiResponse.observeForever(object : Observer<ApiResponse<Feed>> {
             override fun onChanged(feedApiResponse: ApiResponse<Feed>?) {
@@ -165,7 +165,7 @@ class CreateEditFeedWorker : Worker() {
 
                     appExecutors.diskIO().execute {
                         petDb.runInTransaction {
-                            feedDao.updateContentPhotosFeed(newFeed.photos, newFeed.content, newFeed.feedId, newFeed.timeUpdated)
+                            feedDao.updateContentPhotosFeed(newFeed.photos, newFeed.content, newFeed.feedId, newFeed.timeUpdated ?: Date())
                             feedDao.updateFeedLocalStatus(STATUS_DONE, newFeed.feedId)
                             countDownLatch.countDown()
                         }
@@ -194,8 +194,8 @@ class CreateEditFeedWorker : Worker() {
 
         @JvmStatic
         fun data(feed: Feed, isUpdating: Boolean): Data = Data.Builder()
-                    .putString(KEY_FEED_ID, feed.feedId)
-                    .putBoolean(KEY_FLAG_UPDATING, isUpdating)
-                    .build()
+                .putString(KEY_FEED_ID, feed.feedId)
+                .putBoolean(KEY_FLAG_UPDATING, isUpdating)
+                .build()
     }
 }
