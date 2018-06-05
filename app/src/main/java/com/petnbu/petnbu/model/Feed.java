@@ -9,7 +9,6 @@ import android.support.annotation.Nullable;
 import com.google.firebase.firestore.Exclude;
 import com.google.firebase.firestore.ServerTimestamp;
 import com.petnbu.petnbu.db.ListPhotoConverters;
-import com.petnbu.petnbu.db.PetTypeConverters;
 
 import java.util.Date;
 import java.util.List;

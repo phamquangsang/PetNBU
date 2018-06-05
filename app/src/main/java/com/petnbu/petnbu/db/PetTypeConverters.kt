@@ -24,13 +24,13 @@ object PetTypeConverters {
 
     @TypeConverter
     @JvmStatic
-    fun listStringToString(list: List<String>): String {
+    fun listStringToString(list: MutableList<String>): String {
         return TextUtils.join(",", list)
     }
 
     @TypeConverter
     @JvmStatic
-    fun stringBackToList(lists: String): List<String> {
+    fun stringBackToList(lists: String): MutableList<String> {
         return ArrayUtils.toArrayList(TextUtils.split(lists, ","))
     }
 }

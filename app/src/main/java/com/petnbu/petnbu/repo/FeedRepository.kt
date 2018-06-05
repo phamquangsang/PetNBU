@@ -186,14 +186,16 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, 
     fun createNewFeed(feed: Feed) {
         mAppExecutors.diskIO().execute {
             mPetDb.runInTransaction {
-                val userEntity = mPetDb.userDao().findUserById(SharedPrefUtil.userId)
-                val feedUser = FeedUser(userEntity.userId, userEntity.avatar, userEntity.name)
-                feed.status = STATUS_UPLOADING
-                feed.feedUser = feedUser
-                feed.timeCreated = Date()
-                feed.timeUpdated = Date()
-                feed.feedId = IdUtil.generateID("feed")
-                mPetDb.feedDao().insertFromFeed(feed)
+                mPetDb.userDao().findUserById(SharedPrefUtil.userId)?.run {
+                    val feedUser = FeedUser(this.userId, this.avatar, this.name)
+                    feed.status = STATUS_UPLOADING
+                    feed.feedUser = feedUser
+                    feed.timeCreated = Date()
+                    feed.timeUpdated = Date()
+                    feed.feedId = IdUtil.generateID("feed")
+                    mPetDb.feedDao().insertFromFeed(feed)
+                }
+
             }
             TraceUtils.begin("scheduleSaveFeedWorker") { scheduleSaveFeedWorker(feed, false) }
         }
@@ -297,8 +299,8 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, 
     fun likeFeedHandler(userId: String, feedId: String) {
         mAppExecutors.diskIO().execute {
             mPetDb.feedDao().findFeedEntityById(feedId)?.apply {
-                if (this.isLikeInProgress) return@execute
-                isLikeInProgress = true
+                if (this.likeInProgress) return@execute
+                likeInProgress = true
                 mPetDb.feedDao().update(this)
                 mAppExecutors.networkIO().execute {
                     if (this.isLiked) {
@@ -321,11 +323,11 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, 
                         mPetDb.runInTransaction {
                             if (feedApiResponse.isSuccessful && feedApiResponse.body != null) {
                                 val feedResult = feedApiResponse.body.toEntity()
-                                feedResult.isLikeInProgress = false
+                                feedResult.likeInProgress = false
                                 mPetDb.feedDao().update(feedResult)
                             } else {
                                 mAppExecutors.mainThread().execute { mToaster.makeText(feedApiResponse.errorMessage) }
-                                feed.isLikeInProgress = false
+                                feed.likeInProgress = false
                                 mPetDb.feedDao().update(feed)
                             }
                         }
@@ -345,11 +347,11 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, 
                         mPetDb.runInTransaction {
                             if (feedApiResponse.isSuccessful && feedApiResponse.body != null) {
                                 val feedResult = feedApiResponse.body.toEntity()
-                                feedResult.isLikeInProgress = false
+                                feedResult.likeInProgress = false
                                 mPetDb.feedDao().update(feedResult)
                             } else {
                                 mAppExecutors.mainThread().execute { mToaster.makeText(feedApiResponse.errorMessage) }
-                                feed.isLikeInProgress = false
+                                feed.likeInProgress = false
                                 mPetDb.feedDao().update(feed)
                             }
 

@@ -13,9 +13,9 @@ object ListPhotoConverters {
 
     @TypeConverter
     @JvmStatic
-    fun listPhotosToJson(photos: List<Photo>?): String = gson.toJson(photos)
+    fun listPhotosToJson(photos: MutableList<Photo>?): String = gson.toJson(photos)
 
     @TypeConverter
     @JvmStatic
-    fun jsonToListPhoto(photosJson: String?): List<Photo>? = gson.fromJson(photosJson, object : TypeToken<List<Photo>?>() {}.type)
+    fun jsonToListPhoto(photosJson: String?): MutableList<Photo>? = gson.fromJson(photosJson, object : TypeToken<MutableList<Photo>?>() {}.type)
 }

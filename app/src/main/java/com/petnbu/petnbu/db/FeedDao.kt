@@ -50,7 +50,7 @@ abstract class FeedDao {
 
     @Query("UPDATE feeds SET photos = (:photos), content = :content, timeUpdated = :timeUpdated " + "WHERE feedId = :feedId")
     @TypeConverters(ListPhotoConverters::class)
-    abstract fun updateContentPhotosFeed(photos: List<Photo>, content: String, feedId: String, timeUpdated: Date)
+    abstract fun updateContentPhotosFeed(photos: MutableList<Photo>, content: String, feedId: String, timeUpdated: Date)
 
     @Query("UPDATE feeds SET latestCommentId = :latestCommentId, commentCount = :commentCount " + "WHERE feedId = :feedId")
     @TypeConverters(ListPhotoConverters::class)

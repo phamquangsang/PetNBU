@@ -1,5 +1,6 @@
 package com.petnbu.petnbu.feed
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
@@ -179,39 +180,43 @@ class FeedsRecyclerViewAdapter(context: Context,
             }
         }
 
+        @SuppressLint("SetTextI18n")
         private fun displayPhotos() {
-            if (feed.photos != null && feed.photos.isNotEmpty()) {
-                constraintHeightForPhoto(feed.photos[0].width, feed.photos[0].height)
+            feed.photos?.run{
+                if (this.isNotEmpty()) {
+                    constraintHeightForPhoto(this[0].width, this[0].height)
 
-                mBinding.rvPhotos.adapter = FeedPhotosAdapter(feed, glideRequests, object : FeedPhotosAdapter.OnItemClickListener {
+                    mBinding.rvPhotos.adapter = FeedPhotosAdapter(feed, glideRequests, object : FeedPhotosAdapter.OnItemClickListener {
 
-                    override fun onPhotoClicked() {
+                        override fun onPhotoClicked() {
 
-                    }
-                }, deviceWidth)
-
-                val currentPos = lastSelectedPhotoPositions[feed.feedId] ?: 0
-                mBinding.rvPhotos.scrollToPosition(currentPos)
-
-                if (feed.photos.size > 1) {
-                    mBinding.tvPhotosCount.visibility = View.VISIBLE
-                    mBinding.tvPhotosCount.text = "${currentPos + 1}/${feed.photos.size}"
-                } else {
-                    mBinding.tvPhotosCount.visibility = View.GONE
-                }
-
-                mBinding.rvPhotos.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-                    override fun onScrollStateChanged(recyclerView: RecyclerView?, newState: Int) {
-                        super.onScrollStateChanged(recyclerView, newState)
-
-                        if (newState == AbsListView.OnScrollListener.SCROLL_STATE_IDLE) {
-                            val linearLayoutManager = recyclerView!!.layoutManager as LinearLayoutManager
-                            val position = linearLayoutManager.findFirstVisibleItemPosition()
-                            mBinding.tvPhotosCount.text = "${position + 1}/${feed.photos.size}"
-                            lastSelectedPhotoPositions[feed.feedId] = position
                         }
+                    }, deviceWidth)
+
+                    val currentPos = lastSelectedPhotoPositions[feed.feedId] ?: 0
+                    mBinding.rvPhotos.scrollToPosition(currentPos)
+
+                    if (this.size > 1) {
+                        mBinding.tvPhotosCount.visibility = View.VISIBLE
+                        mBinding.tvPhotosCount.text = "${currentPos + 1}/${this.size}"
+                    } else {
+                        mBinding.tvPhotosCount.visibility = View.GONE
                     }
-                })
+
+                    mBinding.rvPhotos.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                        @SuppressLint("SetTextI18n")
+                        override fun onScrollStateChanged(recyclerView: RecyclerView?, newState: Int) {
+                            super.onScrollStateChanged(recyclerView, newState)
+
+                            if (newState == AbsListView.OnScrollListener.SCROLL_STATE_IDLE) {
+                                val linearLayoutManager = recyclerView!!.layoutManager as LinearLayoutManager
+                                val position = linearLayoutManager.findFirstVisibleItemPosition()
+                                mBinding.tvPhotosCount.text = "${position + 1}/${this@run.size}"
+                                lastSelectedPhotoPositions[feed.feedId] = position
+                            }
+                        }
+                    })
+                }
             }
         }
 
@@ -241,14 +246,15 @@ class FeedsRecyclerViewAdapter(context: Context,
                     if (!isNullOrEmpty())
                         append("\n")
 
-                    val commentUserName = feed.commentOwnerName
-                    append(commentUserName)
-                    setSpan(StyleSpan(Typeface.BOLD), length - commentUserName.length, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    feed.commentOwnerName?.run{
+                        append(this)
+                        setSpan(StyleSpan(Typeface.BOLD), length - this.length, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    }
                     append("  ")
                     append(if (feed.commentContent.isNullOrEmpty()) "replied" else feed.commentContent)
                 }
             }
-            mBinding.tvContent.visibility = if (contentBuilder.isNullOrEmpty()) View.GONE else View.VISIBLE
+            mBinding.tvContent.visibility = if (contentBuilder.isEmpty()) View.GONE else View.VISIBLE
             mBinding.tvContent.text = contentBuilder
         }
 
@@ -261,8 +267,8 @@ class FeedsRecyclerViewAdapter(context: Context,
                 mBinding.imgLikeInProgress.visibility = View.GONE
                 mBinding.imgLike.setImageResource(if (feed.isLiked) R.drawable.ic_favorite_red_24dp else R.drawable.ic_favorite_border_black_24dp)
             }
-            if (feed.getLikeCount() > 0) {
-                mBinding.tvLikesCount.text = "${feed.getLikeCount()} ${if (feed.getLikeCount() > 1) "likes" else "like"}"
+            if (feed.likeCount > 0) {
+                mBinding.tvLikesCount.text = "${feed.likeCount} ${if (feed.likeCount > 1) "likes" else "like"}"
                 mBinding.tvLikesCount.visibility = View.VISIBLE
             } else {
                 mBinding.tvLikesCount.visibility = View.GONE
@@ -270,9 +276,9 @@ class FeedsRecyclerViewAdapter(context: Context,
         }
 
         private fun displayCommentCount() {
-            if (feed.getCommentCount() > 1) {
+            if (feed.commentCount > 1) {
                 mBinding.tvViewComments.visibility = View.VISIBLE
-                mBinding.tvViewComments.text = "View all ${feed.getCommentCount()} comments"
+                mBinding.tvViewComments.text = "View all ${feed.commentCount} comments"
             } else {
                 mBinding.tvViewComments.visibility = View.GONE
             }

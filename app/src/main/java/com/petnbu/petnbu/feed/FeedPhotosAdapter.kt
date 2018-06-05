@@ -24,10 +24,12 @@ class FeedPhotosAdapter(private var feed: FeedUI,
     }
 
     override fun onBindViewHolder(holder: PhotoHolder, position: Int) {
-        holder.bindData(feed.getPhotos()[position])
+        feed.photos?.get(position)?.run{
+            holder.bindData(this)
+        }
     }
 
-    override fun getItemCount() = feed.getPhotos()?.size ?: 0
+    override fun getItemCount() = feed.photos?.size ?: 0
 
     inner class PhotoHolder constructor(itemView: View) : BaseBindingViewHolder<ViewFeedPhotosBinding, Photo>(itemView) {
 

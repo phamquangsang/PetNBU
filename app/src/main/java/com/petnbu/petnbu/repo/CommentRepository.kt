@@ -33,14 +33,15 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors,
     fun createComment(comment: Comment) {
         mAppExecutors.diskIO().execute {
             mPetDb.runInTransaction {
-                val userEntity = mPetDb.userDao().findUserById(SharedPrefUtil.userId)
-                val feedUser = FeedUser(userEntity.userId, userEntity.avatar, userEntity.name)
-                comment.feedUser = feedUser
-                comment.localStatus = LocalStatus.STATUS_UPLOADING
-                comment.timeCreated = Date()
-                comment.timeUpdated = Date()
-                comment.id = IdUtil.generateID("comment")
-                mPetDb.commentDao().insertFromComment(comment)
+                mPetDb.userDao().findUserById(SharedPrefUtil.userId)?.run {
+                    val feedUser = FeedUser(this.userId, this.avatar, this.name)
+                    comment.feedUser = feedUser
+                    comment.localStatus = LocalStatus.STATUS_UPLOADING
+                    comment.timeCreated = Date()
+                    comment.timeUpdated = Date()
+                    comment.id = IdUtil.generateID("comment")
+                    mPetDb.commentDao().insertFromComment(comment)
+                }
             }
             TraceUtils.begin("scheduleSaveComment") { scheduleSaveCommentWorker(comment) }
         }
@@ -109,8 +110,8 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors,
 
                 val listId = ArrayList<String>(item.size)
                 val pagingId = Paging.feedCommentsPagingId(feedId)
-                for (item in item) {
-                    listId.add(item.id)
+                for (comment in item) {
+                    listId.add(comment.id)
                 }
                 val paging = Paging(pagingId,
                         listId, false,
@@ -173,11 +174,11 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors,
                         if (listId.isEmpty()) null else listId[listId.size - 1])
                 mPetDb.runInTransaction {
                     mPetDb.commentDao().insertListComment(item)
-                    for (item in item) {
-                        mPetDb.userDao().insert(item.feedUser)
-                        if (item.latestComment != null) {
-                            mPetDb.commentDao().insertFromComment(item.latestComment)
-                            mPetDb.userDao().insert(item.latestComment.feedUser)
+                    for (comment in item) {
+                        mPetDb.userDao().insert(comment.feedUser)
+                        if (comment.latestComment != null) {
+                            mPetDb.commentDao().insertFromComment(comment.latestComment)
+                            mPetDb.userDao().insert(comment.latestComment.feedUser)
                         }
 
                     }

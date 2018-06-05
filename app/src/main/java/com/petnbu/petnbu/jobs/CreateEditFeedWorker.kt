@@ -50,51 +50,53 @@ class CreateEditFeedWorker : Worker() {
             val feedEntity = feedDao.findFeedEntityById(feedId)
             if (feedEntity != null) {
                 val userEntity = userDao.findUserById(feedEntity.fromUserId)
-                val feedUser = FeedUser(userEntity.userId, userEntity.avatar, userEntity.name)
-                val feed = Feed(feedEntity.feedId, feedUser, feedEntity.photos,
-                        feedEntity.commentCount, null, feedEntity.likeCount,
-                        feedEntity.isLiked, feedEntity.isLikeInProgress, feedEntity.content,
-                        feedEntity.timeCreated, feedEntity.timeUpdated, feedEntity.status)
+                userEntity?.run {
+                    val feedUser = FeedUser(userEntity.userId, userEntity.avatar, userEntity.name)
+                    val feed = Feed(feedEntity.feedId, feedUser, feedEntity.photos,
+                            feedEntity.commentCount, null, feedEntity.likeCount,
+                            feedEntity.isLiked, feedEntity.likeInProgress, feedEntity.content,
+                            feedEntity.timeCreated, feedEntity.timeUpdated, feedEntity.status)
 
-                if (inputData.getBoolean("result", false) && feed.isUploading()) {
-                    feed.timeUpdated = Date()
+                    if (inputData.getBoolean("result", false) && feed.isUploading()) {
+                        feed.timeUpdated = Date()
 
-                    val gson = Gson()
-                    var uploadedPhotosFailed = false
-                    for (photo in feed.photos) {
-                        val key = Uri.parse(photo.originUrl).lastPathSegment
-                        val jsonPhotoArray = inputData.getStringArray(key)
-                        var uploadedPhoto: Photo? = null
+                        val gson = Gson()
+                        var uploadedPhotosFailed = false
+                        for (photo in feed.photos) {
+                            val key = Uri.parse(photo.originUrl).lastPathSegment
+                            val jsonPhotoArray = inputData.getStringArray(key)
+                            var uploadedPhoto: Photo? = null
 
-                        if (jsonPhotoArray != null && jsonPhotoArray.isNotEmpty() && !jsonPhotoArray[0].isNullOrEmpty()) {
-                            uploadedPhoto = gson.fromJson(jsonPhotoArray[0], Photo::class.java)
-                        } else {
-                            val jsonPhoto = inputData.getString(key, "")
-                            if (!jsonPhoto.isNullOrEmpty()) {
-                                uploadedPhoto = gson.fromJson(jsonPhoto, Photo::class.java)
+                            if (jsonPhotoArray != null && jsonPhotoArray.isNotEmpty() && !jsonPhotoArray[0].isNullOrEmpty()) {
+                                uploadedPhoto = gson.fromJson(jsonPhotoArray[0], Photo::class.java)
+                            } else {
+                                val jsonPhoto = inputData.getString(key, "")
+                                if (!jsonPhoto.isNullOrEmpty()) {
+                                    uploadedPhoto = gson.fromJson(jsonPhoto, Photo::class.java)
+                                }
                             }
-                        }
 
-                        uploadedPhotosFailed = uploadedPhoto?.let {
-                            photo.originUrl = it.originUrl
-                            photo.largeUrl = it.largeUrl
-                            photo.mediumUrl = it.mediumUrl
-                            photo.smallUrl = it.smallUrl
-                            photo.thumbnailUrl = it.thumbnailUrl
-                            false
-                        } ?: true
-                    }
-                    if (!uploadedPhotosFailed) {
-                        try {
-                            feed.save(isUpdating)
-                            workerResult = WorkerResult.SUCCESS
-                        } catch (e: InterruptedException) {
-                            e.printStackTrace()
+                            uploadedPhotosFailed = uploadedPhoto?.let {
+                                photo.originUrl = it.originUrl
+                                photo.largeUrl = it.largeUrl
+                                photo.mediumUrl = it.mediumUrl
+                                photo.smallUrl = it.smallUrl
+                                photo.thumbnailUrl = it.thumbnailUrl
+                                false
+                            } ?: true
                         }
-                    } else {
-                        updateLocalFeedError(feed)
-                    }
-                } else updateLocalFeedError(feed)
+                        if (!uploadedPhotosFailed) {
+                            try {
+                                feed.save(isUpdating)
+                                workerResult = WorkerResult.SUCCESS
+                            } catch (e: InterruptedException) {
+                                e.printStackTrace()
+                            }
+                        } else {
+                            updateLocalFeedError(feed)
+                        }
+                    } else updateLocalFeedError(feed)
+                }
             }
         }
         return workerResult

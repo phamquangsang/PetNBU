@@ -48,37 +48,38 @@ class CreateCommentWorker : Worker() {
         if (!commentId.isNullOrEmpty()) {
             val commentEntity = mCommentDao.getCommentById(commentId)
             if (commentEntity != null) {
-                val userEntity = mUserDao.findUserById(commentEntity.ownerId)
-                val feedUser = FeedUser(userEntity.userId, userEntity.avatar, userEntity.name)
-                val comment = Comment(commentEntity.id, feedUser, commentEntity.content, commentEntity.photo,
-                        commentEntity.likeCount, commentEntity.commentCount, null, commentEntity.parentCommentId,
-                        commentEntity.parentFeedId, commentEntity.localStatus, commentEntity.timeCreated,
-                        commentEntity.timeUpdated)
+                mUserDao.findUserById(commentEntity.ownerId)?.run {
+                    val feedUser = FeedUser(this.userId, this.avatar, this.name)
+                    val comment = Comment(commentEntity.id, feedUser, commentEntity.content, commentEntity.photo,
+                            commentEntity.likeCount, commentEntity.commentCount, null, commentEntity.parentCommentId,
+                            commentEntity.parentFeedId, commentEntity.localStatus, commentEntity.timeCreated,
+                            commentEntity.timeUpdated)
 
-                if (comment.isUploading()) {
-                    try {
-                        if (comment.photo != null) {
-                            val key = Uri.parse(comment.photo.originUrl).lastPathSegment
-                            val jsonPhoto = data.getString(key, "")
-                            if (!jsonPhoto.isNullOrEmpty()) {
-                                val uploadedPhoto = Gson().fromJson(jsonPhoto, Photo::class.java)
-                                uploadedPhoto?.apply {
-                                    comment.photo.originUrl = originUrl
-                                    comment.photo.largeUrl = largeUrl
-                                    comment.photo.mediumUrl = mediumUrl
-                                    comment.photo.smallUrl = smallUrl
-                                    comment.photo.thumbnailUrl = thumbnailUrl
+                    if (comment.isUploading()) {
+                        try {
+                            if (comment.photo != null) {
+                                val key = Uri.parse(comment.photo.originUrl).lastPathSegment
+                                val jsonPhoto = data.getString(key, "")
+                                if (!jsonPhoto.isNullOrEmpty()) {
+                                    val uploadedPhoto = Gson().fromJson(jsonPhoto, Photo::class.java)
+                                    uploadedPhoto?.apply {
+                                        comment.photo.originUrl = originUrl
+                                        comment.photo.largeUrl = largeUrl
+                                        comment.photo.mediumUrl = mediumUrl
+                                        comment.photo.smallUrl = smallUrl
+                                        comment.photo.thumbnailUrl = thumbnailUrl
 
-                                    comment.save()
-                                    workerResult = WorkerResult.SUCCESS
+                                        comment.save()
+                                        workerResult = WorkerResult.SUCCESS
+                                    }
                                 }
+                            } else {
+                                comment.save()
+                                workerResult = WorkerResult.SUCCESS
                             }
-                        } else {
-                            comment.save()
-                            workerResult = WorkerResult.SUCCESS
+                        } catch (e: InterruptedException) {
+                            e.printStackTrace()
                         }
-                    } catch (e: InterruptedException) {
-                        e.printStackTrace()
                     }
                 }
             }

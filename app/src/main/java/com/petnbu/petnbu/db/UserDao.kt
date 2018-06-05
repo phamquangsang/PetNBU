@@ -19,7 +19,7 @@ abstract class UserDao {
     abstract fun findLiveUserById(id: String): LiveData<UserEntity>
 
     @Query("SELECT * FROM users WHERE userId = :id")
-    abstract fun findUserById(id: String): UserEntity
+    abstract fun findUserById(id: String?): UserEntity?
 
     fun insert(feedUser: FeedUser) {
         insert(UserEntity(feedUser.userId, feedUser.avatar, feedUser.name, null, null, null))
