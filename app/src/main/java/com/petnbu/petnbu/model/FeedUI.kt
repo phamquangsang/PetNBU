@@ -5,7 +5,7 @@ import com.petnbu.petnbu.db.ListPhotoConverters
 import com.petnbu.petnbu.db.PhotoConverters
 import java.util.*
 
-@TypeConverters(value = arrayOf(ListPhotoConverters::class, PhotoConverters::class))
+@TypeConverters(value = [(ListPhotoConverters::class), (PhotoConverters::class)])
 data class FeedUI (val feedId: String,
                    val ownerId: String,
     val name: String? = null,

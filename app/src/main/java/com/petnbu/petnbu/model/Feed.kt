@@ -10,9 +10,7 @@ import com.petnbu.petnbu.db.ListPhotoConverters
 
 import java.util.Date
 
-class Feed {
-
-    lateinit var feedId: String
+data class Feed(var feedId: String) {
     @Embedded
     lateinit var feedUser: FeedUser
     @TypeConverters(ListPhotoConverters::class)
@@ -38,11 +36,9 @@ class Feed {
     @get:Exclude
     var likeInProgress: Boolean = false
 
-    constructor()
     constructor(feedId: String, feedUser: FeedUser, photos: MutableList<Photo>, commentCount: Int,
                 likeCount: Int, isLiked: Boolean, content: String, latestComment: Comment?,
-                timeCreated: Date?, timeUpdated: Date?, status: Int, likeInProgress: Boolean) {
-        this.feedId = feedId
+                timeCreated: Date?, timeUpdated: Date?, status: Int, likeInProgress: Boolean) : this(feedId) {
         this.feedUser = feedUser
         this.photos = photos
         this.commentCount = commentCount
@@ -56,20 +52,6 @@ class Feed {
         this.likeInProgress = likeInProgress
     }
 
-
-    override fun toString(): String {
-        return "Feed{" +
-                "feedId='" + feedId + '\''.toString() +
-                ", feedUser=" + feedUser +
-                ", photos=" + photos +
-                ", commentCount=" + commentCount +
-                ", likeCount=" + likeCount +
-                ", content='" + content + '\''.toString() +
-                ", timeCreated=" + timeCreated +
-                ", timeUpdated=" + timeUpdated +
-                ", status=" + status +
-                '}'.toString()
-    }
 
     fun toEntity(): FeedEntity {
         return FeedEntity(feedId, feedUser.userId,
