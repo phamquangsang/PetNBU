@@ -1,4 +1,4 @@
-package com.petnbu.petnbu.feed
+package com.petnbu.petnbu.ui.addeditfeed
 
 import android.app.Application
 import android.arch.lifecycle.LiveData

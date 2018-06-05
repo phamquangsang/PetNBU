@@ -1,4 +1,4 @@
-package com.petnbu.petnbu.ui.common;
+package com.petnbu.petnbu.ui;
 
 import android.databinding.BindingAdapter;
 import android.view.View;

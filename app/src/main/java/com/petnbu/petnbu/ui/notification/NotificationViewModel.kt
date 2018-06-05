@@ -1,4 +1,4 @@
-package com.petnbu.petnbu.notification
+package com.petnbu.petnbu.ui.notification
 
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData

@@ -1,4 +1,4 @@
-package com.petnbu.petnbu.feed.comment
+package com.petnbu.petnbu.ui.comment
 
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders

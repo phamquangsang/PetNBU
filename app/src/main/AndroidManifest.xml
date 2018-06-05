@@ -33,14 +33,14 @@
             android:label="@string/title_activity_login_java"
             android:theme="@style/AppTheme.NoActionBar"/>
         <activity
-            android:name=".feed.CreateEditFeedActivity"
+            android:name=".ui.addeditfeed.CreateEditFeedActivity"
             android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="adjustPan"/>
         <activity
             android:name=".userprofile.UserProfileActivity"
             android:theme="@style/AppTheme.NoActionBar"/>
         <activity
-            android:name=".feed.comment.CommentsActivity"
+            android:name=".ui.comment.CommentsActivity"
             android:theme="@style/AppTheme.NoActionBar"/>
     </application>
 

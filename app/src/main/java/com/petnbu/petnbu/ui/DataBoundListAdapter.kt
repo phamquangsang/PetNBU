@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.petnbu.petnbu.ui.common
+package com.petnbu.petnbu.ui
 
 import android.databinding.ViewDataBinding
 import android.support.v7.recyclerview.extensions.ListAdapter

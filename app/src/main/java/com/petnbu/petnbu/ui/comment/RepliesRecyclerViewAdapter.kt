@@ -1,4 +1,4 @@
-package com.petnbu.petnbu.feed.comment
+package com.petnbu.petnbu.ui.comment
 
 import android.content.Context
 import android.graphics.Color

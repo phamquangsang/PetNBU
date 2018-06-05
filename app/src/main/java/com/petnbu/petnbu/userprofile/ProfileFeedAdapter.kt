@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import com.petnbu.petnbu.R
 import com.petnbu.petnbu.databinding.FragmentFeedProfileItemBinding
 import com.petnbu.petnbu.model.FeedUI
-import com.petnbu.petnbu.ui.common.DataBoundListAdapter
+import com.petnbu.petnbu.ui.DataBoundListAdapter
 
 class ProfileFeedAdapter : DataBoundListAdapter<FeedUI, FragmentFeedProfileItemBinding>(FeedDiffCallback()) {
 

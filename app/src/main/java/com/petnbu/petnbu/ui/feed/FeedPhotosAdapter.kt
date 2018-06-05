@@ -1,4 +1,4 @@
-package com.petnbu.petnbu.feed
+package com.petnbu.petnbu.ui.feed
 
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater

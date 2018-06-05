@@ -1,4 +1,4 @@
-package com.petnbu.petnbu.feed
+package com.petnbu.petnbu.ui.feed
 
 import android.arch.lifecycle.*
 import com.petnbu.petnbu.PetApplication

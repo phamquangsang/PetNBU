@@ -1,4 +1,4 @@
-package com.petnbu.petnbu.feed
+package com.petnbu.petnbu.ui.feed
 
 
 import android.arch.lifecycle.Observer
@@ -16,7 +16,8 @@ import android.view.ViewGroup
 import com.petnbu.petnbu.R
 import com.petnbu.petnbu.SharedPrefUtil
 import com.petnbu.petnbu.databinding.FragmentFeedsBinding
-import com.petnbu.petnbu.feed.comment.CommentsActivity
+import com.petnbu.petnbu.ui.addeditfeed.CreateEditFeedActivity
+import com.petnbu.petnbu.ui.comment.CommentsActivity
 import com.petnbu.petnbu.model.FeedUI
 import com.petnbu.petnbu.model.Paging
 import com.petnbu.petnbu.model.Photo
