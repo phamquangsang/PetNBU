@@ -28,19 +28,19 @@ class NotificationRepository
 
     fun getUserNotifications(userId: String, after: Long): LiveData<Resource<List<NotificationUI>>> {
         return object : NetworkBoundResource<List<NotificationUI>, List<Notification>>(appExecutors) {
-            override fun saveCallResult(items: List<Notification>) {
-                val listId = ArrayList<String>(items.size)
+            override fun saveCallResult(item: List<Notification>) {
+                val listId = ArrayList<String>(item.size)
                 val pagingId = Paging.notificationsPagingId()
-                for (item in items) {
-                    listId.add(item.id)
+                for (notification in item) {
+                    listId.add(notification.id)
                 }
 
                 val oldestId = if (listId.isEmpty()) null else listId[listId.size - 1]
                 val paging = Paging(pagingId, listId, false, oldestId)
 
                 petDb.runInTransaction {
-                    petDb.notificationDao().insertFromModels(items)
-                    for (notification in items) {
+                    petDb.notificationDao().insertFromModels(item)
+                    for (notification in item) {
                         petDb.userDao().insert(notification.fromUser)
                     }
                     petDb.pagingDao().insert(paging)

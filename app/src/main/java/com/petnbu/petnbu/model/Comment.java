@@ -1,7 +1,5 @@
 package com.petnbu.petnbu.model;
 
-import android.arch.persistence.room.Embedded;
-import android.arch.persistence.room.Ignore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 

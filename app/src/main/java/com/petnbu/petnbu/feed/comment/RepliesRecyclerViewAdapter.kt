@@ -83,7 +83,7 @@ class RepliesRecyclerViewAdapter(context: Context,
         private lateinit var comment: CommentUI
 
         init {
-            mBinding.imgProfile.setOnClickListener { v ->
+            mBinding.imgProfile.setOnClickListener {
                 if (adapterPosition != RecyclerView.NO_POSITION) {
                     getItem(adapterPosition).run {
                         owner?.run {
@@ -94,7 +94,7 @@ class RepliesRecyclerViewAdapter(context: Context,
                 }
             }
 
-            mBinding.imgLike.setOnClickListener { v ->
+            mBinding.imgLike.setOnClickListener {
                 if (adapterPosition != RecyclerView.NO_POSITION) {
                     getItem(adapterPosition).run {
                         if (localStatus != LocalStatus.STATUS_UPLOADING)

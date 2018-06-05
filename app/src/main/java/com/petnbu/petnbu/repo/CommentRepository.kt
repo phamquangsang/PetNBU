@@ -105,23 +105,23 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors,
     private fun getFeedComments(feedId: String, after: Long, limit: Int): LiveData<Resource<List<CommentUI>>> {
 
         return object : NetworkBoundResource<List<CommentUI>, List<Comment>>(mAppExecutors) {
-            override fun saveCallResult(items: List<Comment>) {
+            override fun saveCallResult(item: List<Comment>) {
 
-                val listId = ArrayList<String>(items.size)
+                val listId = ArrayList<String>(item.size)
                 val pagingId = Paging.feedCommentsPagingId(feedId)
-                for (item in items) {
+                for (item in item) {
                     listId.add(item.id)
                 }
                 val paging = Paging(pagingId,
                         listId, false,
                         if (listId.isEmpty()) null else listId[listId.size - 1])
                 mPetDb.runInTransaction {
-                    mPetDb.commentDao().insertListComment(items)
-                    for (item in items) {
-                        mPetDb.userDao().insert(item.feedUser)
-                        if (item.latestComment != null) {
-                            mPetDb.commentDao().insertFromComment(item.latestComment)
-                            mPetDb.userDao().insert(item.latestComment.feedUser)
+                    mPetDb.commentDao().insertListComment(item)
+                    for (comment in item) {
+                        mPetDb.userDao().insert(comment.feedUser)
+                        if (comment.latestComment != null) {
+                            mPetDb.commentDao().insertFromComment(comment.latestComment)
+                            mPetDb.userDao().insert(comment.latestComment.feedUser)
                         }
                     }
                     mPetDb.pagingDao().insert(paging)
@@ -162,18 +162,18 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors,
     fun getSubComments(parentCommentId: String, after: Long, limit: Int): LiveData<Resource<List<CommentUI>>> {
 
         return object : NetworkBoundResource<List<CommentUI>, List<Comment>>(mAppExecutors) {
-            override fun saveCallResult(items: List<Comment>) {
-                val listId = ArrayList<String>(items.size)
+            override fun saveCallResult(item: List<Comment>) {
+                val listId = ArrayList<String>(item.size)
                 val pagingId = Paging.subCommentsPagingId(parentCommentId)
-                for (item in items) {
-                    listId.add(item.id)
+                for (comment in item) {
+                    listId.add(comment.id)
                 }
                 val paging = Paging(pagingId,
                         listId, false,
                         if (listId.isEmpty()) null else listId[listId.size - 1])
                 mPetDb.runInTransaction {
-                    mPetDb.commentDao().insertListComment(items)
-                    for (item in items) {
+                    mPetDb.commentDao().insertListComment(item)
+                    for (item in item) {
                         mPetDb.userDao().insert(item.feedUser)
                         if (item.latestComment != null) {
                             mPetDb.commentDao().insertFromComment(item.latestComment)

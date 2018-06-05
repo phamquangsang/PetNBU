@@ -73,17 +73,17 @@ class NotificationsRecyclerViewAdapter(context: Context)
         override fun bindData(item: NotificationUI) {
             notification = item
 
-            val avatarUrl = if (!notification.fromUser.avatar.thumbnailUrl.isNullOrEmpty())
-                notification.fromUser.avatar.thumbnailUrl
-            else
-                notification.fromUser.avatar.originUrl
+            val avatarUrl = notification.fromUser?.avatar?.thumbnailUrl ?: notification.fromUser?.avatar?.originUrl
             glideRequests
                     .load(avatarUrl)
                     .centerInside()
                     .into(mBinding.imgProfile)
             displayMessageContent()
-            mBinding.tvDate.text = DateUtils.getRelativeTimeSpanString(notification.timeCreated.time,
-                    Calendar.getInstance().timeInMillis, 0L, DateUtils.FORMAT_ABBREV_RELATIVE)
+            notification.timeCreated?.time?.run {
+                mBinding.tvDate.text = DateUtils.getRelativeTimeSpanString(this,
+                        Calendar.getInstance().timeInMillis, 0L, DateUtils.FORMAT_ABBREV_RELATIVE)
+            }
+
         }
 
         override fun bindData(item: NotificationUI, payloads: List<Any>) {
@@ -92,7 +92,7 @@ class NotificationsRecyclerViewAdapter(context: Context)
 
         private fun displayMessageContent() {
             val context = itemView.context
-            val messageSpanBuilder = SpannableStringBuilder(notification.fromUser.name)
+            val messageSpanBuilder = SpannableStringBuilder(notification.fromUser?.name)
             val message = when (notification.type) {
                 Notification.TYPE_LIKE_FEED -> context.getString(R.string.notification_message_like, "post")
                 Notification.TYPE_LIKE_COMMENT -> context.getString(R.string.notification_message_like, "comment")
