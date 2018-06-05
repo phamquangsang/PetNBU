@@ -114,8 +114,7 @@ class FeedsViewModel : ViewModel() {
                     Status.ERROR -> {
                         hasMore = true
                         unregister()
-                        loadMoreState.setValue(LoadMoreState(false,
-                                result.message ?:"Error Unknown"))
+                        loadMoreState.setValue(LoadMoreState(false, result.message ?: "Error Unknown"))
                     }
                 }
             }

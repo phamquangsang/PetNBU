@@ -24,5 +24,4 @@ abstract class UserDao {
     fun insert(feedUser: FeedUser) {
         insert(UserEntity(feedUser.userId, feedUser.avatar, feedUser.name, null, null, null))
     }
-
 }

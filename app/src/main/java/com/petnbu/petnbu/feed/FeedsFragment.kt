@@ -121,7 +121,9 @@ class FeedsFragment : Fragment() {
     }
 
     private fun showUserProfile(userId: String) {
-        startActivity(UserProfileActivity.newIntent(activity, userId))
+        activity?.run {
+            startActivity(UserProfileActivity.newIntent(this, userId))
+        }
     }
 
     private fun showCommentsByFeed(feedId: String) {
