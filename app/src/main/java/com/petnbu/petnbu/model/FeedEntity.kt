@@ -15,9 +15,10 @@ import java.util.Date
 
 @Entity(tableName = "feeds")
 @TypeConverters(value = arrayOf(ListPhotoConverters::class, PetTypeConverters::class))
-data class FeedEntity(@PrimaryKey var feedId: String) {
+class FeedEntity {
+    @PrimaryKey var feedId: String = ""
     @ForeignKey(entity = UserEntity::class, parentColumns = ["userId"], childColumns = ["fromUserId"])
-    lateinit var fromUserId: String
+    var fromUserId: String = ""
     lateinit var photos: MutableList<Photo>
     var commentCount: Int = 0
     var latestCommentId: String? = null
@@ -37,12 +38,13 @@ data class FeedEntity(@PrimaryKey var feedId: String) {
     @get:Exclude
     var likeInProgress: Boolean = false
 
-    constructor():this("")
+    constructor()
 
     @Ignore
     constructor(feedId: String, fromUserId: String, photos: MutableList<Photo>, commentCount: Int,
                 latestCommentId: String?, likeCount: Int, isLiked: Boolean, content: String,
-                timeCreated: Date?, timeUpdated: Date?, status: Int, likeInProgress: Boolean):this(feedId) {
+                timeCreated: Date?, timeUpdated: Date?, status: Int, likeInProgress: Boolean) {
+        this.feedId = feedId
         this.fromUserId = fromUserId
         this.photos = photos
         this.commentCount = commentCount

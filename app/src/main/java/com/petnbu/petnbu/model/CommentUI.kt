@@ -11,32 +11,31 @@ import java.util.Date
 
 @TypeConverters(PhotoConverters::class)
 data class CommentUI(
-        var id: String = "",
+        val id: String ,
         @Embedded
-        var owner: FeedUser? = null,
-        var content: String? = null,
-        var photo: Photo? = null,
-        var likeCount: Int = 0,
+        val owner: FeedUser,
+        val content: String = "",
+        val photo: Photo? = null,
+        val likeCount: Int = 0,
         @Exclude
         @get:Exclude
-        var isLiked: Boolean = false,
+        val isLiked: Boolean = false,
         @Exclude
         @get:Exclude
-        var likeInProgress: Boolean = false,
-        var commentCount: Int = 0,
-        var parentCommentId: String? = null,
-        var parentFeedId: String? = null,
+        val likeInProgress: Boolean = false,
+        val commentCount: Int = 0,
+        val parentCommentId: String = "",
+        val parentFeedId: String = "",
 
         @Exclude
         @LocalStatus.LOCAL_STATUS
-        var localStatus: Int = 0,
-        @ServerTimestamp
-        var timeCreated: Date? = null,
+        val localStatus: Int = 0,
+        val timeCreated: Date,
 
-        var latestCommentId: String? = null,
-        var latestCommentContent: String? = null,
-        var latestCommentOwnerId: String? = null,
-        var latestCommentOwnerName: String? = null,
-        var latestCommentOwnerAvatar: Photo? = null,
-        var latestCommentPhoto: Photo? = null
+        val latestCommentId: String? = null,
+        val latestCommentContent: String? = null,
+        val latestCommentOwnerId: String? = null,
+        val latestCommentOwnerName: String? = null,
+        val latestCommentOwnerAvatar: Photo? = null,
+        val latestCommentPhoto: Photo? = null
 )
