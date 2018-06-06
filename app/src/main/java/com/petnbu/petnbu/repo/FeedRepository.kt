@@ -177,8 +177,8 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, 
         return fetchNextPageTask.liveData
     }
 
-    fun fetchNextUserFeedPage(pagingId: String): LiveData<Resource<Boolean>> {
-        val fetchNextPageUserFeed = FetchNextPageUserFeed(pagingId, mWebService, mPetDb, mAppExecutors)
+    fun fetchNextUserFeedPage(userId: String, pagingId: String): LiveData<Resource<Boolean>> {
+        val fetchNextPageUserFeed = FetchNextPageUserFeed(userId, pagingId, mWebService, mPetDb, mAppExecutors)
         mAppExecutors.networkIO().execute(fetchNextPageUserFeed)
         return fetchNextPageUserFeed.liveData
     }

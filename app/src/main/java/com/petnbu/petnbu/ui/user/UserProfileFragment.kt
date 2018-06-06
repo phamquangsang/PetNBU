@@ -47,11 +47,11 @@ class UserProfileFragment : Fragment() {
                     override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                         (recyclerView.layoutManager as? LinearLayoutManager)?.run {
                             if (findLastVisibleItemPosition() == userProfileFeedsAdapter.itemCount - 1)
-                                userProfileViewModel.loadNextPage(Paging.userFeedsPagingId(userId))
+                                userProfileViewModel.loadNextPage(userId, Paging.userFeedsPagingId(userId))
 
                         } ?: (recyclerView.layoutManager as? GridLayoutManager)?.run {
                             if (findLastVisibleItemPosition() / 3 == userProfileFeedsAdapter.itemCount / columnCount)
-                                userProfileViewModel.loadNextPage(Paging.userFeedsPagingId(userId))
+                                userProfileViewModel.loadNextPage(userId, Paging.userFeedsPagingId(userId))
                         }
                     }
                 })

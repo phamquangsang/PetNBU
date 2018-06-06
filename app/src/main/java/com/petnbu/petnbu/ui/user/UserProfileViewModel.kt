@@ -50,9 +50,9 @@ class UserProfileViewModel : ViewModel() {
         })
     }
 
-    fun loadNextPage(pagingId: String) {
+    fun loadNextPage(userId: String, pagingId: String) {
         feedsLiveData.value?.run {
-            loadMoreHandler.loadNextPage(pagingId)
+            loadMoreHandler.loadNextPage(userId , pagingId)
         }
     }
 
@@ -68,13 +68,13 @@ class UserProfileViewModel : ViewModel() {
             loadMoreState.value = LoadMoreState(false, null)
         }
 
-        fun loadNextPage(pagingId: String) {
+        fun loadNextPage(userId: String, pagingId: String) {
             if (!hasMore || loadMoreState.value == null || loadMoreState.value?.isRunning == true) {
                 return
             }
             Timber.i("loadNextPage")
             unregister()
-            nextPageLiveData = feedRepo.fetchNextUserFeedPage(pagingId)
+            nextPageLiveData = feedRepo.fetchNextUserFeedPage(userId, pagingId)
             loadMoreState.value = LoadMoreState(true, null)
             nextPageLiveData.observeForever(this)
 
