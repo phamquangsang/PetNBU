@@ -117,9 +117,9 @@ class CreateCommentWorker : Worker() {
 
                     mAppExecutors.diskIO().execute {
                         mPetDb.runInTransaction {
-                            val feedCommentPaging = mPetDb.pagingDao().findFeedPaging(Paging.feedCommentsPagingId(comment.parentFeedId))
+                            val feedCommentPaging = mPetDb.pagingDao().findFeedPaging(Paging.feedCommentsPagingId(comment.parentFeedId!!))
                             feedCommentPaging?.apply {
-                                ids.add(0, newComment.id)
+                                this.getIds()!!.add(0, newComment.id)
                                 mPetDb.pagingDao().update(this)
                             }
                             mCommentDao.updateCommentId(oldCommentId, newComment.id)
@@ -159,10 +159,10 @@ class CreateCommentWorker : Worker() {
 
                     mAppExecutors.diskIO().execute {
                         mPetDb.runInTransaction {
-                            val subCommentPaging = mPetDb.pagingDao().findFeedPaging(Paging.subCommentsPagingId(comment.parentCommentId))
+                            val subCommentPaging = mPetDb.pagingDao().findFeedPaging(Paging.subCommentsPagingId(comment.parentCommentId!!))
 
                             subCommentPaging?.apply {
-                                ids.add(0, newComment.id)
+                                this.getIds()!!.add(0, newComment.id)
                                 mPetDb.pagingDao().update(this)
                             }
                             mCommentDao.updateCommentId(oldCommentId, newComment.id)

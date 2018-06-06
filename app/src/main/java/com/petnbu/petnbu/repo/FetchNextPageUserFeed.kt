@@ -27,14 +27,14 @@ class FetchNextPageUserFeed(private val mPagingId: String, private val mWebServi
         }
 
         liveData.postValue(Resource(Status.LOADING, null, null))
-        val result = mWebService.getUserFeed(mPagingId, currentPaging.oldestId, FeedRepository.FEEDS_PER_PAGE)
+        val result = mWebService.getUserFeed(mPagingId, currentPaging.oldestId!!, FeedRepository.FEEDS_PER_PAGE)
         result.observeForever(object : Observer<ApiResponse<List<Feed>>> {
             override fun onChanged(listApiResponse: ApiResponse<List<Feed>>?) {
                 if (listApiResponse != null) {
                     result.removeObserver(this)
                     if (listApiResponse.isSuccessful) {
                         if (listApiResponse.body != null && listApiResponse.body.isNotEmpty()) {
-                            val ids = ArrayList(currentPaging.ids)
+                            val ids = ArrayList(currentPaging.getIds()!!)
                             listApiResponse.body.forEach { ids.add(it.feedId) }
                             val newPaging = Paging(mPagingId, ids, false, ids[ids.size - 1])
                             mAppExecutors.diskIO().execute {
@@ -51,14 +51,14 @@ class FetchNextPageUserFeed(private val mPagingId: String, private val mWebServi
                                     mPetDb.pagingDao().insert(newPaging)
                                 })
                             }
-                            liveData.postValue(Resource(Status.SUCCESS, true, null))
+                            liveData.postValue(Resource.success(true))
                         } else {
                             currentPaging.isEnded = true
                             mAppExecutors.diskIO().execute { mPetDb.pagingDao().update(currentPaging) }
-                            liveData.postValue(Resource(Status.SUCCESS, false, null))
+                            liveData.postValue(Resource.success(false))
                         }
                     } else {
-                        liveData.postValue(Resource(Status.ERROR, true, listApiResponse.errorMessage))
+                        liveData.postValue(Resource.error(listApiResponse.errorMessage, true))
                     }
                 }
             }

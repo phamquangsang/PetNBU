@@ -62,7 +62,7 @@ class NotificationRepository
                         data.postValue(null)
                         data
                     } else {
-                        petDb.notificationDao().getNotifcations(input.ids)
+                        petDb.notificationDao().getNotifcations(input.getIds()!!)
                     }
                 }
             }

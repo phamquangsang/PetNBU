@@ -71,7 +71,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                 if (t != null) {
                     feedResult.removeObserver(this)
                     t.body?.run {
-                        val photosMap = ArrayList<Map<String, Any>>()
+                        val photosMap = ArrayList<Map<String, Any?>>()
                         for (photo in photos) {
                             photosMap.add(photo.toMap())
                         }
@@ -740,7 +740,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
             if (input.isSuccessful) {
                 val inputFeeds = input.body
                 if (inputFeeds == null || inputFeeds.isEmpty()) {
-                    result.value = input
+                    result.postValue(input)
                     return@switchMap result
                 }
 
@@ -772,7 +772,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
             if (input.isSuccessful) {
                 val inputFeeds = input.body
                 if (inputFeeds == null || inputFeeds.isEmpty()) {
-                    result.value = input
+                    result.postValue(input)
                     return@switchMap result
                 }
 

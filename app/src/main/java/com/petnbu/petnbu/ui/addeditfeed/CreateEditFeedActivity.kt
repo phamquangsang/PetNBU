@@ -214,8 +214,7 @@ class CreateEditFeedActivity : AppCompatActivity() {
                     PermissionUtils.requestPersistablePermission(this@CreateEditFeedActivity, data, this)
 
                     Utils.getBitmapSize(this@CreateEditFeedActivity, this)?.run {
-                        createEditFeedViewModel.selectedPhotos.add(Photo().apply {
-                            originUrl = this@photoUri.toString()
+                        createEditFeedViewModel.selectedPhotos.add(Photo(originUrl = this@photoUri.toString()).apply {
                             width = outWidth
                             height = outHeight
                         })
@@ -227,8 +226,7 @@ class CreateEditFeedActivity : AppCompatActivity() {
                         PermissionUtils.requestPersistablePermission(this@CreateEditFeedActivity, data, item.uri)
 
                         Utils.getBitmapSize(this@CreateEditFeedActivity, item.uri)?.run {
-                            createEditFeedViewModel.selectedPhotos.add(Photo().apply {
-                                originUrl = item.uri.toString()
+                            createEditFeedViewModel.selectedPhotos.add(Photo(item.uri.toString()).apply {
                                 width = outWidth
                                 height = outHeight
                             })

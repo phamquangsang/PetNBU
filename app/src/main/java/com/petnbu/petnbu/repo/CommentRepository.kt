@@ -155,7 +155,7 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors,
                         data
                     } else {
                         Timber.i("loadFeedsFromDb paging: %s", input.toString())
-                        mPetDb . commentDao ().loadFeedComments(input.ids, feedId)
+                        mPetDb . commentDao ().loadFeedComments(input.getIds()!!, feedId)
                     }
                 }
             }
@@ -213,7 +213,7 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors,
                         return@switchMap data
                     } else {
                         Timber.i("loadSubCommentsFromDb paging: %s", input.toString())
-                        return@switchMap mPetDb . commentDao ().loadSubComments(input.ids, parentCommentId)
+                        return@switchMap mPetDb . commentDao ().loadSubComments(input.getIds()!!, parentCommentId)
                     }
                 }
             }

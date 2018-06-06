@@ -21,7 +21,7 @@ data class FeedUser (var userId :String = ""){
     }
 
     fun setAvatarUrl(originUrl: String) {
-        val photo = Photo(originUrl, null, null, null, 0, 0)
+        val photo = Photo(originUrl)
         avatar = photo
     }
 

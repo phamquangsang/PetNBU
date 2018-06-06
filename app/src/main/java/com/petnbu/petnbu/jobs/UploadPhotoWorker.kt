@@ -52,7 +52,7 @@ class UploadPhotoWorker : Worker() {
     }
 
     private fun uploadPhoto(photo: Photo, countDownLatch: CountDownLatch) {
-        val urls = listOf(photo.originUrl, photo.largeUrl, photo.mediumUrl, photo.smallUrl, photo.thumbnailUrl)
+        val urls :List<String> = listOf(photo.originUrl, photo.largeUrl!!, photo.mediumUrl!!, photo.smallUrl!!, photo.thumbnailUrl!!)
 
         object : StorageApi.OnUploadingImage(urls) {
 

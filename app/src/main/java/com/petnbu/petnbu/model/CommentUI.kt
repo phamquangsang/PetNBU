@@ -4,7 +4,6 @@ import android.arch.persistence.room.Embedded
 import android.arch.persistence.room.TypeConverters
 
 import com.google.firebase.firestore.Exclude
-import com.google.firebase.firestore.ServerTimestamp
 import com.petnbu.petnbu.db.PhotoConverters
 
 import java.util.Date

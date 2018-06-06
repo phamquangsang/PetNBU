@@ -23,6 +23,6 @@ data class FeedUI(val feedId: String,
                   val commentUserAvatar: Photo? = null,
                   val commentContent: String? = null,
                   val commentPhoto: Photo? = null,
-                  val status: Int = 0)
+                  @LocalStatus.LOCAL_STATUS val status: Int = 0)
 
 

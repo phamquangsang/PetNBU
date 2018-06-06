@@ -131,11 +131,11 @@ class CreateEditFeedWorker : Worker() {
                             newFeed.status = STATUS_DONE
 
                             petDb.pagingDao().findFeedPaging(Paging.GLOBAL_FEEDS_PAGING_ID)?.apply {
-                                ids.add(0, newFeed.feedId)
+                                this.getIds()!!.add(0, newFeed.feedId)
                                 petDb.pagingDao().update(this)
                             }
                             petDb.pagingDao().findFeedPaging(newFeed.feedUser.userId)?.apply {
-                                ids.add(0, newFeed.feedId)
+                                this.getIds()!!.add(0, newFeed.feedId)
                                 petDb.pagingDao().update(this)
                             }
                             feedDao.update(newFeed.toEntity())

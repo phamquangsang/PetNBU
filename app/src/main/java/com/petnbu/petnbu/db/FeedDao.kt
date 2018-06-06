@@ -9,13 +9,7 @@ import android.arch.persistence.room.Query
 import android.arch.persistence.room.Transaction
 import android.arch.persistence.room.TypeConverters
 import android.arch.persistence.room.Update
-
-import com.petnbu.petnbu.model.Feed
-import com.petnbu.petnbu.model.FeedEntity
-import com.petnbu.petnbu.model.FeedUI
-import com.petnbu.petnbu.model.LocalStatus
-import com.petnbu.petnbu.model.Photo
-import com.petnbu.petnbu.util.TraceUtils
+import com.petnbu.petnbu.model.*
 
 import java.util.ArrayList
 import java.util.Date

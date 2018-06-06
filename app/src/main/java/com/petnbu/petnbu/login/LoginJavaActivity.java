@@ -193,7 +193,7 @@ public class LoginJavaActivity extends AppCompatActivity implements View.OnClick
         if(firebaseUser.getPhotoUrl() != null){
             photoUrl = firebaseUser.getPhotoUrl().toString();
         }
-        Photo photo = new Photo(photoUrl, null, null, null, 0, 0);
+        Photo photo = new Photo(photoUrl, null, null, null, null, 0, 0);
         UserEntity userEntity = new UserEntity(firebaseUser.getUid(), photo, firebaseUser.getDisplayName(), firebaseUser.getEmail(), null, null);
         LiveData<ApiResponse<UserEntity>> userResponse = mWebService.getUser(firebaseUser.getUid());
         userResponse.observe(this, new Observer<ApiResponse<UserEntity>>() {

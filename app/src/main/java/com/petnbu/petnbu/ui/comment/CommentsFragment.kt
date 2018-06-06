@@ -113,8 +113,7 @@ class CommentsFragment : Fragment() {
                     PermissionUtils.requestPersistablePermission(activity, data, this)
 
                     Utils.getBitmapSize(activity, this)?.run {
-                        selectedPhoto = Photo().apply {
-                            originUrl = this@photoUri.toString()
+                        selectedPhoto = Photo(this@photoUri.toString()).apply {
                             width = outWidth
                             height = outHeight
                         }

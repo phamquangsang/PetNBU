@@ -29,14 +29,14 @@ class FetchNextPageFeedComment(private val mFeedId: String,
         }
 
         liveData.postValue(Resource(Status.LOADING, null, null))
-        val result = mWebService.getCommentsPaging(mFeedId, currentPaging.oldestId, CommentRepository.COMMENT_PER_PAGE)
+        val result = mWebService.getCommentsPaging(mFeedId, currentPaging.oldestId!!, CommentRepository.COMMENT_PER_PAGE)
         result.observeForever(object : Observer<ApiResponse<List<Comment>>> {
             override fun onChanged(listApiResponse: ApiResponse<List<Comment>>?) {
                 if (listApiResponse != null) {
                     result.removeObserver(this)
                     if (listApiResponse.isSuccessful) {
                         if (listApiResponse.body != null && listApiResponse.body.isNotEmpty()) {
-                            val ids = ArrayList<String>(currentPaging.ids)
+                            val ids = ArrayList<String>(currentPaging.getIds()!!)
                             listApiResponse.body.forEach { ids.add(it.id) }
                             val newPaging = Paging(mPagingId, ids, false, ids[ids.size - 1])
                             mAppExecutors.diskIO().execute {

@@ -9,12 +9,11 @@ import android.arch.persistence.room.TypeConverters
 import com.google.firebase.firestore.Exclude
 import com.petnbu.petnbu.db.ListPhotoConverters
 import com.petnbu.petnbu.db.PetTypeConverters
-import com.petnbu.petnbu.db.PhotoConverters
 
 import java.util.Date
 
 @Entity(tableName = "feeds")
-@TypeConverters(value = arrayOf(ListPhotoConverters::class, PetTypeConverters::class))
+@TypeConverters(value = [(ListPhotoConverters::class), (PetTypeConverters::class)])
 class FeedEntity {
     @PrimaryKey var feedId: String = ""
     @ForeignKey(entity = UserEntity::class, parentColumns = ["userId"], childColumns = ["fromUserId"])

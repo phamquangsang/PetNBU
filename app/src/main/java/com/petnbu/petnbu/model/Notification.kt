@@ -36,8 +36,8 @@ data class Notification(var id: String) {
     }
 
     fun toEntity(): NotificationEntity {
-        return NotificationEntity(id, targetUserId, fromUser!!.userId, targetFeedId, targetCommentId,
-                targetReplyId, type, timeCreated, isRead)
+        return NotificationEntity(id, targetUserId, fromUser.userId, targetFeedId, targetCommentId,
+                targetReplyId, type, timeCreated ?: Date(), isRead)
     }
 
     @Retention(AnnotationRetention.SOURCE)
@@ -52,7 +52,5 @@ data class Notification(var id: String) {
         const val TYPE_NEW_COMMENT = 4
         const val TYPE_NEW_REPLY = 5
     }
-
-
 
 }

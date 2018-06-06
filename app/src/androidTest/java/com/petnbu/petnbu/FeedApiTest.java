@@ -111,7 +111,7 @@ public class FeedApiTest {
         FeedUser userNhat = new FeedUser("2", avatar, "Nhat Nhat");
         List<Photo> photo2 = new ArrayList<>();
         photo2.add(new Photo("https://picsum.photos/1000/600/?image=383", "https://picsum.photos/500/300/?image=383", "https://picsum.photos/250/150/?image=383", "https://picsum.photos/100/60/?image=383", 1000, 600));
-        Feed feed1 = new Feed("2", userNhat, photo2, 12, null, 14, false ,false, "", new Date(), new Date(), STATUS_NEW);
+        Feed feed1 = new Feed("2", userNhat, photo2, 12, null, 14, false ,false, "", new Date(), new Date(), INSTANCE.getSTATUS_NEW());
 
         AppExecutors appExecutors = PetApplication.getAppComponent().getAppExecutor();
         PetDb petDb = PetApplication.getAppComponent().getPetDb();
@@ -131,13 +131,13 @@ public class FeedApiTest {
         List<Photo> photo1 = new ArrayList<>();
         photo1.add(new Photo("https://picsum.photos/1200/1300/?image=381", "https://picsum.photos/600/650/?image=381", "https://picsum.photos/300/325/?image=381", "https://picsum.photos/120/130/?image=381", 1200, 1300));
         photo1.add(new Photo("https://picsum.photos/1200/1300/?image=382", "https://picsum.photos/600/650/?image=382", "https://picsum.photos/300/325/?image=382", "https://picsum.photos/120/130/?image=382", 1200, 1300));
-        Feed feed = new Feed("1", userSang, photo1, 10, null, 12, false, false, "", new Date(), new Date(), STATUS_NEW);
+        Feed feed = new Feed("1", userSang, photo1, 10, null, 12, false, false, "", new Date(), new Date(), INSTANCE.getSTATUS_NEW());
 
         Photo avatarNhat = new Photo("https://developer.android.com/static/images/android_logo_2x.png", null, null, null, 0, 0);
         FeedUser userNhat = new FeedUser("2", avatarNhat, "Nhat Nhat");
         List<Photo> photo2 = new ArrayList<>();
         photo2.add(new Photo("https://picsum.photos/1000/600/?image=383", "https://picsum.photos/500/300/?image=383", "https://picsum.photos/250/150/?image=383", "https://picsum.photos/100/60/?image=383", 1000, 600));
-        Feed feed1 = new Feed("2", userNhat, photo2, 12, null, 14, false, false,"", new Date(), new Date(), STATUS_NEW);
+        Feed feed1 = new Feed("2", userNhat, photo2, 12, null, 14, false, false,"", new Date(), new Date(), INSTANCE.getSTATUS_NEW());
 
         for (int i = 0; i < 30; i++) {
             webService.createFeed(i % 2 == 0 ? feed : feed1);
@@ -180,7 +180,7 @@ public class FeedApiTest {
         FeedRepository repository = PetApplication.getAppComponent().getFeedRepo();
 
         appExecutors.mainThread().execute(() -> {
-            LiveData<Resource<List<FeedUI>>> resultLive = repository.loadFeeds(Paging.GLOBAL_FEEDS_PAGING_ID, "701Gx5cLL9W7H3RmLz4ZxEdFlpb2");
+            LiveData<Resource<List<FeedUI>>> resultLive = repository.loadFeeds(Paging.Companion.getGLOBAL_FEEDS_PAGING_ID(), "701Gx5cLL9W7H3RmLz4ZxEdFlpb2");
             resultLive.observeForever(listResource -> {
                 if (listResource != null) {
                     Timber.i(listResource.toString());

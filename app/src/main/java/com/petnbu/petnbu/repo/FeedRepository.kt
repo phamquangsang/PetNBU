@@ -67,7 +67,7 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, 
                         return@switchMap data
                     } else {
                         Timber.i("loadFeedsFromDb paging: %s", input.toString())
-                        return@switchMap mPetDb.feedDao().loadFeedsIds(input.ids, userId)
+                        return@switchMap mPetDb.feedDao().loadFeedsIds(input.getIds()!!, userId)
                     }
                 }
             }
@@ -150,7 +150,7 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, 
                         return@switchMap data
                     } else {
                         Timber.i("loadFeedsFromDb paging: %s", input.toString())
-                        return@switchMap mPetDb.feedDao().loadFeedsIds(input.ids, userId)
+                        return@switchMap mPetDb.feedDao().loadFeedsIds(input.getIds()!!, userId)
                     }
                 }
             }
