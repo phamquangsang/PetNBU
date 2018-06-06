@@ -20,8 +20,6 @@ import android.text.style.StyleSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AbsListView
-import com.petnbu.petnbu.ui.BaseBindingViewHolder
 import com.petnbu.petnbu.GlideApp
 import com.petnbu.petnbu.R
 import com.petnbu.petnbu.databinding.ViewFeedBinding
@@ -29,6 +27,7 @@ import com.petnbu.petnbu.model.FeedUI
 import com.petnbu.petnbu.model.LocalStatus.STATUS_ERROR
 import com.petnbu.petnbu.model.LocalStatus.STATUS_UPLOADING
 import com.petnbu.petnbu.model.Photo
+import com.petnbu.petnbu.ui.BaseBindingViewHolder
 import com.petnbu.petnbu.util.TraceUtils
 import com.petnbu.petnbu.util.Utils
 import java.util.*
@@ -100,6 +99,22 @@ class FeedsRecyclerViewAdapter(context: Context,
             val snapHelper = PagerSnapHelper()
             snapHelper.attachToRecyclerView(mBinding.rvPhotos)
             mBinding.rvPhotos.recycledViewPool = feedPhotosViewPool
+            mBinding.rvPhotos.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                @SuppressLint("SetTextI18n")
+                override fun onScrollStateChanged(recyclerView: RecyclerView?, newState: Int) {
+                    val feed: FeedUI = getItem(adapterPosition)
+
+                    feed.photos?.run {
+                        if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                            (recyclerView!!.layoutManager as? LinearLayoutManager)?.run {
+                                val position = getPosition(snapHelper.findSnapView(this))
+                                mBinding.tvPhotosCount.text = "${position + 1}/$size"
+                                lastSelectedPhotoPositions[feed.feedId] = position
+                            }
+                        }
+                    }
+                }
+            })
         }
 
         override fun bindData(item: FeedUI) {
@@ -182,40 +197,23 @@ class FeedsRecyclerViewAdapter(context: Context,
 
         @SuppressLint("SetTextI18n")
         private fun displayPhotos() {
-            feed.photos?.run{
-                if (this.isNotEmpty()) {
+            feed.photos?.run {
+                if (isNotEmpty()) {
                     constraintHeightForPhoto(this[0].width, this[0].height)
 
                     mBinding.rvPhotos.adapter = FeedPhotosAdapter(feed, glideRequests, object : FeedPhotosAdapter.OnItemClickListener {
-
-                        override fun onPhotoClicked() {
-
-                        }
+                        override fun onPhotoClicked() {}
                     }, deviceWidth)
 
                     val currentPos = lastSelectedPhotoPositions[feed.feedId] ?: 0
                     mBinding.rvPhotos.scrollToPosition(currentPos)
 
-                    if (this.size > 1) {
+                    if (size > 1) {
                         mBinding.tvPhotosCount.visibility = View.VISIBLE
-                        mBinding.tvPhotosCount.text = "${currentPos + 1}/${this.size}"
+                        mBinding.tvPhotosCount.text = "${currentPos + 1}/$size"
                     } else {
                         mBinding.tvPhotosCount.visibility = View.GONE
                     }
-
-                    mBinding.rvPhotos.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-                        @SuppressLint("SetTextI18n")
-                        override fun onScrollStateChanged(recyclerView: RecyclerView?, newState: Int) {
-                            super.onScrollStateChanged(recyclerView, newState)
-
-                            if (newState == AbsListView.OnScrollListener.SCROLL_STATE_IDLE) {
-                                val linearLayoutManager = recyclerView!!.layoutManager as LinearLayoutManager
-                                val position = linearLayoutManager.findFirstVisibleItemPosition()
-                                mBinding.tvPhotosCount.text = "${position + 1}/${this@run.size}"
-                                lastSelectedPhotoPositions[feed.feedId] = position
-                            }
-                        }
-                    })
                 }
             }
         }
@@ -246,7 +244,7 @@ class FeedsRecyclerViewAdapter(context: Context,
                     if (!isNullOrEmpty())
                         append("\n")
 
-                    feed.commentOwnerName?.run{
+                    feed.commentOwnerName?.run {
                         append(this)
                         setSpan(StyleSpan(Typeface.BOLD), length - this.length, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
                     }
