@@ -117,7 +117,7 @@ class CreateEditFeedWorker : Worker() {
         val apiResponse = webService.createFeed(feed)
         apiResponse.observeForever(object : Observer<ApiResponse<Feed>> {
             override fun onChanged(feedApiResponse: ApiResponse<Feed>?) {
-                apiResponse.removeObserver(this)
+                appExecutors.mainThread().execute { apiResponse.removeObserver(this) }
 
                 if (feedApiResponse != null && feedApiResponse.isSuccessful && feedApiResponse.body != null) {
                     val newFeed = feedApiResponse.body

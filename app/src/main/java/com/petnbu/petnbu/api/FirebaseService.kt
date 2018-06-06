@@ -249,7 +249,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                         updateFeedTransaction(transaction, feed, updates)
 
                         val notification = Notification()
-
+                        notification.fromUser = fromUserSnap.toObject(FeedUser::class.java)!!
                         notification.type = Notification.TYPE_LIKE_FEED
                         notification.targetUserId = feed.feedUser.userId
                         notification.targetFeedId = feedId
@@ -509,7 +509,6 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
 
     override fun createFeedComment(comment: Comment, feedId: String): LiveData<ApiResponse<Comment>> {
         val result = MutableLiveData<ApiResponse<Comment>>()
-        val oldId = comment.id
         mDb.runTransaction { transaction ->
             val feedRef = mDb.collection(GLOBAL_FEEDS).document(feedId)
             val feed = transaction.get(feedRef).toObject(Feed::class.java)
@@ -519,9 +518,13 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
             val newCommentCount = (feed.commentCount + 1).toDouble()
             Timber.i("createFeedComment : new comment Count %4.2f", newCommentCount)
             val commentRef = mDb.collection("comments").document()
-            comment.id = commentRef.id
 
-            val commentMap = comment.toMap()
+            val newComment = Comment(commentRef.id, comment.feedUser, comment.content, comment.photo, comment.likeCount,
+                    comment.isLiked, comment.likeInProgress, comment.commentCount, comment.latestComment,
+                    comment.parentCommentId ?: "", comment.parentFeedId ?: "",
+                    comment.localStatus, comment.timeCreated, comment.timeUpdated)
+
+            val commentMap = newComment.toMap()
             commentMap["timeCreated"] = FieldValue.serverTimestamp()
             commentMap["timeUpdated"] = FieldValue.serverTimestamp()
 
@@ -546,17 +549,17 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
 
             transaction.set(commentRef, commentMap)
 
-            val userFeedCommentPath = "users/${feed.feedUser.userId}/feeds/${feed.feedId}/comments/${comment.id}"
+            val userFeedCommentPath = "users/${feed.feedUser.userId}/feeds/${feed.feedId}/comments/${newComment.id}"
             val userFeedCommentRef = mDb.document(userFeedCommentPath)
             transaction.set(userFeedCommentRef, commentMap)
 
-            val feedCommentPath = "global_feeds/$feedId/comments/${comment.id}"
+            val feedCommentPath = "global_feeds/$feedId/comments/${newComment.id}"
             val feedCommentRef = mDb.document(feedCommentPath)
             transaction.set(feedCommentRef, commentMap)
-            val transResult = ApiResponse(comment, true, null)
+
+            val transResult = ApiResponse(newComment, true, null)
             transResult
         }.addOnSuccessListener({ result.setValue(it) }).addOnFailureListener { e ->
-            comment.id = oldId
             result.setValue(ApiResponse(e))
         }
         return result
@@ -564,7 +567,6 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
 
     override fun createReplyComment(subComment: Comment, parentCommentId: String): LiveData<ApiResponse<Comment>> {
         val result = MutableLiveData<ApiResponse<Comment>>()
-        val oldId = subComment.id
         mDb.runTransaction { transaction ->
             val parentCommentRef = mDb.document(String.format("comments/%s", parentCommentId))
             val parentComment = transaction.get(parentCommentRef).toObject(Comment::class.java)
@@ -576,16 +578,15 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                         FirebaseFirestoreException.Code.DATA_LOSS)
             }
 
-//            val feedContainerRef = mDb.document("global_feeds/" + parentComment.parentFeedId)
-//            val feedContainer = transaction.get(feedContainerRef).toObject(Feed::class.java)
-//                    ?: throw FirebaseFirestoreException("the feed you're trying to comment does not exist",
-//                            FirebaseFirestoreException.Code.NOT_FOUND)
-
             val newCommentCount = (parentComment.commentCount + 1).toDouble()
             Timber.i("createReplyComment : new comment Count %6.0f", newCommentCount)
             val subCommentRef = mDb.collection("subComments").document()
-            subComment.id = subCommentRef.id
-            val commentMap = subComment.toMap()
+
+            val newReplyComment = Comment(subCommentRef.id, subComment.feedUser, subComment.content, subComment.photo, subComment.likeCount,
+                    subComment.isLiked, subComment.likeInProgress, subComment.commentCount, subComment.latestComment,
+                    subComment.parentCommentId ?: "", subComment.parentFeedId ?: "",
+                    subComment.localStatus, subComment.timeCreated, subComment.timeUpdated)
+            val commentMap = newReplyComment.toMap()
             commentMap["timeCreated"] = FieldValue.serverTimestamp()
             commentMap["timeUpdated"] = FieldValue.serverTimestamp()
 
@@ -596,15 +597,11 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
             val latestCommentUpdate = HashMap<String, Any>()
             latestCommentUpdate["latestComment"] = commentMap
 
-
-//            //                update feed subComment count
-//            this@FirebaseService.updateFeedTransaction(transaction, feedContainer, updatesCount)
-            //                update parent's subComment count
             this@FirebaseService.updateCommentTransaction(transaction, parentComment, updatesCount)
             this@FirebaseService.updateCommentTransaction(transaction, parentComment, latestCommentUpdate)
 
             transaction.set(subCommentRef, commentMap)
-            val replyCommentPath = String.format("comments/%s/subComments/%s", parentCommentId, subComment.id)
+            val replyCommentPath = String.format("comments/%s/subComments/%s", parentCommentId, newReplyComment.id)
             val replyCommentRef = mDb.document(replyCommentPath)
             transaction.set(replyCommentRef, commentMap)
 
@@ -615,10 +612,10 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
             notification.type = Notification.TYPE_NEW_REPLY
             createNotificationInTransaction(transaction, notification)
 
-            ApiResponse(subComment, true, null)
+
+            ApiResponse(newReplyComment, true, null)
 
         }.addOnSuccessListener({ result.setValue(it) }).addOnFailureListener { e ->
-            subComment.id = oldId
             result.setValue(ApiResponse(e))
         }
         return result

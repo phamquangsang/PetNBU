@@ -93,19 +93,11 @@ class CommentsViewModel : ViewModel() {
     }
 
     fun sendComment(feedId: String, content: String, photo: Photo?) {
-        val comment = Comment()
-        comment.parentFeedId = feedId
-        comment.content = content
-        comment.photo = photo
-        mCommentRepository.createComment(comment)
+        mCommentRepository.createComment(feedId, content, photo)
     }
 
     fun sendCommentByComment(commendId: String, content: String, photo: Photo?) {
-        val comment = Comment()
-        comment.parentCommentId = commendId
-        comment.content = content
-        comment.photo = photo
-        mCommentRepository.createComment(comment)
+        mCommentRepository.createSubComment(commendId, content, photo)
     }
 
     fun loadNextPage(feedId: String) {

@@ -51,23 +51,24 @@ class CreateCommentWorker : Worker() {
                 mUserDao.findUserById(commentEntity.ownerId)?.run {
                     val feedUser = FeedUser(this.userId, this.avatar, this.name)
                     val comment = Comment(commentEntity.id, feedUser, commentEntity.content, commentEntity.photo,
-                            commentEntity.likeCount, commentEntity.commentCount, null, commentEntity.parentCommentId,
+                            commentEntity.likeCount, commentEntity.isLiked, commentEntity.likeInProgress,
+                            commentEntity.commentCount, null, commentEntity.parentCommentId,
                             commentEntity.parentFeedId, commentEntity.localStatus, commentEntity.timeCreated,
                             commentEntity.timeUpdated)
 
                     if (comment.isUploading()) {
                         try {
                             if (comment.photo != null) {
-                                val key = Uri.parse(comment.photo.originUrl).lastPathSegment
-                                val jsonPhoto = data.getString(key, "")
-                                if (!jsonPhoto.isNullOrEmpty()) {
-                                    val uploadedPhoto = Gson().fromJson(jsonPhoto, Photo::class.java)
-                                    uploadedPhoto?.apply {
-                                        comment.photo.originUrl = originUrl
-                                        comment.photo.largeUrl = largeUrl
-                                        comment.photo.mediumUrl = mediumUrl
-                                        comment.photo.smallUrl = smallUrl
-                                        comment.photo.thumbnailUrl = thumbnailUrl
+                                comment.photo?.run {
+                                    val key = Uri.parse(this.originUrl).lastPathSegment
+                                    val jsonPhoto = data.getString(key, "")
+                                    if (!jsonPhoto.isNullOrEmpty()) {
+                                        val uploadedPhoto = Gson().fromJson(jsonPhoto, Photo::class.java)
+                                        this.originUrl = uploadedPhoto.originUrl
+                                        this.largeUrl = uploadedPhoto.largeUrl
+                                        this.mediumUrl = uploadedPhoto.mediumUrl
+                                        this.smallUrl = uploadedPhoto.smallUrl
+                                        this.thumbnailUrl = uploadedPhoto.thumbnailUrl
 
                                         comment.save()
                                         workerResult = WorkerResult.SUCCESS
@@ -102,10 +103,13 @@ class CreateCommentWorker : Worker() {
         val countDownLatch = CountDownLatch(1)
         val oldCommentId = comment.id
 
-        val apiResponse = mWebService.createFeedComment(comment, comment.parentFeedId)
+        val apiResponse = mWebService.createFeedComment(comment, comment.parentFeedId!!)
         apiResponse.observeForever(object : Observer<ApiResponse<Comment>> {
             override fun onChanged(commentApiResponse: ApiResponse<Comment>?) {
-                apiResponse.removeObserver(this)
+                mAppExecutors.mainThread().execute {
+                    apiResponse.removeObserver(this)
+                }
+
 
                 if (commentApiResponse != null && commentApiResponse.isSuccessful && commentApiResponse.body != null) {
                     Timber.d("create comment %s success", comment.id)
@@ -121,9 +125,9 @@ class CreateCommentWorker : Worker() {
                             mCommentDao.updateCommentId(oldCommentId, newComment.id)
                             newComment.localStatus = STATUS_DONE
                             mCommentDao.update(newComment.toEntity())
-                            val parentFeed = mPetDb.feedDao().findFeedEntityById(newComment.parentFeedId)
+                            val parentFeed = mPetDb.feedDao().findFeedEntityById(comment.parentFeedId!!)
                             parentFeed?.apply {
-                                mPetDb.feedDao().updateLatestCommentId(newComment.id,parentFeed.commentCount + 1, newComment.parentFeedId)
+                                mPetDb.feedDao().updateLatestCommentId(newComment.id, parentFeed.commentCount + 1, newComment.parentFeedId!!)
                             }
 
                         }
@@ -144,10 +148,10 @@ class CreateCommentWorker : Worker() {
         val countDownLatch = CountDownLatch(1)
         val oldCommentId = comment.id
 
-        val apiResponse = mWebService.createReplyComment(comment, comment.parentCommentId)
+        val apiResponse = mWebService.createReplyComment(comment, comment.parentCommentId!!)
         apiResponse.observeForever(object : Observer<ApiResponse<Comment>> {
             override fun onChanged(commentApiResponse: ApiResponse<Comment>?) {
-                apiResponse.removeObserver(this)
+                mAppExecutors.mainThread().execute { apiResponse.removeObserver(this) }
 
                 if (commentApiResponse != null && commentApiResponse.isSuccessful && commentApiResponse.body != null) {
                     Timber.d("create comment %s success", comment.id)
@@ -166,11 +170,10 @@ class CreateCommentWorker : Worker() {
                             mCommentDao.update(newComment.toEntity())
 
                             mCommentDao.getCommentById(comment.parentCommentId)?.apply {
-                                this.latestCommentId = comment.id
+                                this.latestCommentId = newComment.id
                                 this.commentCount = this.commentCount + 1
                                 mCommentDao.update(this)
                             }
-
                         }
                     }
                 } else {
@@ -188,8 +191,8 @@ class CreateCommentWorker : Worker() {
 
         private const val KEY_COMMENT_ID = "key-comment-id"
 
-        fun data(comment: Comment): Data =Data.Builder()
-                    .putString(KEY_COMMENT_ID, comment.id)
-                    .build()
+        fun data(comment: Comment): Data = Data.Builder()
+                .putString(KEY_COMMENT_ID, comment.id)
+                .build()
     }
 }

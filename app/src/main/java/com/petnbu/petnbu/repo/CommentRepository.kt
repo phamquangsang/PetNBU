@@ -30,20 +30,31 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors,
 
     private val mRateLimiter = RateLimiter<String>(10, TimeUnit.MINUTES)
 
-    fun createComment(comment: Comment) {
+    fun createComment(toFeedId: String, content :String, photo :Photo?) {
         mAppExecutors.diskIO().execute {
             mPetDb.runInTransaction {
                 mPetDb.userDao().findUserById(SharedPrefUtil.userId)?.run {
                     val feedUser = FeedUser(this.userId, this.avatar, this.name)
-                    comment.feedUser = feedUser
-                    comment.localStatus = LocalStatus.STATUS_UPLOADING
-                    comment.timeCreated = Date()
-                    comment.timeUpdated = Date()
-                    comment.id = IdUtil.generateID("comment")
+                    val comment = Comment(IdUtil.generateID("comment"), feedUser, content, photo, localStatus =  LocalStatus.STATUS_UPLOADING,
+                            parentCommentId = "", parentFeedId =  toFeedId, timeCreated = Date(), timeUpdated = Date())
                     mPetDb.commentDao().insertFromComment(comment)
+                    TraceUtils.begin("scheduleSaveComment") { scheduleSaveCommentWorker(comment) }
                 }
             }
-            TraceUtils.begin("scheduleSaveComment") { scheduleSaveCommentWorker(comment) }
+        }
+    }
+
+    fun createSubComment(toCommentId: String, content :String, photo :Photo?) {
+        mAppExecutors.diskIO().execute {
+            mPetDb.runInTransaction {
+                mPetDb.userDao().findUserById(SharedPrefUtil.userId)?.run {
+                    val feedUser = FeedUser(this.userId, this.avatar, this.name)
+                    val comment = Comment(IdUtil.generateID("comment"), feedUser, content, photo, localStatus =  LocalStatus.STATUS_UPLOADING,
+                            parentCommentId = toCommentId, parentFeedId =  "", timeCreated = Date(), timeUpdated = Date())
+                    mPetDb.commentDao().insertFromComment(comment)
+                    TraceUtils.begin("scheduleSaveComment") { scheduleSaveCommentWorker(comment) }
+                }
+            }
         }
     }
 
@@ -95,12 +106,7 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors,
     }
 
     private fun createCommentUIFromFeed(feed: Feed): CommentUI {
-        val comment = CommentUI()
-        comment.id = feed.feedId
-        comment.owner = feed.feedUser
-        comment.content = feed.content
-        comment.timeCreated = feed.timeCreated
-        return comment
+        return CommentUI(feed.feedId, feed.feedUser, feed.content, timeCreated = feed.timeCreated!!)
     }
 
     private fun getFeedComments(feedId: String, after: Long, limit: Int): LiveData<Resource<List<CommentUI>>> {
@@ -120,9 +126,9 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors,
                     mPetDb.commentDao().insertListComment(item)
                     for (comment in item) {
                         mPetDb.userDao().insert(comment.feedUser)
-                        if (comment.latestComment != null) {
-                            mPetDb.commentDao().insertFromComment(comment.latestComment)
-                            mPetDb.userDao().insert(comment.latestComment.feedUser)
+                        comment.latestComment?.run {
+                            mPetDb.commentDao().insertFromComment(this)
+                            mPetDb.userDao().insert(this.feedUser)
                         }
                     }
                     mPetDb.pagingDao().insert(paging)
@@ -176,9 +182,9 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors,
                     mPetDb.commentDao().insertListComment(item)
                     for (comment in item) {
                         mPetDb.userDao().insert(comment.feedUser)
-                        if (comment.latestComment != null) {
-                            mPetDb.commentDao().insertFromComment(comment.latestComment)
-                            mPetDb.userDao().insert(comment.latestComment.feedUser)
+                        comment.latestComment?.run {
+                            mPetDb.commentDao().insertFromComment(this.latestComment)
+                            mPetDb.userDao().insert(this.feedUser)
                         }
 
                     }
@@ -239,12 +245,12 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors,
                 .setConstraints(uploadConstraints)
                 .build()
 
-        if (comment.photo != null) {
+        comment.photo?.run {
             val compressionWork = OneTimeWorkRequest.Builder(CompressPhotoWorker::class.java)
-                    .setInputData(CompressPhotoWorker.data(comment.photo))
+                    .setInputData(CompressPhotoWorker.data(this))
                     .build()
 
-            val key = Uri.parse(comment.photo.originUrl).lastPathSegment
+            val key = Uri.parse(this.originUrl).lastPathSegment
             val uploadWork = OneTimeWorkRequest.Builder(UploadPhotoWorker::class.java)
                     .setConstraints(uploadConstraints)
                     .setInputData(Data.Builder().putString(UploadPhotoWorker.KEY_PHOTO, key).build())
@@ -254,18 +260,20 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors,
                     .then(uploadWork)
                     .then(createCommentWork)
                     .enqueue()
-        } else {
+        } ?: run {
             WorkManager.getInstance().enqueue(createCommentWork)
         }
+
+
     }
 
     fun likeCommentHandler(userId: String, commentId: String) {
         mAppExecutors.diskIO().execute {
             val comment = mPetDb.commentDao().getCommentById(commentId)
-            if (comment == null || comment.isLikeInProgress) {
+            if (comment == null || comment.likeInProgress) {
                 return@execute
             }
-            comment.isLikeInProgress = true
+            comment.likeInProgress = true
             mPetDb.commentDao().update(comment)
             mAppExecutors.networkIO().execute {
                 if (comment.isLiked) {
@@ -287,11 +295,11 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors,
                         mPetDb.runInTransaction {
                             if (feedApiResponse.isSuccessful && feedApiResponse.body != null) {
                                 val commentResult = feedApiResponse.body.toEntity()
-                                commentResult.isLikeInProgress = false
+                                commentResult.likeInProgress = false
                                 mPetDb.commentDao().update(commentResult)
                             } else {
                                 mAppExecutors.mainThread().execute { mToaster.makeText(feedApiResponse.errorMessage) }
-                                comment.isLikeInProgress = false
+                                comment.likeInProgress = false
                                 mPetDb.commentDao().update(comment)
                             }
                         }
@@ -311,11 +319,11 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors,
                         mPetDb.runInTransaction {
                             if (feedApiResponse.isSuccessful && feedApiResponse.body != null) {
                                 val feedResult = feedApiResponse.body.toEntity()
-                                feedResult.isLikeInProgress = false
+                                feedResult.likeInProgress = false
                                 mPetDb.commentDao().update(feedResult)
                             } else {
                                 mAppExecutors.mainThread().execute { mToaster.makeText(feedApiResponse.errorMessage) }
-                                comment.isLikeInProgress = false
+                                comment.likeInProgress = false
                                 mPetDb.commentDao().update(comment)
                             }
                         }
@@ -329,10 +337,10 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors,
     fun likeSubCommentHandler(userId: String, subCommentId: String) {
         mAppExecutors.diskIO().execute {
             val subComment = mPetDb.commentDao().getCommentById(subCommentId)
-            if (subComment == null || subComment.isLikeInProgress) {
+            if (subComment == null || subComment.likeInProgress) {
                 return@execute
             }
-            subComment.isLikeInProgress = true
+            subComment.likeInProgress = true
             mPetDb.commentDao().update(subComment)
             mAppExecutors.networkIO().execute {
                 if (subComment.isLiked) {
@@ -354,11 +362,11 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors,
                         mPetDb.runInTransaction {
                             if (feedApiResponse.isSuccessful && feedApiResponse.body != null) {
                                 val commentResult = feedApiResponse.body.toEntity()
-                                commentResult.isLikeInProgress = false
+                                commentResult.likeInProgress = false
                                 mPetDb.commentDao().update(commentResult)
                             } else {
                                 mAppExecutors.mainThread().execute { mToaster.makeText(feedApiResponse.errorMessage) }
-                                subComment.isLikeInProgress = false
+                                subComment.likeInProgress = false
                                 mPetDb.commentDao().update(subComment)
                             }
                         }
@@ -378,11 +386,11 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors,
                         mPetDb.runInTransaction {
                             if (feedApiResponse.isSuccessful && feedApiResponse.body != null) {
                                 val feedResult = feedApiResponse.body.toEntity()
-                                feedResult.isLikeInProgress = false
+                                feedResult.likeInProgress = false
                                 mPetDb.commentDao().update(feedResult)
                             } else {
                                 mAppExecutors.mainThread().execute { mToaster.makeText(feedApiResponse.errorMessage) }
-                                subComment.isLikeInProgress = false
+                                subComment.likeInProgress = false
                                 mPetDb.commentDao().update(subComment)
                             }
                         }

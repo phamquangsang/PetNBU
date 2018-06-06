@@ -43,6 +43,7 @@ class FeedsViewModel : ViewModel() {
             }
             feedsLiveData
         })
+
     }
 
     fun loadNextPage() {

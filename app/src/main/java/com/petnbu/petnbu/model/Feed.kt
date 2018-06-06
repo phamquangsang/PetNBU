@@ -58,7 +58,7 @@ data class Feed(var feedId: String) {
     fun toEntity(): FeedEntity {
         return FeedEntity(feedId, feedUser.userId,
                 photos, commentCount, if (latestComment == null) null else latestComment?.id, likeCount, isLiked, content,
-                timeCreated!!, timeUpdated!!, status, likeInProgress)
+                timeCreated, timeUpdated, status, likeInProgress)
     }
 
 
