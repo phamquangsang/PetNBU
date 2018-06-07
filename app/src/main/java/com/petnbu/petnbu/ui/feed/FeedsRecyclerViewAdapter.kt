@@ -3,7 +3,6 @@ package com.petnbu.petnbu.ui.feed
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
-import android.graphics.Typeface
 import android.os.Bundle
 import android.support.constraint.ConstraintLayout
 import android.support.v4.util.ArrayMap
@@ -13,13 +12,12 @@ import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.PagerSnapHelper
 import android.support.v7.widget.RecyclerView
 import android.text.SpannableStringBuilder
-import android.text.Spanned
 import android.text.format.DateUtils
-import android.text.style.ForegroundColorSpan
-import android.text.style.StyleSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.text.bold
+import androidx.core.text.color
 import com.petnbu.petnbu.GlideApp
 import com.petnbu.petnbu.R
 import com.petnbu.petnbu.databinding.ViewFeedBinding
@@ -231,22 +229,24 @@ class FeedsRecyclerViewAdapter(context: Context,
         }
 
         private fun displayContent() {
-            val contentBuilder = SpannableStringBuilder()
-            contentBuilder.apply {
+            val contentBuilder = SpannableStringBuilder().apply {
                 if (!feed.feedContent.isNullOrEmpty()) {
-                    append(feed.name)
-                    setSpan(StyleSpan(Typeface.BOLD), 0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                    setSpan(ForegroundColorSpan(Color.BLACK), 0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    bold {
+                        color(color = Color.BLACK) {
+                            append(feed.name)
+                        }
+                    }
                     append("  ")
                     append(feed.feedContent)
                 }
                 if (!feed.commentContent.isNullOrEmpty() || feed.commentPhoto != null) {
-                    if (!isNullOrEmpty())
+                    if (!isEmpty())
                         append("\n")
 
-                    feed.commentOwnerName?.run {
-                        append(this)
-                        setSpan(StyleSpan(Typeface.BOLD), length - this.length, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    feed.commentOwnerName?.run commentOwnerName@ {
+                        bold {
+                            append(this@commentOwnerName)
+                        }
                     }
                     append("  ")
                     append(if (feed.commentContent.isNullOrEmpty()) "replied" else feed.commentContent)

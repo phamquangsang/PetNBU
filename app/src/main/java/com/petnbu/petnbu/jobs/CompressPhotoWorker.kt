@@ -4,23 +4,21 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.webkit.URLUtil
-
+import androidx.core.net.toUri
+import androidx.work.Data
+import androidx.work.Worker
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.petnbu.petnbu.util.Utils
+import com.petnbu.petnbu.extensions.toJson
 import com.petnbu.petnbu.model.Photo
 import com.petnbu.petnbu.util.ImageUtils
-
+import com.petnbu.petnbu.util.Utils
+import timber.log.Timber
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
-
-import androidx.work.Data
-import androidx.work.Worker
-import com.petnbu.petnbu.extensions.toJson
-import timber.log.Timber
-import java.util.ArrayList
+import java.util.*
 
 class CompressPhotoWorker : Worker() {
 
@@ -34,7 +32,7 @@ class CompressPhotoWorker : Worker() {
                 val photos = Gson().fromJson<List<Photo>>(photoJson, object : TypeToken<List<Photo>>() {}.type)
 
                 for (photo in photos) {
-                    val photoUri = Uri.parse(photo.originUrl)
+                    val photoUri = photo.originUrl.toUri()
                     if (!URLUtil.isHttpUrl(photo.originUrl) && !URLUtil.isHttpsUrl(photo.originUrl)) {
                         generateCompressedPhotos(photo)
                     }
@@ -55,7 +53,7 @@ class CompressPhotoWorker : Worker() {
     @Throws(IOException::class)
     private fun generateCompressedPhotos(photo: Photo) {
         val context = applicationContext
-        val fileUri = Uri.parse(photo.originUrl)
+        val fileUri = photo.originUrl.toUri()
         val file = File(Utils.getPath(context, fileUri)!!)
         val destinationDirectoryPath = context.filesDir.absolutePath
 

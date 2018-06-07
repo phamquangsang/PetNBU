@@ -11,6 +11,7 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import com.petnbu.petnbu.GlideApp
 import com.petnbu.petnbu.R
 import com.petnbu.petnbu.databinding.FragmentFeedProfileListBinding
@@ -87,9 +88,7 @@ class UserProfileFragment : Fragment() {
 
         fun newInstance(userId: String): UserProfileFragment {
             return UserProfileFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_USER_ID, userId)
-                }
+                arguments = bundleOf(ARG_USER_ID to userId)
             }
         }
     }

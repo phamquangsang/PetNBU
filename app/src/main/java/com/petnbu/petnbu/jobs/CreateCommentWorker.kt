@@ -1,7 +1,7 @@
 package com.petnbu.petnbu.jobs
 
 import android.arch.lifecycle.Observer
-import android.net.Uri
+import androidx.core.net.toUri
 import androidx.work.Data
 import androidx.work.Worker
 import com.google.gson.Gson
@@ -60,7 +60,7 @@ class CreateCommentWorker : Worker() {
                         try {
                             if (comment.photo != null) {
                                 comment.photo?.run {
-                                    val key = Uri.parse(this.originUrl).lastPathSegment
+                                    val key = originUrl.toUri().lastPathSegment
                                     val jsonPhoto = data.getString(key, "")
                                     if (!jsonPhoto.isNullOrEmpty()) {
                                         val uploadedPhoto = Gson().fromJson(jsonPhoto, Photo::class.java)

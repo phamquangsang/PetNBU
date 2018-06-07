@@ -1,5 +1,6 @@
 package com.petnbu.petnbu.util
 
+import androidx.core.content.edit
 import com.petnbu.petnbu.PetApplication
 
 object SharedPrefUtil {
@@ -10,6 +11,8 @@ object SharedPrefUtil {
         get() = PetApplication.appComponent.sharedPref.getString(KEY_LOGGED_USER_ID, "") ?: ""
 
     fun saveUserId(userId: String) {
-        PetApplication.appComponent.sharedPref.edit()?.putString(KEY_LOGGED_USER_ID, userId)?.apply()
+        PetApplication.appComponent.sharedPref.edit {
+            putString(KEY_LOGGED_USER_ID, userId)
+        }
     }
 }

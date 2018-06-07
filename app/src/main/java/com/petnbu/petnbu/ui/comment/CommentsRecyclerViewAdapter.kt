@@ -2,20 +2,17 @@ package com.petnbu.petnbu.ui.comment
 
 import android.content.Context
 import android.graphics.Color
-import android.graphics.Typeface
 import android.os.Bundle
 import android.support.v7.recyclerview.extensions.ListAdapter
 import android.support.v7.util.DiffUtil
 import android.support.v7.widget.RecyclerView
 import android.text.SpannableStringBuilder
-import android.text.Spanned
 import android.text.format.DateUtils
-import android.text.style.ForegroundColorSpan
-import android.text.style.StyleSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.petnbu.petnbu.ui.BaseBindingViewHolder
+import androidx.core.text.bold
+import androidx.core.text.color
 import com.petnbu.petnbu.GlideApp
 import com.petnbu.petnbu.GlideRequests
 import com.petnbu.petnbu.R
@@ -23,6 +20,7 @@ import com.petnbu.petnbu.databinding.ViewCommentBinding
 import com.petnbu.petnbu.databinding.ViewLoadingBinding
 import com.petnbu.petnbu.model.CommentUI
 import com.petnbu.petnbu.model.LocalStatus
+import com.petnbu.petnbu.ui.BaseBindingViewHolder
 import com.petnbu.petnbu.util.ColorUtils
 import java.util.*
 
@@ -127,9 +125,9 @@ class CommentsRecyclerViewAdapter(context: Context,
             comment = item
 
             (payloads[0] as? Bundle)?.run {
-                if(getBoolean("like_status"))
+                if (getBoolean("like_status"))
                     displayLikeInfo()
-                if(getBoolean("latest_comment"))
+                if (getBoolean("latest_comment"))
                     displayReplies()
             }
         }
@@ -145,19 +143,16 @@ class CommentsRecyclerViewAdapter(context: Context,
 
         private fun displayContent() {
             comment.owner?.run {
-                val contentBuilder = SpannableStringBuilder()
-                contentBuilder.apply {
-                    var start = 0
-                    append(name)
-                    setSpan(StyleSpan(Typeface.BOLD), start, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                    setSpan(ForegroundColorSpan(Color.BLACK), start, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                    append("  ")
-
-                    start = length
-                    append(comment.content)
-                    setSpan(ForegroundColorSpan(ColorUtils.modifyAlpha(Color.BLACK, 0.8f)), start, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                }
-                mBinding.tvContent.text = contentBuilder
+                mBinding.tvContent.text = SpannableStringBuilder()
+                        .bold {
+                            color(color = Color.BLACK) {
+                                append(name)
+                            }
+                        }
+                        .append("  ")
+                        .color(color = ColorUtils.modifyAlpha(Color.BLACK, 0.8f)) {
+                            append(comment.content)
+                        }
             }
 
             comment.photo?.run {
@@ -223,19 +218,16 @@ class CommentsRecyclerViewAdapter(context: Context,
                 mBinding.tvLatestComment.visibility = View.VISIBLE
                 mBinding.tvPreviousReplies.visibility = View.VISIBLE
 
-                val repliesBuilder = SpannableStringBuilder()
-                repliesBuilder.apply {
-                    var start = 0
-                    append(comment.latestCommentOwnerName)
-                    setSpan(StyleSpan(Typeface.BOLD), start, repliesBuilder.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                    setSpan(ForegroundColorSpan(Color.BLACK), start, repliesBuilder.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                    append("  ")
-
-                    start = repliesBuilder.length
-                    append(if (comment.latestCommentPhoto != null) "replied" else comment.latestCommentContent)
-                    setSpan(ForegroundColorSpan(ColorUtils.modifyAlpha(Color.BLACK, 0.8f)), start, repliesBuilder.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                }
-                mBinding.tvLatestComment.text = repliesBuilder
+                mBinding.tvLatestComment.text = SpannableStringBuilder()
+                        .bold {
+                            color(color = Color.BLACK) {
+                                append(comment.latestCommentOwnerName)
+                            }
+                        }
+                        .append("  ")
+                        .color(color = ColorUtils.modifyAlpha(Color.BLACK, 0.8f)) {
+                            append("${if (comment.latestCommentPhoto != null) "replied" else comment.latestCommentContent}")
+                        }
 
                 if (comment.commentCount > 1) {
                     mBinding.tvPreviousReplies.visibility = View.VISIBLE
@@ -278,11 +270,11 @@ class CommentsRecyclerViewAdapter(context: Context,
                 if (oldItem.likeInProgress != newItem.likeInProgress || oldItem.isLiked != newItem.isLiked) {
                     putBoolean("like_status", true)
                 }
-                if(oldItem.latestCommentId != newItem.latestCommentId) {
+                if (oldItem.latestCommentId != newItem.latestCommentId) {
                     putBoolean("latest_comment", true)
                 }
             }
-            return if(!bundle.isEmpty) bundle else super.getChangePayload(oldItem, newItem)
+            return if (!bundle.isEmpty) bundle else super.getChangePayload(oldItem, newItem)
         }
     }
 

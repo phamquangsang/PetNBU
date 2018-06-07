@@ -15,6 +15,7 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import com.petnbu.petnbu.GlideApp
 import com.petnbu.petnbu.R
 import com.petnbu.petnbu.databinding.FragmentCommentsBinding
@@ -178,9 +179,7 @@ class CommentsFragment : Fragment() {
 
         fun newInstance(feedId: String): CommentsFragment {
             return CommentsFragment().apply {
-                arguments = Bundle().apply {
-                    putString(EXTRA_FEED_ID, feedId)
-                }
+                arguments = bundleOf(EXTRA_FEED_ID to feedId)
             }
         }
     }

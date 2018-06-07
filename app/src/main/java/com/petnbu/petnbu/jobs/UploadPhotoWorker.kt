@@ -1,7 +1,7 @@
 package com.petnbu.petnbu.jobs
 
-import android.net.Uri
 import android.webkit.URLUtil
+import androidx.core.net.toUri
 import androidx.work.Data
 import androidx.work.Worker
 import com.google.gson.Gson
@@ -31,7 +31,7 @@ class UploadPhotoWorker : Worker() {
             try {
                 if (!jsonPhoto.isNullOrEmpty()) {
                     val photo = Gson().fromJson(jsonPhoto, Photo::class.java)
-                    val key = Uri.parse(photo.originUrl).lastPathSegment
+                    val key = photo.originUrl.toUri().lastPathSegment
                     if (!URLUtil.isHttpUrl(photo.originUrl) && !URLUtil.isHttpsUrl(photo.originUrl)) {
                         val countDownLatch = CountDownLatch(1)
                         uploadPhoto(photo, countDownLatch)
@@ -57,7 +57,7 @@ class UploadPhotoWorker : Worker() {
         object : StorageApi.OnUploadingImage(urls) {
 
             override fun onCompleted(result: List<String>) {
-                val key = Uri.parse(photo.originUrl).lastPathSegment
+                val key = photo.originUrl.toUri().lastPathSegment
 
                 result.onEach {
                     when {

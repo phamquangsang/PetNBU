@@ -3,15 +3,14 @@ package com.petnbu.petnbu.api
 
 import android.graphics.Bitmap
 import android.net.Uri
+import androidx.core.net.toUri
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.UploadTask
 import com.petnbu.petnbu.BuildConfig
 import timber.log.Timber
 import java.io.ByteArrayOutputStream
-import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.collections.ArrayList
 
 /**
  * Created by Quang Quang on 11/23/2016.
@@ -68,9 +67,9 @@ object StorageApi {
 
 
         fun start() {
-            for (file in mList) {
-                val uri = Uri.parse(file)
-                updateImage(uri, uri.lastPathSegment, mOnResultListener)
+            for (filePath in mList) {
+                val fileUri = filePath.toUri()
+                updateImage(fileUri, fileUri.lastPathSegment, mOnResultListener)
             }
         }
 

@@ -2,10 +2,9 @@ package com.petnbu.petnbu.repo
 
 import android.arch.lifecycle.*
 import android.arch.lifecycle.Observer
-import android.net.Uri
+import androidx.core.net.toUri
 import androidx.work.*
 import com.petnbu.petnbu.AppExecutors
-import com.petnbu.petnbu.util.SharedPrefUtil
 import com.petnbu.petnbu.api.ApiResponse
 import com.petnbu.petnbu.api.WebService
 import com.petnbu.petnbu.db.PetDb
@@ -13,10 +12,7 @@ import com.petnbu.petnbu.jobs.CompressPhotoWorker
 import com.petnbu.petnbu.jobs.CreateCommentWorker
 import com.petnbu.petnbu.jobs.UploadPhotoWorker
 import com.petnbu.petnbu.model.*
-import com.petnbu.petnbu.util.IdUtil
-import com.petnbu.petnbu.util.RateLimiter
-import com.petnbu.petnbu.util.Toaster
-import com.petnbu.petnbu.util.TraceUtils
+import com.petnbu.petnbu.util.*
 import timber.log.Timber
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -250,7 +246,7 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors,
                     .setInputData(CompressPhotoWorker.data(this))
                     .build()
 
-            val key = Uri.parse(this.originUrl).lastPathSegment
+            val key = originUrl.toUri().lastPathSegment
             val uploadWork = OneTimeWorkRequest.Builder(UploadPhotoWorker::class.java)
                     .setConstraints(uploadConstraints)
                     .setInputData(Data.Builder().putString(UploadPhotoWorker.KEY_PHOTO, key).build())

@@ -1,7 +1,7 @@
 package com.petnbu.petnbu.jobs
 
 import android.arch.lifecycle.Observer
-import android.net.Uri
+import androidx.core.net.toUri
 import androidx.work.Data
 import androidx.work.Worker
 import com.google.gson.Gson
@@ -63,7 +63,7 @@ class CreateEditFeedWorker : Worker() {
                     val gson = Gson()
                     var uploadedPhotosFailed = false
                     for (photo in feed.photos) {
-                        val key = Uri.parse(photo.originUrl).lastPathSegment
+                        val key = photo.originUrl.toUri().lastPathSegment
                         val jsonPhotoArray = inputData.getStringArray(key)
                         var uploadedPhoto: Photo? = null
 
