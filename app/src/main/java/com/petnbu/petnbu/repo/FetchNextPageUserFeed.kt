@@ -29,7 +29,7 @@ class FetchNextPageUserFeed(private val mUserId: String, private val mPagingId: 
         }
 
         liveData.postValue(Resource(Status.LOADING, null, null))
-        val result = mWebService.getUserFeed(SharedPrefUtil.userId, currentPaging.oldestId!!, FeedRepository.FEEDS_PER_PAGE)
+        val result = mWebService.getUserFeed(mUserId, currentPaging.oldestId!!, FeedRepository.FEEDS_PER_PAGE)
         result.observeForever(object : Observer<ApiResponse<List<Feed>>> {
             override fun onChanged(listApiResponse: ApiResponse<List<Feed>>?) {
                 if (listApiResponse != null) {

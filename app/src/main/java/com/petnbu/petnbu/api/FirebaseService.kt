@@ -195,7 +195,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                                         result.postValue(ApiResponse(feedResponse, true, null))
                                     }.addOnFailureListener { e -> result.setValue(ApiResponse(e)) }
                         } else {
-                            result.setValue(ApiResponse(null, false, "feedId $afterFeedId does not exist"))
+                            result.postValue(ApiResponse(null, false, "feedId $afterFeedId does not exist"))
                         }
 
                     }
