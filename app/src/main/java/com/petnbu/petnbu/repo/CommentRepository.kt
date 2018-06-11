@@ -398,6 +398,6 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors,
     }
 
     companion object {
-        const val COMMENT_PER_PAGE = 10
+        const val COMMENT_PER_PAGE = 30
     }
 }
