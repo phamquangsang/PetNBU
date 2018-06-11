@@ -112,7 +112,6 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                     mExecutors.networkIO().execute {
                         val feedResponse = ArrayList<Feed>(limit)
                         for (doc in queryDocumentSnapshots.documents) {
-                            Timber.i(doc.toString())
                             doc.toObject(Feed::class.java)?.run { feedResponse.add(this) }
                         }
                         Timber.i("onSuccess: loaded %d feed(s)", queryDocumentSnapshots.documents.size)
@@ -167,7 +166,6 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                     mExecutors.networkIO().execute {
                         val feedResponse = ArrayList<Feed>(limit)
                         for (doc in queryDocumentSnapshots) {
-                            Timber.i("Feed: %s", doc.toString())
                             feedResponse.add(doc.toObject(Feed::class.java))
                         }
                         result.postValue(ApiResponse(feedResponse, true, null))
@@ -211,7 +209,6 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                 .addOnSuccessListener { queryDocumentSnapshots ->
                     mExecutors.networkIO().execute {
                         val feed = queryDocumentSnapshots.toObject(Feed::class.java)
-                        Timber.i("onSuccess: loaded %s feed(s)", feed)
                         result.postValue(ApiResponse(feed, true, null))
                     }
                 }.addOnFailureListener { e ->
