@@ -24,7 +24,8 @@ import javax.inject.Singleton
 
 @Singleton
 class FeedRepository @Inject
-constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, private val mWebService: WebService, private val mToaster: Toaster) {
+constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors,
+            private val mWebService: WebService, private val mToaster: Toaster) {
 
     private val mRateLimiter = RateLimiter<String>(10, TimeUnit.MINUTES)
 

@@ -84,7 +84,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                         val batch = mDb.batch()
                         val doc = mDb.collection(GLOBAL_FEEDS).document(feedId)
                         batch.update(doc, updates)
-                        val userFeed = mDb.document(String.format("users/%s/feeds/%s", this.feedUser.userId, feedId))
+                        val userFeed = mDb.document("users/${this.feedUser.userId}/feeds/$feedId")
                         batch.update(userFeed, updates)
                         batch.commit()
                                 .addOnSuccessListener {
@@ -114,7 +114,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                         for (doc in queryDocumentSnapshots.documents) {
                             doc.toObject(Feed::class.java)?.run { feedResponse.add(this) }
                         }
-                        Timber.i("onSuccess: loaded %d feed(s)", queryDocumentSnapshots.documents.size)
+                        Timber.i("onSuccess: loaded ${queryDocumentSnapshots.documents.size} feed(s)")
                         result.postValue(ApiResponse(feedResponse, true, null))
                     }
                 }.addOnFailureListener { e ->
