@@ -109,12 +109,9 @@ class CreateCommentWorker : Worker() {
                 mAppExecutors.mainThread().execute {
                     apiResponse.removeObserver(this)
                 }
-
-
                 if (commentApiResponse != null && commentApiResponse.isSuccessful && commentApiResponse.body != null) {
                     Timber.d("create comment %s success", comment.id)
                     val newComment = commentApiResponse.body
-
                     mAppExecutors.diskIO().execute {
                         mPetDb.runInTransaction {
                             val feedCommentPaging = mPetDb.pagingDao().findFeedPaging(Paging.feedCommentsPagingId(comment.parentFeedId!!))
@@ -129,7 +126,6 @@ class CreateCommentWorker : Worker() {
                             parentFeed?.apply {
                                 mPetDb.feedDao().updateLatestCommentId(newComment.id, parentFeed.commentCount + 1, newComment.parentFeedId!!)
                             }
-
                         }
                     }
                 } else {
