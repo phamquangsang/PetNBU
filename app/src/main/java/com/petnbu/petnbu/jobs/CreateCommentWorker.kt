@@ -114,7 +114,8 @@ class CreateCommentWorker : Worker() {
                     val newComment = commentApiResponse.body
                     mAppExecutors.diskIO().execute {
                         mPetDb.runInTransaction {
-                            val feedCommentPaging = mPetDb.pagingDao().findFeedPaging(Paging.feedCommentsPagingId(comment.parentFeedId!!))
+                            val feedCommentPaging = mPetDb.pagingDao()
+                                    .findFeedPaging(Paging.feedCommentsPagingId(comment.parentFeedId!!))
                             feedCommentPaging?.apply {
                                 this.getIds()!!.add(0, newComment.id)
                                 mPetDb.pagingDao().update(this)
@@ -124,7 +125,8 @@ class CreateCommentWorker : Worker() {
                             mCommentDao.update(newComment.toEntity())
                             val parentFeed = mPetDb.feedDao().findFeedEntityById(comment.parentFeedId!!)
                             parentFeed?.apply {
-                                mPetDb.feedDao().updateLatestCommentId(newComment.id, parentFeed.commentCount + 1, newComment.parentFeedId!!)
+                                mPetDb.feedDao().updateLatestCommentId(newComment.id,
+                                        parentFeed.commentCount + 1, newComment.parentFeedId!!)
                             }
                         }
                     }
