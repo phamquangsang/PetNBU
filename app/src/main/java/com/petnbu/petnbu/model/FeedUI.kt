@@ -25,4 +25,10 @@ data class FeedUI(val feedId: String,
                   val commentPhoto: Photo? = null,
                   @LocalStatus.LOCAL_STATUS val status: Int = 0)
 
+fun FeedUI.isUploading() = LocalStatus.STATUS_UPLOADING == status
+
+fun FeedUI.isUploadingError() = LocalStatus.STATUS_ERROR == status
+
+fun FeedUI.isPhotosAvailable() = if(photos != null && photos.isNotEmpty()) photos else null
+
 

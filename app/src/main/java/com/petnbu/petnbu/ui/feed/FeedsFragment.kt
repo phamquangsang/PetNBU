@@ -13,6 +13,7 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import com.petnbu.petnbu.R
 import com.petnbu.petnbu.databinding.FragmentFeedsBinding
 import com.petnbu.petnbu.model.FeedUI
@@ -79,8 +80,7 @@ class FeedsFragment : Fragment() {
         feedsViewModel.loadMoreState.observe(this, Observer { state ->
             state?.run {
                 Timber.i(toString())
-
-                mBinding.progressBar.visibility = if (isRunning) View.VISIBLE else View.GONE
+                mBinding.progressBar.isVisible = isRunning
 
                 errorMessageIfNotHandled?.run {
                     SnackbarUtils.showSnackbar(mBinding.root, this)

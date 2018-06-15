@@ -13,13 +13,15 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.text.bold
 import androidx.core.text.color
+import androidx.core.view.isInvisible
+import androidx.core.view.isVisible
 import com.petnbu.petnbu.GlideApp
 import com.petnbu.petnbu.R
 import com.petnbu.petnbu.databinding.ViewCommentBinding
 import com.petnbu.petnbu.databinding.ViewLoadingBinding
 import com.petnbu.petnbu.model.CommentUI
-import com.petnbu.petnbu.model.LocalStatus
 import com.petnbu.petnbu.model.Photo
+import com.petnbu.petnbu.model.isUploading
 import com.petnbu.petnbu.ui.BaseBindingViewHolder
 import com.petnbu.petnbu.util.ColorUtils
 import java.util.*
@@ -84,10 +86,8 @@ class RepliesRecyclerViewAdapter(context: Context,
             mBinding.imgProfile.setOnClickListener {
                 if (adapterPosition != RecyclerView.NO_POSITION) {
                     getItem(adapterPosition).run {
-                        owner?.run {
-                            if (localStatus != LocalStatus.STATUS_UPLOADING)
-                                commentsViewModel.openUserProfile(userId)
-                        }
+                        if (!isUploading())
+                            commentsViewModel.openUserProfile(owner.userId)
                     }
                 }
             }
@@ -95,7 +95,7 @@ class RepliesRecyclerViewAdapter(context: Context,
             mBinding.imgLike.setOnClickListener {
                 if (adapterPosition != RecyclerView.NO_POSITION) {
                     getItem(adapterPosition).run {
-                        if (localStatus != LocalStatus.STATUS_UPLOADING)
+                        if (!isUploading())
                             commentsViewModel.likeSubCommentClicked(id)
                     }
                 }
@@ -119,7 +119,7 @@ class RepliesRecyclerViewAdapter(context: Context,
         }
 
         private fun displayUserInfo() {
-            comment.owner?.run {
+            comment.owner.run {
                 val avatarUrl = if (!avatar.thumbnailUrl.isNullOrEmpty()) avatar.thumbnailUrl else avatar.originUrl
                 glideRequests.load(avatarUrl)
                         .centerInside()
@@ -128,67 +128,62 @@ class RepliesRecyclerViewAdapter(context: Context,
         }
 
         private fun displayContent() {
-            comment.owner?.run {
-                mBinding.tvContent.text = SpannableStringBuilder()
-                        .bold {
-                            color(color = Color.BLACK) {
-                                append(name)
-                            }
+            mBinding.tvContent.text = SpannableStringBuilder()
+                    .bold {
+                        color(color = Color.BLACK) {
+                            append(comment.owner.name)
                         }
-                        .append("  ")
-                        .color(color = ColorUtils.modifyAlpha(Color.BLACK, 0.8f)) {
-                            append(comment.content)
-                        }
-            }
+                    }
+                    .append("  ")
+                    .color(color = ColorUtils.modifyAlpha(Color.BLACK, 0.8f)) {
+                        append(comment.content)
+                    }
 
             comment.photo?.run {
-                mBinding.imgPhoto.visibility = View.VISIBLE
+                mBinding.imgPhoto.isVisible = true
 
                 val ratio = width / height.toFloat()
-                if (width > height) {
+                if (width > height)
                     mBinding.imgPhoto.set(1.0f, 1 / ratio)
-                } else {
+                else
                     mBinding.imgPhoto.set(1.0f / 2, 1 / (2 * ratio))
-                }
 
                 val photoUrl = if (!smallUrl.isNullOrEmpty()) smallUrl else originUrl
                 glideRequests.load(photoUrl)
                         .centerInside()
                         .into(mBinding.imgPhoto)
             } ?: kotlin.run {
-                mBinding.imgPhoto.visibility = View.GONE
+                mBinding.imgPhoto.isVisible = false
             }
         }
 
         private fun displayInfo() {
-            comment.timeCreated?.run {
-                mBinding.tvDate.text = DateUtils.getRelativeTimeSpanString(time,
-                        Calendar.getInstance().timeInMillis, 0L, DateUtils.FORMAT_ABBREV_RELATIVE)
-            }
+            mBinding.tvDate.text = DateUtils.getRelativeTimeSpanString(comment.timeCreated.time,
+                    Calendar.getInstance().timeInMillis, 0L, DateUtils.FORMAT_ABBREV_RELATIVE)
 
             if (comment.id != commentId) {
-                mBinding.divider.visibility = View.INVISIBLE
+                mBinding.divider.isInvisible = true
                 displayLikeInfo()
             } else {
-                mBinding.divider.visibility = View.VISIBLE
-                mBinding.progressBar.visibility = View.GONE
+                mBinding.divider.isVisible = true
+                mBinding.progressBar.isVisible = false
             }
         }
 
         private fun displayLikeInfo() {
-            if (comment.localStatus == LocalStatus.STATUS_UPLOADING || comment.likeInProgress) {
-                mBinding.imgLike.visibility = View.INVISIBLE
-                mBinding.progressBar.visibility = View.VISIBLE
+            if (comment.isUploading() || comment.likeInProgress) {
+                mBinding.imgLike.isInvisible = true
+                mBinding.progressBar.isVisible = true
             } else {
-                mBinding.imgLike.visibility = View.VISIBLE
-                mBinding.progressBar.visibility = View.GONE
+                mBinding.imgLike.isVisible = true
+                mBinding.progressBar.isVisible = false
                 mBinding.imgLike.setImageResource(if (comment.isLiked) R.drawable.ic_favorite_red_24dp else R.drawable.ic_favorite_border_black_24dp)
             }
             if (comment.likeCount > 0) {
-                mBinding.tvLikesCount.visibility = View.VISIBLE
+                mBinding.tvLikesCount.isVisible = true
                 mBinding.tvLikesCount.text = "${comment.likeCount} ${if (comment.likeCount > 1) "likes" else "like"}"
             } else {
-                mBinding.tvLikesCount.visibility = View.GONE
+                mBinding.tvLikesCount.isVisible = false
             }
         }
     }
@@ -207,16 +202,13 @@ class RepliesRecyclerViewAdapter(context: Context,
         override fun areContentsTheSame(oldItem: CommentUI, newItem: CommentUI) = oldItem == newItem
 
         override fun getChangePayload(oldItem: CommentUI, newItem: CommentUI): Any? {
-            val bundle = Bundle()
-            bundle.apply {
-                if (oldItem.likeInProgress != newItem.likeInProgress || oldItem.isLiked != newItem.isLiked) {
+            val bundle = Bundle().apply {
+                if (oldItem.likeInProgress != newItem.likeInProgress || oldItem.isLiked != newItem.isLiked)
                     putBoolean("like_status", true)
-                }
-                if(oldItem.latestCommentId != newItem.latestCommentId) {
+                if (oldItem.latestCommentId != newItem.latestCommentId)
                     putBoolean("latest_comment", true)
-                }
             }
-            return if(!bundle.isEmpty) bundle else super.getChangePayload(oldItem, newItem)
+            return if (!bundle.isEmpty) bundle else super.getChangePayload(oldItem, newItem)
         }
     }
 

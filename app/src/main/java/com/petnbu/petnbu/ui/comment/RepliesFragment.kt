@@ -16,6 +16,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
+import androidx.core.view.isVisible
 import com.petnbu.petnbu.GlideApp
 import com.petnbu.petnbu.R
 import com.petnbu.petnbu.databinding.FragmentRepliesCommentsBinding
@@ -150,10 +151,10 @@ class RepliesFragment : Fragment() {
     }
 
     private fun showSelectedPhoto() {
-        mBinding.layoutInputComment.layoutSelectedPhoto.visibility = View.VISIBLE
+        mBinding.layoutInputComment.layoutSelectedPhoto.isVisible = true
         mBinding.layoutInputComment.imgRemoveSelectedPhoto.setOnClickListener { _ ->
             selectedPhoto = null
-            mBinding.layoutInputComment.layoutSelectedPhoto.visibility = View.GONE
+            mBinding.layoutInputComment.layoutSelectedPhoto.isVisible = false
             mBinding.layoutInputComment.imgSelectedPhoto.setImageDrawable(null)
             checkToEnablePostMenu()
         }

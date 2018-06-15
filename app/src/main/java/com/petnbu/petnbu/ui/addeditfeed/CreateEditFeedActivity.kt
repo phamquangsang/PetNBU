@@ -17,8 +17,9 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import android.view.ViewTreeObserver
+import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
 import com.bumptech.glide.request.target.BitmapImageViewTarget
 import com.bumptech.glide.request.transition.Transition
 import com.petnbu.petnbu.GlideApp
@@ -151,12 +152,13 @@ class CreateEditFeedActivity : AppCompatActivity() {
         mBinding.rvMedia.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
             override fun onGlobalLayout() {
                 mBinding.rvMedia.viewTreeObserver.removeOnGlobalLayoutListener(this)
-                val layoutParams = mBinding.rvMedia.layoutParams as ConstraintLayout.LayoutParams
                 val minHeight = (mBinding.edText.top + mBinding.rvMedia.top - mBinding.edText.bottom
                         - (mBinding.edText.paddingBottom + mBinding.edText.paddingTop))
                 mBinding.edText.minHeight = minHeight
-                layoutParams.topToBottom = mBinding.edText.id
-                mBinding.rvMedia.layoutParams = layoutParams
+
+                mBinding.rvMedia.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                    topToBottom = mBinding.edText.id
+                }
             }
         })
     }
@@ -248,15 +250,10 @@ class CreateEditFeedActivity : AppCompatActivity() {
     }
 
     private fun setPlaceHolderLayoutVisibility(placeHolderLayoutVisibility: Boolean) {
-        if (placeHolderLayoutVisibility) {
-            mBinding.tvUserName.visibility = View.GONE
-            mBinding.tvUserNamePlaceHolder.visibility = View.VISIBLE
-            mBinding.imgProfile.circleBackgroundColor = ContextCompat.getColor(this, R.color.placeholderBackground)
-        } else {
-            mBinding.tvUserName.visibility = View.VISIBLE
-            mBinding.tvUserNamePlaceHolder.visibility = View.GONE
-            mBinding.imgProfile.circleBackgroundColor = ContextCompat.getColor(this, android.R.color.transparent)
-        }
+        mBinding.tvUserName.isVisible = !placeHolderLayoutVisibility
+        mBinding.tvUserNamePlaceHolder.isVisible = placeHolderLayoutVisibility
+        mBinding.imgProfile.circleBackgroundColor = ContextCompat.getColor(this,
+                if (placeHolderLayoutVisibility) R.color.placeholderBackground else android.R.color.transparent)
     }
 
     companion object {

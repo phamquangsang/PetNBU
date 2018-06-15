@@ -16,6 +16,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
+import androidx.core.view.isVisible
 import com.petnbu.petnbu.GlideApp
 import com.petnbu.petnbu.R
 import com.petnbu.petnbu.databinding.FragmentCommentsBinding
@@ -110,7 +111,7 @@ class CommentsFragment : Fragment() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == OPEN_GALLERY_REQUEST_CODE) {
             if (resultCode == Activity.RESULT_OK) {
-                data?.data?.run photoUri@ {
+                data?.data?.run photoUri@{
                     PermissionUtils.requestPersistablePermission(activity, data, this)
 
                     Utils.getBitmapSize(activity, this)?.run {
@@ -143,14 +144,14 @@ class CommentsFragment : Fragment() {
     }
 
     private fun showSelectedPhoto() {
-        mBinding.layoutInputComment.layoutSelectedPhoto.visibility = View.VISIBLE
+        mBinding.layoutInputComment.layoutSelectedPhoto.isVisible = true
         mBinding.layoutInputComment.imgRemoveSelectedPhoto.setOnClickListener { _ ->
             selectedPhoto = null
-            mBinding.layoutInputComment.layoutSelectedPhoto.visibility = View.GONE
+            mBinding.layoutInputComment.layoutSelectedPhoto.isVisible = false
             mBinding.layoutInputComment.imgSelectedPhoto.setImageDrawable(null)
             checkToEnablePostMenu()
         }
-        activity?.run activity@ {
+        activity?.run activity@{
             selectedPhoto?.run {
                 GlideApp.with(this@activity)
                         .load(originUrl)

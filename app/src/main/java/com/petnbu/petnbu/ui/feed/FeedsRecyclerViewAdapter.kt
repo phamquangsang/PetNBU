@@ -22,13 +22,13 @@ import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import com.petnbu.petnbu.GlideApp
+import com.petnbu.petnbu.GlideRequests
 import com.petnbu.petnbu.R
 import com.petnbu.petnbu.databinding.ViewFeedBinding
-import com.petnbu.petnbu.model.FeedUI
-import com.petnbu.petnbu.model.LocalStatus.STATUS_ERROR
-import com.petnbu.petnbu.model.LocalStatus.STATUS_UPLOADING
-import com.petnbu.petnbu.model.Photo
+import com.petnbu.petnbu.databinding.ViewFeedPhotosBinding
+import com.petnbu.petnbu.model.*
 import com.petnbu.petnbu.ui.BaseBindingViewHolder
+import com.petnbu.petnbu.util.ImageUtils
 import com.petnbu.petnbu.util.TraceUtils
 import com.petnbu.petnbu.util.Utils
 import java.util.*
@@ -42,7 +42,7 @@ class FeedsRecyclerViewAdapter(context: Context,
     private val lastSelectedPhotoPositions = ArrayMap<String, Int>()
     private val feedPhotosViewPool = RecyclerView.RecycledViewPool()
 
-    private var maxPhotoHeight: Int = 0
+    private var maxPhotoHeight = 0
     private val deviceWidth = Utils.getDeviceWidth(context)
     private val minPhotoHeight = Utils.goldenRatio(Utils.getDeviceWidth(context), true)
 
@@ -122,7 +122,7 @@ class FeedsRecyclerViewAdapter(context: Context,
             TraceUtils.begin("bind Feed")
             feed = item
 
-            if (feed.status == STATUS_UPLOADING) {
+            if (feed.isUploading()) {
                 mBinding.layoutRoot.setShouldInterceptEvents(true)
                 mBinding.layoutDisable.isVisible = true
                 mBinding.viewLoading.progressBar.isVisible = true
@@ -137,7 +137,7 @@ class FeedsRecyclerViewAdapter(context: Context,
             } else {
                 mBinding.layoutRoot.setShouldInterceptEvents(false)
 
-                if (feed.status == STATUS_ERROR) {
+                if (feed.isUploadingError()) {
                     mBinding.layoutError.isVisible = true
                     mBinding.viewLoading.progressBar.isVisible = false
                     mBinding.imgLike.isVisible = false
@@ -198,19 +198,17 @@ class FeedsRecyclerViewAdapter(context: Context,
 
         @SuppressLint("SetTextI18n")
         private fun displayPhotos() {
-            feed.photos?.run {
-                if (isNotEmpty()) {
-                    constraintHeightForPhoto(this[0].width, this[0].height)
+            feed.isPhotosAvailable()?.run {
+                constraintHeightForPhoto(this[0].width, this[0].height)
 
-                    mBinding.rvPhotos.adapter = FeedPhotosAdapter(feed, glideRequests, object : FeedPhotosAdapter.OnItemClickListener {
-                        override fun onPhotoClicked() {}
-                    }, deviceWidth)
+                mBinding.rvPhotos.adapter = FeedPhotosAdapter(this, glideRequests, object : FeedPhotosAdapter.OnItemClickListener {
+                    override fun onPhotoClicked() {}
+                }, deviceWidth)
 
-                    val currentPos = lastSelectedPhotoPositions[feed.feedId] ?: 0
-                    mBinding.rvPhotos.scrollToPosition(currentPos)
-                    mBinding.tvPhotosCount.text = "${currentPos + 1}/$size"
-                    mBinding.tvPhotosCount.isVisible = size > 1
-                }
+                val currentPos = lastSelectedPhotoPositions[feed.feedId] ?: 0
+                mBinding.rvPhotos.scrollToPosition(currentPos)
+                mBinding.tvPhotosCount.text = "${currentPos + 1}/$size"
+                mBinding.tvPhotosCount.isVisible = size > 1
             }
         }
 
@@ -240,7 +238,7 @@ class FeedsRecyclerViewAdapter(context: Context,
                     if (!isEmpty())
                         append("\n")
 
-                    feed.commentOwnerName?.run commentOwnerName@ {
+                    feed.commentOwnerName?.run commentOwnerName@{
                         bold {
                             append(this@commentOwnerName)
                         }
@@ -270,23 +268,58 @@ class FeedsRecyclerViewAdapter(context: Context,
 
     private class FeedDiffCallback : DiffUtil.ItemCallback<FeedUI>() {
 
-        override fun areItemsTheSame(oldItem: FeedUI, newItem: FeedUI) =
-                oldItem.feedId == newItem.feedId
+        override fun areItemsTheSame(oldItem: FeedUI, newItem: FeedUI) = oldItem.feedId == newItem.feedId
 
-        override fun areContentsTheSame(oldItem: FeedUI, newItem: FeedUI) =
-                oldItem == newItem
+        override fun areContentsTheSame(oldItem: FeedUI, newItem: FeedUI) = oldItem == newItem
 
         override fun getChangePayload(oldItem: FeedUI, newItem: FeedUI): Any? {
-            val bundle = Bundle()
-            if (oldItem.likeInProgress != newItem.likeInProgress
-                    || oldItem.isLiked != newItem.isLiked) {
-                bundle.putBoolean("like_status", true)
-            }
-            if (!oldItem.latestCommentId.isNullOrEmpty()
-                    && oldItem.latestCommentId != newItem.latestCommentId) {
-                bundle.putBoolean("latest_comment", true)
+            val bundle = Bundle().apply {
+                if (oldItem.likeInProgress != newItem.likeInProgress || oldItem.isLiked != newItem.isLiked)
+                    putBoolean("like_status", true)
+                if (!oldItem.latestCommentId.isNullOrEmpty() && oldItem.latestCommentId != newItem.latestCommentId)
+                    putBoolean("latest_comment", true)
             }
             return if (!bundle.isEmpty) bundle else super.getChangePayload(oldItem, newItem)
+        }
+    }
+
+    private class FeedPhotosAdapter(private val photos: List<Photo>,
+                                    private val glideRequests: GlideRequests,
+                                    private val onItemClickListener: OnItemClickListener,
+                                    private val imageWidth: Int)
+        : RecyclerView.Adapter<FeedPhotosAdapter.PhotoHolder>() {
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PhotoHolder {
+            val view = LayoutInflater.from(parent.context).inflate(R.layout.view_feed_photos, parent, false)
+            return PhotoHolder(view)
+        }
+
+        override fun onBindViewHolder(holder: PhotoHolder, position: Int) {
+            holder.bindData(photos[position])
+        }
+
+        override fun getItemCount() = photos.size
+
+        inner class PhotoHolder constructor(itemView: View) : BaseBindingViewHolder<ViewFeedPhotosBinding, Photo>(itemView) {
+
+            init {
+                itemView.updateLayoutParams { width = imageWidth }
+            }
+
+            override fun bindData(photo: Photo) {
+                val photoUrl = ImageUtils.getPhotoUrl(photo, imageWidth)
+                glideRequests
+                        .load(if (!photoUrl.isNullOrBlank()) photoUrl else photo.originUrl)
+                        .centerInside()
+                        .into(mBinding.imgContent)
+            }
+
+            override fun bindData(item: Photo, payloads: List<Any>) {}
+        }
+
+        interface OnItemClickListener {
+
+            fun onPhotoClicked()
         }
     }
 

@@ -12,6 +12,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
+import androidx.core.view.isVisible
 import com.petnbu.petnbu.GlideApp
 import com.petnbu.petnbu.R
 import com.petnbu.petnbu.databinding.FragmentFeedProfileListBinding
@@ -67,8 +68,8 @@ class UserProfileFragment : Fragment() {
 
                     getUser(userId).observe(this@UserProfileFragment, Observer { user ->
                         user?.run {
-                            mBinding.tvUserNamePlaceHolder.visibility = View.GONE
-                            mBinding.tvUserName.visibility = View.VISIBLE
+                            mBinding.tvUserNamePlaceHolder.isVisible = false
+                            mBinding.tvUserName.isVisible = true
                             mBinding.tvUserName.text = name
 
                             GlideApp.with(this@UserProfileFragment)

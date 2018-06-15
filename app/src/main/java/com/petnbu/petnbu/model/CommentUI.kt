@@ -2,11 +2,9 @@ package com.petnbu.petnbu.model
 
 import android.arch.persistence.room.Embedded
 import android.arch.persistence.room.TypeConverters
-
 import com.google.firebase.firestore.Exclude
 import com.petnbu.petnbu.db.PhotoConverters
-
-import java.util.Date
+import java.util.*
 
 @TypeConverters(PhotoConverters::class)
 data class CommentUI(
@@ -38,3 +36,5 @@ data class CommentUI(
         val latestCommentOwnerAvatar: Photo? = null,
         val latestCommentPhoto: Photo? = null
 )
+
+fun CommentUI.isUploading() = LocalStatus.STATUS_UPLOADING == localStatus
