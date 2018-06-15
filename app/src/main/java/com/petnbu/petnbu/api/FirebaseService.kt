@@ -25,7 +25,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                             for (user in documentsSnapshot) {
                                 users.add(user.toObject(UserEntity::class.java))
                             }
-                            result.setValue(ApiResponse(users, true, null))
+                            result.setValue(ApiResponse(users))
                         }
                     }
                     .addOnFailureListener { e ->
@@ -54,7 +54,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                 .addOnSuccessListener {
                     feed.timeCreated = Date()
                     feed.timeUpdated = Date()
-                    result.setValue(ApiResponse(feed, true, null))
+                    result.setValue(ApiResponse(feed))
                 }
                 .addOnFailureListener { e ->
                     feed.feedId = oldId
@@ -84,7 +84,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                         val batch = mDb.batch()
                         val doc = mDb.collection(GLOBAL_FEEDS).document(feedId)
                         batch.update(doc, updates)
-                        val userFeed = mDb.document(String.format("users/%s/feeds/%s", this.feedUser.userId, feedId))
+                        val userFeed = mDb.document("users/${this.feedUser.userId}/feeds/$feedId")
                         batch.update(userFeed, updates)
                         batch.commit()
                                 .addOnSuccessListener {
@@ -112,11 +112,10 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                     mExecutors.networkIO().execute {
                         val feedResponse = ArrayList<Feed>(limit)
                         for (doc in queryDocumentSnapshots.documents) {
-                            Timber.i(doc.toString())
                             doc.toObject(Feed::class.java)?.run { feedResponse.add(this) }
                         }
-                        Timber.i("onSuccess: loaded %d feed(s)", queryDocumentSnapshots.documents.size)
-                        result.postValue(ApiResponse(feedResponse, true, null))
+                        Timber.i("onSuccess: loaded ${queryDocumentSnapshots.documents.size} feed(s)")
+                        result.postValue(ApiResponse(feedResponse))
                     }
                 }.addOnFailureListener { e ->
                     result.setValue(ApiResponse(e))
@@ -141,13 +140,13 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                                     it.toObject(Feed::class.java)?.run { feedResponse.add(this) }
                                 }
                                 Timber.i("onSuccess: loaded %d feed(s)", queryDocumentSnapshots.documents.size)
-                                result.postValue(ApiResponse(feedResponse, true, null))
+                                result.postValue(ApiResponse(feedResponse))
                             }
                         }.addOnFailureListener { e ->
                             result.setValue(ApiResponse(e))
                         }
             } else {
-                result.setValue(ApiResponse(null, false, "feedId not exists"))
+                result.setValue(ApiResponse(Throwable("feedId not exists")))
             }
 
         }.addOnFailureListener { e -> result.setValue(ApiResponse(e)) }
@@ -167,10 +166,9 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                     mExecutors.networkIO().execute {
                         val feedResponse = ArrayList<Feed>(limit)
                         for (doc in queryDocumentSnapshots) {
-                            Timber.i("Feed: %s", doc.toString())
                             feedResponse.add(doc.toObject(Feed::class.java))
                         }
-                        result.postValue(ApiResponse(feedResponse, true, null))
+                        result.postValue(ApiResponse(feedResponse))
                     }
                 }.addOnFailureListener { e -> result.setValue(ApiResponse(e)) }
         return processUserLikeFeeds(result, userId)
@@ -192,10 +190,10 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                                         for (doc in queryDocumentSnapshots) {
                                             feedResponse.add(doc.toObject(Feed::class.java))
                                         }
-                                        result.postValue(ApiResponse(feedResponse, true, null))
+                                        result.postValue(ApiResponse(feedResponse))
                                     }.addOnFailureListener { e -> result.setValue(ApiResponse(e)) }
                         } else {
-                            result.postValue(ApiResponse(null, false, "feedId $afterFeedId does not exist"))
+                            result.postValue(ApiResponse(Throwable("feedId $afterFeedId does not exist")))
                         }
 
                     }
@@ -211,8 +209,8 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                 .addOnSuccessListener { queryDocumentSnapshots ->
                     mExecutors.networkIO().execute {
                         val feed = queryDocumentSnapshots.toObject(Feed::class.java)
-                        Timber.i("onSuccess: loaded %s feed(s)", feed)
-                        result.postValue(ApiResponse(feed, true, null))
+                        feed?.run { result.postValue(ApiResponse(feed)) }
+                                ?: result.postValue(ApiResponse(Throwable("the feed cannot be found")))
                     }
                 }.addOnFailureListener { e ->
                     Timber.e("onFailure: %s", e.message)
@@ -257,7 +255,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
 
                         feed.isLiked = true
                         feed.likeCount = newLikeCount
-                        transactionResult = ApiResponse(feed, true, null)
+                        transactionResult = ApiResponse(feed)
                         transactionResult
                     }.addOnSuccessListener({ result.setValue(it) })
                             .addOnFailureListener { e -> result.setValue(ApiResponse(e)) }
@@ -346,7 +344,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
 
                 comment.isLiked = true
                 comment.likeCount = newLikeCount
-                transactionResult = ApiResponse(comment, true, null)
+                transactionResult = ApiResponse(comment)
                 transactionResult
             }.addOnSuccessListener({ result.setValue(it) })
                     .addOnFailureListener { e ->
@@ -432,7 +430,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
 
                 subComment.isLiked = true
                 subComment.likeCount = newLikeCount
-                ApiResponse(subComment, true, null)
+                ApiResponse(subComment)
             }.addOnSuccessListener({ result.setValue(it) })
                     .addOnFailureListener { e -> result.setValue(ApiResponse(e)) }
         }
@@ -474,7 +472,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
         val result = MutableLiveData<ApiResponse<UserEntity>>()
         val userDoc = mDb.collection(USERS).document(userEntity.userId)
         userDoc.set(userEntity)
-                .addOnSuccessListener { result.setValue(ApiResponse(userEntity, true, null)) }
+                .addOnSuccessListener { result.setValue(ApiResponse(userEntity)) }
                 .addOnFailureListener { e -> result.setValue(ApiResponse(e)) }
         return result
     }
@@ -486,11 +484,11 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
         mDb.collection(USERS).document(userId).get()
                 .addOnSuccessListener { documentSnapshot ->
                     mExecutors.networkIO().execute {
-                        if (documentSnapshot.exists()) {
-                            val userEntity = documentSnapshot.toObject(UserEntity::class.java)
-                            result.postValue(ApiResponse(userEntity, true, null))
+                        val userEntity = documentSnapshot.toObject(UserEntity::class.java)
+                        if (userEntity != null) {
+                            result.postValue(ApiResponse(userEntity))
                         } else {
-                            result.postValue(ApiResponse(null, false, "User not found"))
+                            result.postValue(ApiResponse(Throwable("User not found")))
                         }
                     }
                 }
@@ -557,7 +555,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
             val feedCommentRef = mDb.document(feedCommentPath)
             transaction.set(feedCommentRef, commentMap)
 
-            val transResult = ApiResponse(newComment, true, null)
+            val transResult = ApiResponse(newComment)
             transResult
         }.addOnSuccessListener({ result.setValue(it) }).addOnFailureListener { e ->
             result.setValue(ApiResponse(e))
@@ -613,7 +611,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
             createNotificationInTransaction(transaction, notification)
 
 
-            ApiResponse(newReplyComment, true, null)
+            ApiResponse(newReplyComment)
 
         }.addOnSuccessListener({ result.setValue(it) }).addOnFailureListener { e ->
             result.setValue(ApiResponse(e))
@@ -633,7 +631,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                         for (cmtSnapShot in queryDocumentSnapshots) {
                             comments.add(cmtSnapShot.toObject(Comment::class.java))
                         }
-                        result.postValue(ApiResponse(comments, true, null))
+                        result.postValue(ApiResponse(comments))
                     }
                 }.addOnFailureListener { e -> result.setValue(ApiResponse(e)) }
         return processUserLikeComment(false, result, SharedPrefUtil.userId)
@@ -658,7 +656,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                                         for (cmtSnapShot in queryDocumentSnapshots) {
                                             comments.add(cmtSnapShot.toObject(Comment::class.java))
                                         }
-                                        result.postValue(ApiResponse(comments, true, null))
+                                        result.postValue(ApiResponse(comments))
                                     }
                                 }.addOnFailureListener { e -> result.setValue(ApiResponse(e)) }
                     }
@@ -679,7 +677,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                         for (cmtSnapShot in queryDocumentSnapshots) {
                             subComments.add(cmtSnapShot.toObject(Comment::class.java))
                         }
-                        result.postValue(ApiResponse(subComments, true, null))
+                        result.postValue(ApiResponse(subComments))
                     }
                 }.addOnFailureListener { e -> result.setValue(ApiResponse(e)) }
         return processUserLikeComment(true, result, SharedPrefUtil.userId)
@@ -691,7 +689,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                 .get().addOnSuccessListener { documentSnapshot ->
                     mExecutors.networkIO().execute {
                         if (!documentSnapshot.exists()) {
-                            result.postValue(ApiResponse(null, false, "sub comment not found"))
+                            result.postValue(ApiResponse(Throwable("sub comment not found")))
                             return@execute
                         }
                         val subCommentsPath = String.format("comments/%s/subComments", commentId)
@@ -704,7 +702,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                                         for (cmtSnapShot in queryDocumentSnapshots) {
                                             subComments.add(cmtSnapShot.toObject(Comment::class.java))
                                         }
-                                        result.postValue(ApiResponse(subComments, true, null))
+                                        result.postValue(ApiResponse(subComments))
                                     }
                                 }.addOnFailureListener { e -> result.setValue(ApiResponse(e)) }
                     }
@@ -786,7 +784,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                                     it.get("timeCreated")?.run { likedComments[it.id] = this }
                                 }
                                 inputFeeds.forEach { it.isLiked = likedComments.containsKey(it.id) }
-                                result.postValue(ApiResponse(inputFeeds, true, null))
+                                result.postValue(ApiResponse(inputFeeds))
                             }
                         }.addOnFailureListener { e -> result.setValue(ApiResponse(inputFeeds, false, e.message)) }
             } else {
@@ -832,7 +830,7 @@ constructor(private val mDb: FirebaseFirestore, private val mExecutors: AppExecu
                         for (notificationSnap in querySnapshots) {
                             notifications.add(notificationSnap.toObject(Notification::class.java))
                         }
-                        result.postValue(ApiResponse(notifications, true, null))
+                        result.postValue(ApiResponse(notifications))
                     }
                 }.addOnFailureListener { e -> result.postValue(ApiResponse(e)) }
         return result

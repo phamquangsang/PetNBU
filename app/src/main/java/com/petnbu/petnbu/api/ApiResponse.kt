@@ -18,6 +18,12 @@ class ApiResponse<T> {
         Timber.e(error)
     }
 
+    constructor(responseType :T){
+        isSuccessful = true
+        body = responseType
+        errorMessage = null
+    }
+
     constructor(responseType: T?, isSucceed: Boolean, errorMsg: String?) {
         this.isSuccessful = isSucceed
         if (isSucceed) {

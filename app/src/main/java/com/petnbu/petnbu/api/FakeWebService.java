@@ -316,7 +316,7 @@ public class FakeWebService implements WebService {
 //        comment.setTimeCreated(new Date());
 //        comments.add(comment);
 
-        commentsLiveData.setValue(new ApiResponse<>(comments, true, null));
+        commentsLiveData.setValue(new ApiResponse<>(comments));
         return commentsLiveData;
     }
 
