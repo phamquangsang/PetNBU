@@ -18,6 +18,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.text.bold
 import androidx.core.text.color
+import androidx.core.view.isInvisible
+import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
 import com.petnbu.petnbu.GlideApp
 import com.petnbu.petnbu.R
 import com.petnbu.petnbu.databinding.ViewFeedBinding
@@ -121,36 +124,36 @@ class FeedsRecyclerViewAdapter(context: Context,
 
             if (feed.status == STATUS_UPLOADING) {
                 mBinding.layoutRoot.setShouldInterceptEvents(true)
-                mBinding.layoutDisable.visibility = View.VISIBLE
-                mBinding.viewLoading.progressBar.visibility = View.VISIBLE
+                mBinding.layoutDisable.isVisible = true
+                mBinding.viewLoading.progressBar.isVisible = true
 
-                mBinding.layoutError.visibility = View.GONE
-                mBinding.imgLike.visibility = View.GONE
-                mBinding.imgComment.visibility = View.GONE
-                mBinding.tvLikesCount.visibility = View.GONE
-                mBinding.tvViewComments.visibility = View.GONE
-                mBinding.imgOptions.visibility = View.GONE
-                mBinding.imgLikeInProgress.visibility = View.GONE
+                mBinding.layoutError.isVisible = false
+                mBinding.imgLike.isVisible = false
+                mBinding.imgComment.isVisible = false
+                mBinding.tvLikesCount.isVisible = false
+                mBinding.tvViewComments.isVisible = false
+                mBinding.imgOptions.isVisible = false
+                mBinding.imgLikeInProgress.isVisible = false
             } else {
                 mBinding.layoutRoot.setShouldInterceptEvents(false)
 
                 if (feed.status == STATUS_ERROR) {
-                    mBinding.layoutError.visibility = View.VISIBLE
-                    mBinding.viewLoading.progressBar.visibility = View.GONE
-                    mBinding.imgLike.visibility = View.GONE
-                    mBinding.imgComment.visibility = View.GONE
-                    mBinding.tvLikesCount.visibility = View.GONE
-                    mBinding.tvViewComments.visibility = View.GONE
-                    mBinding.imgOptions.visibility = View.GONE
-                    mBinding.imgLikeInProgress.visibility = View.GONE
+                    mBinding.layoutError.isVisible = true
+                    mBinding.viewLoading.progressBar.isVisible = false
+                    mBinding.imgLike.isVisible = false
+                    mBinding.imgComment.isVisible = false
+                    mBinding.tvLikesCount.isVisible = false
+                    mBinding.tvViewComments.isVisible = false
+                    mBinding.imgOptions.isVisible = false
+                    mBinding.imgLikeInProgress.isVisible = false
                 } else {
-                    mBinding.layoutDisable.visibility = View.GONE
-                    mBinding.imgLike.visibility = View.VISIBLE
-                    mBinding.imgComment.visibility = View.VISIBLE
-                    mBinding.tvLikesCount.visibility = View.VISIBLE
-                    mBinding.tvViewComments.visibility = View.VISIBLE
-                    mBinding.imgOptions.visibility = View.VISIBLE
-                    mBinding.imgLikeInProgress.visibility = View.GONE
+                    mBinding.layoutDisable.isVisible = false
+                    mBinding.imgLike.isVisible = true
+                    mBinding.imgComment.isVisible = true
+                    mBinding.tvLikesCount.isVisible = true
+                    mBinding.tvViewComments.isVisible = true
+                    mBinding.imgOptions.isVisible = true
+                    mBinding.imgLikeInProgress.isVisible = false
                 }
             }
             displayUserInfo()
@@ -205,27 +208,21 @@ class FeedsRecyclerViewAdapter(context: Context,
 
                     val currentPos = lastSelectedPhotoPositions[feed.feedId] ?: 0
                     mBinding.rvPhotos.scrollToPosition(currentPos)
-
-                    if (size > 1) {
-                        mBinding.tvPhotosCount.visibility = View.VISIBLE
-                        mBinding.tvPhotosCount.text = "${currentPos + 1}/$size"
-                    } else {
-                        mBinding.tvPhotosCount.visibility = View.GONE
-                    }
+                    mBinding.tvPhotosCount.text = "${currentPos + 1}/$size"
+                    mBinding.tvPhotosCount.isVisible = size > 1
                 }
             }
         }
 
         private fun constraintHeightForPhoto(photoWidth: Int, photoHeight: Int) {
-            val layoutParams = mBinding.layoutMedia.layoutParams as ConstraintLayout.LayoutParams
-            val height = (photoHeight / photoWidth.toFloat() * deviceWidth).toInt()
-
-            layoutParams.height = when {
-                height > maxPhotoHeight -> maxPhotoHeight
-                height < minPhotoHeight -> minPhotoHeight
-                else -> height
+            val targetHeight = (photoHeight / photoWidth.toFloat() * deviceWidth).toInt()
+            mBinding.layoutMedia.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                height = when {
+                    targetHeight > maxPhotoHeight -> maxPhotoHeight
+                    targetHeight < minPhotoHeight -> minPhotoHeight
+                    else -> targetHeight
+                }
             }
-            mBinding.layoutMedia.layoutParams = layoutParams
         }
 
         private fun displayContent() {
@@ -252,49 +249,41 @@ class FeedsRecyclerViewAdapter(context: Context,
                     append(if (feed.commentContent.isNullOrEmpty()) "replied" else feed.commentContent)
                 }
             }
-            mBinding.tvContent.visibility = if (contentBuilder.isEmpty()) View.GONE else View.VISIBLE
+            mBinding.tvContent.isVisible = !contentBuilder.isEmpty()
             mBinding.tvContent.text = contentBuilder
         }
 
         private fun displayLikeInfo() {
-            if (feed.likeInProgress) {
-                mBinding.imgLike.visibility = View.INVISIBLE
-                mBinding.imgLikeInProgress.visibility = View.VISIBLE
-            } else {
-                mBinding.imgLike.visibility = View.VISIBLE
-                mBinding.imgLikeInProgress.visibility = View.GONE
-                mBinding.imgLike.setImageResource(if (feed.isLiked) R.drawable.ic_favorite_red_24dp else R.drawable.ic_favorite_border_black_24dp)
-            }
-            if (feed.likeCount > 0) {
-                mBinding.tvLikesCount.text = "${feed.likeCount} ${if (feed.likeCount > 1) "likes" else "like"}"
-                mBinding.tvLikesCount.visibility = View.VISIBLE
-            } else {
-                mBinding.tvLikesCount.visibility = View.GONE
-            }
+            mBinding.imgLike.isInvisible = feed.likeInProgress
+            mBinding.imgLikeInProgress.isVisible = feed.likeInProgress
+            mBinding.imgLike.setImageResource(if (feed.isLiked) R.drawable.ic_favorite_red_24dp else R.drawable.ic_favorite_border_black_24dp)
+
+            mBinding.tvLikesCount.text = "${feed.likeCount} ${if (feed.likeCount > 1) "likes" else "like"}"
+            mBinding.tvLikesCount.isVisible = feed.likeCount > 0
         }
 
         private fun displayCommentCount() {
-            if (feed.commentCount > 1) {
-                mBinding.tvViewComments.visibility = View.VISIBLE
-                mBinding.tvViewComments.text = "View all ${feed.commentCount} comments"
-            } else {
-                mBinding.tvViewComments.visibility = View.GONE
-            }
+            mBinding.tvViewComments.isVisible = feed.commentCount > 1
+            mBinding.tvViewComments.text = "View all ${feed.commentCount} comments"
         }
     }
 
     private class FeedDiffCallback : DiffUtil.ItemCallback<FeedUI>() {
 
-        override fun areItemsTheSame(oldItem: FeedUI, newItem: FeedUI) = oldItem.feedId == newItem.feedId
+        override fun areItemsTheSame(oldItem: FeedUI, newItem: FeedUI) =
+                oldItem.feedId == newItem.feedId
 
-        override fun areContentsTheSame(oldItem: FeedUI, newItem: FeedUI) = oldItem == newItem
+        override fun areContentsTheSame(oldItem: FeedUI, newItem: FeedUI) =
+                oldItem == newItem
 
         override fun getChangePayload(oldItem: FeedUI, newItem: FeedUI): Any? {
             val bundle = Bundle()
-            if (oldItem.likeInProgress != newItem.likeInProgress || oldItem.isLiked != newItem.isLiked) {
+            if (oldItem.likeInProgress != newItem.likeInProgress
+                    || oldItem.isLiked != newItem.isLiked) {
                 bundle.putBoolean("like_status", true)
             }
-            if (!oldItem.latestCommentId.isNullOrEmpty() && oldItem.latestCommentId != newItem.latestCommentId) {
+            if (!oldItem.latestCommentId.isNullOrEmpty()
+                    && oldItem.latestCommentId != newItem.latestCommentId) {
                 bundle.putBoolean("latest_comment", true)
             }
             return if (!bundle.isEmpty) bundle else super.getChangePayload(oldItem, newItem)

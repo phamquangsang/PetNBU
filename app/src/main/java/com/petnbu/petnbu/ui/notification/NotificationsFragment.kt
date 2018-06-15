@@ -9,7 +9,6 @@ import android.support.v7.widget.LinearLayoutManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-
 import com.petnbu.petnbu.R
 import com.petnbu.petnbu.databinding.FragmentNotificationsBinding
 
@@ -18,7 +17,7 @@ class NotificationsFragment : Fragment() {
     private lateinit var mNotificationViewModel: NotificationViewModel
     private lateinit var mBinding: FragmentNotificationsBinding
 
-    private var mAdapter: NotificationsRecyclerViewAdapter? = null
+    private var notificationsRecyclerViewAdapter: NotificationsRecyclerViewAdapter? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_notifications, container, false)
@@ -30,13 +29,11 @@ class NotificationsFragment : Fragment() {
         mNotificationViewModel = ViewModelProviders.of(this).get(NotificationViewModel::class.java)
         mBinding.viewModel = mNotificationViewModel
         mNotificationViewModel.loadNotifications().observe(this, Observer { notifications ->
-            if (notifications != null) {
-                mAdapter?.submitList(notifications)
-            }
+            notifications?.let { notificationsRecyclerViewAdapter?.submitList(it) }
         })
 
         mBinding.rvNotifications.layoutManager = LinearLayoutManager(activity)
-        mAdapter = activity?.let { NotificationsRecyclerViewAdapter(context = it) }
-        mBinding.rvNotifications.adapter = mAdapter
+        notificationsRecyclerViewAdapter = activity?.let { NotificationsRecyclerViewAdapter(context = it) }
+        mBinding.rvNotifications.adapter = notificationsRecyclerViewAdapter
     }
 }

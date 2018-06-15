@@ -14,15 +14,14 @@ import android.text.style.StyleSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.petnbu.petnbu.ui.BaseBindingViewHolder
 import com.petnbu.petnbu.GlideApp
 import com.petnbu.petnbu.GlideRequests
 import com.petnbu.petnbu.R
 import com.petnbu.petnbu.databinding.ViewNotificationBinding
 import com.petnbu.petnbu.model.Notification
 import com.petnbu.petnbu.model.NotificationUI
+import com.petnbu.petnbu.ui.BaseBindingViewHolder
 import com.petnbu.petnbu.util.ColorUtils
-import com.petnbu.petnbu.util.Objects
 import java.util.*
 
 class NotificationsRecyclerViewAdapter(context: Context)
@@ -128,7 +127,7 @@ class NotificationsRecyclerViewAdapter(context: Context)
 
         override fun areContentsTheSame(oldItem: NotificationUI, newItem: NotificationUI) = oldItem.id == newItem.id
 
-        override fun areItemsTheSame(oldItem: NotificationUI, newItem: NotificationUI) = Objects.equals(oldItem, newItem)
+        override fun areItemsTheSame(oldItem: NotificationUI, newItem: NotificationUI) = oldItem == newItem
     }
 
     companion object {

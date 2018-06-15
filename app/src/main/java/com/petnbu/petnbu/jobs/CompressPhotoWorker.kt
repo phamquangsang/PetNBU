@@ -43,8 +43,8 @@ class CompressPhotoWorker : Worker() {
                 e.printStackTrace()
                 Timber.i("compress failed %s", e.message)
             }
-
         }
+
         outputDataBuilder.putBoolean("result", isSuccess)
         outputData = outputDataBuilder.build()
         return WorkerResult.SUCCESS
@@ -101,7 +101,9 @@ class CompressPhotoWorker : Worker() {
                                            width: Int, height: Int, opts: BitmapFactory.Options): String {
         val bitmap = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(path, opts), width, height, false)
         val fileOutputStream = FileOutputStream(File(destinationDirectoryPath + File.separator + compressedFileName))
-        bitmap.compress(Bitmap.CompressFormat.WEBP, 75, fileOutputStream)
+        fileOutputStream.use {
+            bitmap.compress(Bitmap.CompressFormat.WEBP, 75, it)
+        }
         bitmap.recycle()
         return Uri.fromFile(File(destinationDirectoryPath + File.separator + compressedFileName)).toString()
     }

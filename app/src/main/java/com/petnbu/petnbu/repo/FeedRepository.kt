@@ -214,7 +214,6 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors, 
 
     private fun scheduleSaveFeedWorker(feed: Feed, isUpdating: Boolean) {
         val uploadWorks = ArrayList<OneTimeWorkRequest>(feed.photos.size)
-        // Constraints that defines when the task should run
         val uploadConstraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
