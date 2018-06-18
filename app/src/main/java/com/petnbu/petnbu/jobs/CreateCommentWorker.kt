@@ -38,6 +38,9 @@ class CreateCommentWorker : Worker() {
     @Inject
     lateinit var mAppExecutors: AppExecutors
 
+    @Inject
+    lateinit var mGson: Gson
+
     override fun doWork(): WorkerResult {
         PetApplication.appComponent.inject(this)
 
@@ -48,8 +51,8 @@ class CreateCommentWorker : Worker() {
         if (!commentId.isNullOrEmpty()) {
             val commentEntity = mCommentDao.getCommentById(commentId)
             if (commentEntity != null) {
-                mUserDao.findUserById(commentEntity.ownerId)?.run {
-                    val feedUser = FeedUser(this.userId, this.avatar, this.name)
+                mUserDao.findUserById(commentEntity.ownerId)?.let { localUser ->
+                    val feedUser = FeedUser(localUser.userId, localUser.avatar, localUser.name)
                     val comment = Comment(commentEntity.id, feedUser, commentEntity.content, commentEntity.photo,
                             commentEntity.likeCount, commentEntity.isLiked, commentEntity.likeInProgress,
                             commentEntity.commentCount, null, commentEntity.parentCommentId,
@@ -58,23 +61,21 @@ class CreateCommentWorker : Worker() {
 
                     if (comment.isUploading()) {
                         try {
-                            if (comment.photo != null) {
-                                comment.photo?.run {
-                                    val key = originUrl.toUri().lastPathSegment
-                                    val jsonPhoto = data.getString(key, "")
-                                    if (!jsonPhoto.isNullOrEmpty()) {
-                                        val uploadedPhoto = Gson().fromJson(jsonPhoto, Photo::class.java)
+                            comment.photo?.run {
+                                val key = originUrl.toUri().lastPathSegment
+                                val jsonPhoto = data.getString(key, "")
+                                if (!jsonPhoto.isNullOrEmpty()) {
+                                    mGson.fromJson(jsonPhoto, Photo::class.java).let { uploadedPhoto ->
                                         this.originUrl = uploadedPhoto.originUrl
                                         this.largeUrl = uploadedPhoto.largeUrl
                                         this.mediumUrl = uploadedPhoto.mediumUrl
                                         this.smallUrl = uploadedPhoto.smallUrl
                                         this.thumbnailUrl = uploadedPhoto.thumbnailUrl
-
-                                        comment.save()
-                                        workerResult = WorkerResult.SUCCESS
                                     }
+                                    comment.save()
+                                    workerResult = WorkerResult.SUCCESS
                                 }
-                            } else {
+                            } ?: kotlin.run {
                                 comment.save()
                                 workerResult = WorkerResult.SUCCESS
                             }
@@ -117,16 +118,16 @@ class CreateCommentWorker : Worker() {
                             val feedCommentPaging = mPetDb.pagingDao()
                                     .findFeedPaging(Paging.feedCommentsPagingId(comment.parentFeedId!!))
                             feedCommentPaging?.apply {
-                                this.getIds()!!.add(0, newComment.id)
+                                getIds()!!.add(0, newComment.id)
                                 mPetDb.pagingDao().update(this)
                             }
                             mCommentDao.updateCommentId(oldCommentId, newComment.id)
                             newComment.localStatus = STATUS_DONE
                             mCommentDao.update(newComment.toEntity())
                             val parentFeed = mPetDb.feedDao().findFeedEntityById(comment.parentFeedId!!)
-                            parentFeed?.apply {
+                            parentFeed?.let {
                                 mPetDb.feedDao().updateLatestCommentId(newComment.id,
-                                        parentFeed.commentCount + 1, newComment.parentFeedId!!)
+                                        it.commentCount + 1, newComment.parentFeedId!!)
                             }
                         }
                     }
@@ -160,7 +161,7 @@ class CreateCommentWorker : Worker() {
                             val subCommentPaging = mPetDb.pagingDao().findFeedPaging(Paging.subCommentsPagingId(comment.parentCommentId!!))
 
                             subCommentPaging?.apply {
-                                this.getIds()!!.add(0, newComment.id)
+                                getIds()!!.add(0, newComment.id)
                                 mPetDb.pagingDao().update(this)
                             }
                             mCommentDao.updateCommentId(oldCommentId, newComment.id)
@@ -168,8 +169,8 @@ class CreateCommentWorker : Worker() {
                             mCommentDao.update(newComment.toEntity())
 
                             mCommentDao.getCommentById(comment.parentCommentId)?.apply {
-                                this.latestCommentId = newComment.id
-                                this.commentCount = this.commentCount + 1
+                                latestCommentId = newComment.id
+                                commentCount += 1
                                 mCommentDao.update(this)
                             }
                         }
@@ -186,11 +187,10 @@ class CreateCommentWorker : Worker() {
     }
 
     companion object {
-
         private const val KEY_COMMENT_ID = "key-comment-id"
 
-        fun data(comment: Comment): Data = Data.Builder()
-                .putString(KEY_COMMENT_ID, comment.id)
-                .build()
+        fun data(comment: Comment): Data = Data.Builder().apply {
+            putString(KEY_COMMENT_ID, comment.id)
+        }.build()
     }
 }

@@ -69,8 +69,8 @@ class RepliesFragment : Fragment() {
             loadMoreState?.run {
                 mBinding.rvComments.post { repliesRecyclerViewAdapter.addLoadMore = isRunning }
 
-                errorMessageIfNotHandled?.run {
-                    SnackbarUtils.showSnackbar(mBinding.layoutRoot, this)
+                errorMessageIfNotHandled?.let { errorMessage ->
+                    SnackbarUtils.showSnackbar(mBinding.layoutRoot, errorMessage)
                 }
             }
         })
@@ -81,8 +81,9 @@ class RepliesFragment : Fragment() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
 
-                (recyclerView.layoutManager as? LinearLayoutManager)?.run {
-                    if (findLastVisibleItemPosition() >= repliesRecyclerViewAdapter.itemCount - 2 && repliesRecyclerViewAdapter.itemCount > 0)
+                val layoutManager = recyclerView.layoutManager
+                if(layoutManager is LinearLayoutManager) {
+                    if (layoutManager.findLastVisibleItemPosition() >= repliesRecyclerViewAdapter.itemCount - 2 && repliesRecyclerViewAdapter.itemCount > 0)
                         commentsViewModel.loadSubCommentsNextPage(commentId)
                 }
             }

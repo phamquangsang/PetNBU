@@ -60,15 +60,16 @@ class FeedsFragment : Fragment() {
 
                 override fun onOptionClicked(view: View, feed: FeedUI) {
                     if (feed.ownerId == userId) {
-                        val popupMenu = PopupMenu(view.context, view)
-                        popupMenu.menu.add("Edit")
-                        popupMenu.setOnMenuItemClickListener { item ->
-                            if ("Edit" == item.title) {
-                                startActivity(CreateEditFeedActivity.newIntent(this@activity, feed.feedId))
+                        PopupMenu(view.context, view).apply {
+                            menu.add("Edit")
+
+                            setOnMenuItemClickListener { item ->
+                                if ("Edit" == item.title) {
+                                    startActivity(CreateEditFeedActivity.newIntent(this@activity, feed.feedId))
+                                }
+                                true
                             }
-                            true
-                        }
-                        popupMenu.show()
+                        }.show()
                     }
                 }
             }, feedsViewModel)
@@ -82,13 +83,13 @@ class FeedsFragment : Fragment() {
                 Timber.i(toString())
                 mBinding.progressBar.isVisible = isRunning
 
-                errorMessageIfNotHandled?.run {
-                    SnackbarUtils.showSnackbar(mBinding.root, this)
+                errorMessageIfNotHandled?.let { errorMessage->
+                    SnackbarUtils.showSnackbar(mBinding.root, errorMessage)
                 }
             }
         })
-        feedsViewModel.openUserProfileEvent.observe(this, Observer { it?.run { showUserProfile(this) } })
-        feedsViewModel.openCommentsEvent.observe(this, Observer { it?.run { showCommentsByFeed(this) } })
+        feedsViewModel.openUserProfileEvent.observe(this, Observer { userId -> userId?.let { showUserProfile(it) } })
+        feedsViewModel.openCommentsEvent.observe(this, Observer { feedId -> feedId?.let { showCommentsByFeed(it) } })
 
         mBinding.rvFeeds.layoutManager = LinearLayoutManager(activity)
         mBinding.rvFeeds.post {
@@ -103,9 +104,9 @@ class FeedsFragment : Fragment() {
                 else if (dy < -10)
                     mBinding.fabNewPost.show()
 
-                (recyclerView.layoutManager as? LinearLayoutManager)?.run {
-                    if (findLastVisibleItemPosition() == feedsAdapter.itemCount - 1)
-                        if (rateLimiter.shouldFetch("global-feed-load-next-page"))
+                val layoutManager = recyclerView.layoutManager
+                if(layoutManager is LinearLayoutManager) {
+                    if (layoutManager.findLastVisibleItemPosition() == feedsAdapter.itemCount - 1 && rateLimiter.shouldFetch("global-feed-load-next-page"))
                             feedsViewModel.loadNextPage()
                 }
                 super.onScrolled(recyclerView, dx, dy)
@@ -116,7 +117,7 @@ class FeedsFragment : Fragment() {
             feedsViewModel.refresh()
         }
 
-        mBinding.fabNewPost.setOnClickListener { _ ->
+        mBinding.fabNewPost.setOnClickListener {
             startActivity(Intent(activity, CreateEditFeedActivity::class.java))
         }
     }

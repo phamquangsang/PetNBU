@@ -47,12 +47,12 @@ class UserProfileFragment : Fragment() {
                 mBinding.list.adapter = userProfileFeedsAdapter
                 mBinding.list.addOnScrollListener(object : RecyclerView.OnScrollListener() {
                     override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                        (recyclerView.layoutManager as? LinearLayoutManager)?.run {
-                            if (findLastVisibleItemPosition() == userProfileFeedsAdapter.itemCount - 1)
+                        val layoutManager = recyclerView.layoutManager
+                        if(layoutManager is LinearLayoutManager) {
+                            if (layoutManager.findLastVisibleItemPosition() == userProfileFeedsAdapter.itemCount - 1)
                                 userProfileViewModel.loadNextPage(userId, Paging.userFeedsPagingId(userId))
-
-                        } ?: (recyclerView.layoutManager as? GridLayoutManager)?.run {
-                            if (findLastVisibleItemPosition() / 3 == userProfileFeedsAdapter.itemCount / columnCount)
+                        } else if(layoutManager is GridLayoutManager) {
+                            if (layoutManager.findLastVisibleItemPosition() / 3 == userProfileFeedsAdapter.itemCount / columnCount)
                                 userProfileViewModel.loadNextPage(userId, Paging.userFeedsPagingId(userId))
                         }
                     }

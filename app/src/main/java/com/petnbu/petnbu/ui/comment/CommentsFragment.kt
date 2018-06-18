@@ -74,8 +74,9 @@ class CommentsFragment : Fragment() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
 
-                (recyclerView.layoutManager as? LinearLayoutManager)?.run {
-                    if (findLastVisibleItemPosition() >= commentsRecyclerViewAdapter.itemCount - 2 && commentsRecyclerViewAdapter.itemCount > 0)
+                val layoutManager = recyclerView.layoutManager
+                if (layoutManager is LinearLayoutManager) {
+                    if (layoutManager.findLastVisibleItemPosition() >= commentsRecyclerViewAdapter.itemCount - 2 && commentsRecyclerViewAdapter.itemCount > 0)
                         commentsViewModel.loadNextPage(feedId)
                 }
             }

@@ -244,8 +244,8 @@ class CreateEditFeedActivity : AppCompatActivity() {
     }
 
     private fun checkToEnablePostMenu() {
-        postMenuItem?.run {
-            Utils.enableMenuItem(this@CreateEditFeedActivity, postMenuItem, !photosAdapter.photos.isEmpty())
+        postMenuItem?.let {
+            Utils.enableMenuItem(this, it, !photosAdapter.photos.isEmpty())
         }
     }
 

@@ -131,11 +131,11 @@ class CreateEditFeedWorker : Worker() {
                             newFeed.status = STATUS_DONE
 
                             petDb.pagingDao().findFeedPaging(Paging.GLOBAL_FEEDS_PAGING_ID)?.apply {
-                                this.getIds()!!.add(0, newFeed.feedId)
+                                getIds()!!.add(0, newFeed.feedId)
                                 petDb.pagingDao().update(this)
                             }
                             petDb.pagingDao().findFeedPaging(newFeed.feedUser.userId)?.apply {
-                                this.getIds()!!.add(0, newFeed.feedId)
+                                getIds()!!.add(0, newFeed.feedId)
                                 petDb.pagingDao().update(this)
                             }
                             feedDao.update(newFeed.toEntity())
@@ -184,7 +184,8 @@ class CreateEditFeedWorker : Worker() {
     private fun updateLocalFeedError(feed: Feed) {
         feed.apply {
             status = STATUS_ERROR
-            appExecutors.diskIO().execute { feedDao.update(feed.toEntity()) }
+        }.let {
+            appExecutors.diskIO().execute { feedDao.update(it.toEntity()) }
         }
     }
 
@@ -193,9 +194,9 @@ class CreateEditFeedWorker : Worker() {
         private const val KEY_FLAG_UPDATING = "extra-updating"
 
         @JvmStatic
-        fun data(feed: Feed, isUpdating: Boolean): Data = Data.Builder()
-                .putString(KEY_FEED_ID, feed.feedId)
-                .putBoolean(KEY_FLAG_UPDATING, isUpdating)
-                .build()
+        fun data(feed: Feed, isUpdating: Boolean): Data = Data.Builder().apply {
+            putString(KEY_FEED_ID, feed.feedId)
+            putBoolean(KEY_FLAG_UPDATING, isUpdating)
+        }.build()
     }
 }

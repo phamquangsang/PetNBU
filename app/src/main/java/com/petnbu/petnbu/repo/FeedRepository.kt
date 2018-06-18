@@ -10,12 +10,16 @@ import com.petnbu.petnbu.AppExecutors
 import com.petnbu.petnbu.api.ApiResponse
 import com.petnbu.petnbu.api.WebService
 import com.petnbu.petnbu.db.PetDb
+import com.petnbu.petnbu.extensions.beginSysTrace
 import com.petnbu.petnbu.jobs.CompressPhotoWorker
 import com.petnbu.petnbu.jobs.CreateEditFeedWorker
 import com.petnbu.petnbu.jobs.UploadPhotoWorker
 import com.petnbu.petnbu.model.*
 import com.petnbu.petnbu.model.LocalStatus.STATUS_UPLOADING
-import com.petnbu.petnbu.util.*
+import com.petnbu.petnbu.util.IdUtil
+import com.petnbu.petnbu.util.RateLimiter
+import com.petnbu.petnbu.util.SharedPrefUtil
+import com.petnbu.petnbu.util.Toaster
 import timber.log.Timber
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -194,7 +198,9 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors,
                 }
 
             }
-            TraceUtils.begin("scheduleSaveFeedWorker") { scheduleSaveFeedWorker(feed, false) }
+            beginSysTrace("scheduleSaveFeedWorker") {
+                scheduleSaveFeedWorker(feed, false)
+            }
         }
     }
 
@@ -209,7 +215,9 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors,
                     mPetDb.feedDao().update(this)
                 }
             }
-            TraceUtils.begin("scheduleSaveFeedWorker") { scheduleSaveFeedWorker(feed, true) }
+            beginSysTrace("scheduleSaveFeedWorker") {
+                scheduleSaveFeedWorker(feed, true)
+            }
         }
     }
 

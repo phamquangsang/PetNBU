@@ -26,10 +26,10 @@ import com.petnbu.petnbu.GlideRequests
 import com.petnbu.petnbu.R
 import com.petnbu.petnbu.databinding.ViewFeedBinding
 import com.petnbu.petnbu.databinding.ViewFeedPhotosBinding
+import com.petnbu.petnbu.extensions.beginSysTrace
 import com.petnbu.petnbu.model.*
 import com.petnbu.petnbu.ui.BaseBindingViewHolder
 import com.petnbu.petnbu.util.ImageUtils
-import com.petnbu.petnbu.util.TraceUtils
 import com.petnbu.petnbu.util.Utils
 import java.util.*
 
@@ -47,14 +47,16 @@ class FeedsRecyclerViewAdapter(context: Context,
     private val minPhotoHeight = Utils.goldenRatio(Utils.getDeviceWidth(context), true)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseBindingViewHolder<*, *> {
-        TraceUtils.begin("create feed view holder")
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.view_feed, parent, false)
-        TraceUtils.end()
+        val view = beginSysTrace("create feed view holder") {
+            LayoutInflater.from(parent.context).inflate(R.layout.view_feed, parent, false)
+        }
         return ViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: BaseBindingViewHolder<*, *>, position: Int) {
-        (holder as? ViewHolder)?.bindData(getItem(position))
+        beginSysTrace("bind Feed") {
+            (holder as? ViewHolder)?.bindData(getItem(position))
+        }
     }
 
     override fun onBindViewHolder(holder: BaseBindingViewHolder<*, *>, position: Int, payloads: List<Any>) {
@@ -91,9 +93,9 @@ class FeedsRecyclerViewAdapter(context: Context,
             mBinding.tvViewComments.setOnClickListener(openCommentsClickListener)
             mBinding.tvContent.setOnClickListener(openCommentsClickListener)
 
-            mBinding.imgOptions.setOnClickListener {
+            mBinding.imgOptions.setOnClickListener { view ->
                 if (onItemClickListener != null && adapterPosition != RecyclerView.NO_POSITION)
-                    onItemClickListener.onOptionClicked(it, getItem(adapterPosition))
+                    onItemClickListener.onOptionClicked(view, getItem(adapterPosition))
             }
 
             mBinding.rvPhotos.layoutManager = LinearLayoutManager(itemView.context, LinearLayoutManager.HORIZONTAL, false)
@@ -102,13 +104,14 @@ class FeedsRecyclerViewAdapter(context: Context,
             mBinding.rvPhotos.recycledViewPool = feedPhotosViewPool
             mBinding.rvPhotos.addOnScrollListener(object : RecyclerView.OnScrollListener() {
                 @SuppressLint("SetTextI18n")
-                override fun onScrollStateChanged(recyclerView: RecyclerView?, newState: Int) {
+                override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                     val feed: FeedUI = getItem(adapterPosition)
 
                     feed.photos?.run {
                         if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                            (recyclerView!!.layoutManager as? LinearLayoutManager)?.run {
-                                val position = getPosition(snapHelper.findSnapView(this))
+                            val layoutManager = recyclerView.layoutManager
+                            if (layoutManager is LinearLayoutManager) {
+                                val position = layoutManager.getPosition(snapHelper.findSnapView(layoutManager))
                                 mBinding.tvPhotosCount.text = "${position + 1}/$size"
                                 lastSelectedPhotoPositions[feed.feedId] = position
                             }
@@ -119,7 +122,6 @@ class FeedsRecyclerViewAdapter(context: Context,
         }
 
         override fun bindData(item: FeedUI) {
-            TraceUtils.begin("bind Feed")
             feed = item
 
             if (feed.isUploading()) {
@@ -162,7 +164,6 @@ class FeedsRecyclerViewAdapter(context: Context,
             displayLikeInfo()
             displayContent()
             displayCommentCount()
-            TraceUtils.end()
         }
 
         override fun bindData(item: FeedUI, payloads: List<Any>) {

@@ -3,12 +3,10 @@ package com.petnbu.petnbu.model
 import android.arch.persistence.room.Embedded
 import android.arch.persistence.room.Ignore
 import android.arch.persistence.room.TypeConverters
-
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.ServerTimestamp
 import com.petnbu.petnbu.db.ListPhotoConverters
-
-import java.util.Date
+import java.util.*
 
 data class Feed(var feedId: String) {
     @Embedded
@@ -54,12 +52,9 @@ data class Feed(var feedId: String) {
         this.likeInProgress = likeInProgress
     }
 
-
     fun toEntity(): FeedEntity {
         return FeedEntity(feedId, feedUser.userId,
                 photos, commentCount, if (latestComment == null) null else latestComment?.id, likeCount, isLiked, content,
                 timeCreated, timeUpdated, status, likeInProgress)
     }
-
-
 }
