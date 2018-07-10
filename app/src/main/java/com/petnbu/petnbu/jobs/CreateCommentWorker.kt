@@ -41,10 +41,10 @@ class CreateCommentWorker : Worker() {
     @Inject
     lateinit var mGson: Gson
 
-    override fun doWork(): WorkerResult {
+    override fun doWork(): Result {
         PetApplication.appComponent.inject(this)
 
-        var workerResult: WorkerResult = WorkerResult.FAILURE
+        var workerResult: Result = Result.FAILURE
         val data = inputData
         val commentId = data.getString(KEY_COMMENT_ID, "")
 
@@ -73,11 +73,11 @@ class CreateCommentWorker : Worker() {
                                         this.thumbnailUrl = uploadedPhoto.thumbnailUrl
                                     }
                                     comment.save()
-                                    workerResult = WorkerResult.SUCCESS
+                                    workerResult = Result.SUCCESS
                                 }
                             } ?: kotlin.run {
                                 comment.save()
-                                workerResult = WorkerResult.SUCCESS
+                                workerResult = Result.SUCCESS
                             }
                         } catch (e: InterruptedException) {
                             e.printStackTrace()

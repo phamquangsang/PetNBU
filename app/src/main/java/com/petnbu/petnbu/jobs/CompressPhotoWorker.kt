@@ -22,7 +22,7 @@ import java.util.*
 
 class CompressPhotoWorker : Worker() {
 
-    override fun doWork(): WorkerResult {
+    override fun doWork(): Result {
         val photoJson = inputData.getString(KEY_PHOTO, "")
         val outputDataBuilder = Data.Builder()
         var isSuccess = false
@@ -47,7 +47,7 @@ class CompressPhotoWorker : Worker() {
 
         outputDataBuilder.putBoolean("result", isSuccess)
         outputData = outputDataBuilder.build()
-        return WorkerResult.SUCCESS
+        return Result.SUCCESS
     }
 
     @Throws(IOException::class)

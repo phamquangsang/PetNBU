@@ -262,12 +262,12 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors,
                     .setInputData(Data.Builder().putString(UploadPhotoWorker.KEY_PHOTO, key).build())
                     .build()
             WorkManager.getInstance()
-                    .beginWith(compressionWork)
-                    .then(uploadWork)
-                    .then(createCommentWork)
-                    .enqueue()
+                    ?.beginWith(compressionWork)
+                    ?.then(uploadWork)
+                    ?.then(createCommentWork)
+                    ?.enqueue()
         } ?: run {
-            WorkManager.getInstance().enqueue(createCommentWork)
+            WorkManager.getInstance()?.enqueue(createCommentWork)
         }
 
 

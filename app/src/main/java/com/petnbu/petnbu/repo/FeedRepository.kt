@@ -247,10 +247,10 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors,
                     .build()
 
             WorkManager.getInstance()
-                    .beginWith(compressionWork)
-                    .then(uploadWorks)
-                    .then(createFeedWork)
-                    .enqueue()
+                    ?.beginWith(compressionWork)
+                    ?.then(uploadWorks)
+                    ?.then(createFeedWork)
+                    ?.enqueue()
         }
     }
 

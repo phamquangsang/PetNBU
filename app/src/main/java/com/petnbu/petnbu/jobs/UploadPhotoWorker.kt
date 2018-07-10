@@ -15,11 +15,11 @@ class UploadPhotoWorker : Worker() {
 
     private val outputDataBuilder = Data.Builder()
 
-    override fun doWork(): WorkerResult {
+    override fun doWork(): Result {
         if(inputData.keyValueMap.containsKey("result")) {
             if(!inputData.getBoolean("result", false)) {
                 outputDataBuilder.putBoolean("result", false)
-                return WorkerResult.SUCCESS
+                return Result.SUCCESS
             }
         }
 
@@ -27,7 +27,7 @@ class UploadPhotoWorker : Worker() {
         val photoName = inputData.getString(KEY_PHOTO, "")
 
         if (!photoName.isNullOrEmpty()) {
-            val jsonPhoto = inputData.getString(photoName, "")
+            val jsonPhoto = inputData.getString(photoName!!, "")
             try {
                 if (!jsonPhoto.isNullOrEmpty()) {
                     val photo = Gson().fromJson(jsonPhoto, Photo::class.java)
@@ -48,7 +48,7 @@ class UploadPhotoWorker : Worker() {
         }
         outputDataBuilder.putBoolean("result", isSuccess)
         outputData = outputDataBuilder.build()
-        return WorkerResult.SUCCESS
+        return Result.SUCCESS
     }
 
     private fun uploadPhoto(photo: Photo, countDownLatch: CountDownLatch) {

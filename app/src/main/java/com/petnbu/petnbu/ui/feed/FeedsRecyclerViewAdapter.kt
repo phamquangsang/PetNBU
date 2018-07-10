@@ -101,7 +101,7 @@ class FeedsRecyclerViewAdapter(context: Context,
             mBinding.rvPhotos.layoutManager = LinearLayoutManager(itemView.context, LinearLayoutManager.HORIZONTAL, false)
             val snapHelper = PagerSnapHelper()
             snapHelper.attachToRecyclerView(mBinding.rvPhotos)
-            mBinding.rvPhotos.recycledViewPool = feedPhotosViewPool
+            mBinding.rvPhotos.setRecycledViewPool(feedPhotosViewPool)
             mBinding.rvPhotos.addOnScrollListener(object : RecyclerView.OnScrollListener() {
                 @SuppressLint("SetTextI18n")
                 override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
@@ -111,7 +111,7 @@ class FeedsRecyclerViewAdapter(context: Context,
                         if (newState == RecyclerView.SCROLL_STATE_IDLE) {
                             val layoutManager = recyclerView.layoutManager
                             if (layoutManager is LinearLayoutManager) {
-                                val position = layoutManager.getPosition(snapHelper.findSnapView(layoutManager))
+                                val position = layoutManager.getPosition(snapHelper.findSnapView(layoutManager)!!)
                                 mBinding.tvPhotosCount.text = "${position + 1}/$size"
                                 lastSelectedPhotoPositions[feed.feedId] = position
                             }

@@ -39,15 +39,15 @@ class CreateEditFeedWorker : Worker() {
     @Inject
     lateinit var appExecutors: AppExecutors
 
-    override fun doWork(): WorkerResult {
+    override fun doWork(): Result {
         PetApplication.appComponent.inject(this)
-        var workerResult = WorkerResult.FAILURE
+        var workerResult = Result.FAILURE
 
         val feedId = inputData.getString(KEY_FEED_ID, "")
         val isUpdating = inputData.getBoolean(KEY_FLAG_UPDATING, false)
 
         if (!feedId.isNullOrEmpty()) {
-            val feedEntity = feedDao.findFeedEntityById(feedId)
+            val feedEntity = feedDao.findFeedEntityById(feedId!!)
             val userEntity = userDao.findUserById(feedEntity?.fromUserId)
             petDb.commentDao().getCommentById(feedEntity?.latestCommentId)
             if (feedEntity != null && userEntity != null) {
@@ -88,7 +88,7 @@ class CreateEditFeedWorker : Worker() {
                     if (!uploadedPhotosFailed) {
                         try {
                             feed.save(isUpdating)
-                            workerResult = WorkerResult.SUCCESS
+                            workerResult = Result.SUCCESS
                         } catch (e: InterruptedException) {
                             e.printStackTrace()
                         }
