@@ -36,36 +36,39 @@ import javax.inject.Singleton
  * webservice requests).
  */
 @Singleton
-class AppExecutors(private val diskIO: Executor, private val networkIO: Executor, private val mainThread: Executor) {
+class AppExecutors(private val threadFactory: ThreadFactory = DefaultThreadFactory(),
+                   private val diskIO: Executor = Executors.newSingleThreadExecutor(threadFactory),
+                   private val networkIO: Executor = Executors.newFixedThreadPool(3, threadFactory),
+                   private val mainThread: Executor = MainThreadExecutor()) {
 
     @Inject
-    constructor() : this(Executors.newSingleThreadExecutor { r ->
-        val t = Thread(r)
-        t.priority = Process.THREAD_PRIORITY_BACKGROUND
-        t
-    }, Executors.newFixedThreadPool(3) { r ->
-        val t = Thread(r)
-        t.priority = Process.THREAD_PRIORITY_BACKGROUND
-        t
-    }, MainThreadExecutor())
+    constructor() : this(AppThreadFactory())
 
-    fun diskIO(): Executor {
-        return diskIO
-    }
+    fun diskIO() = diskIO
 
-    fun networkIO(): Executor {
-        return networkIO
-    }
+    fun networkIO() = networkIO
 
-    fun mainThread(): Executor {
-        return mainThread
-    }
+    fun mainThread() = mainThread
 
     private class MainThreadExecutor : Executor {
+
         private val mainThreadHandler = Handler(Looper.getMainLooper())
+
         override fun execute(command: Runnable) {
             mainThreadHandler.post(command)
         }
     }
 }
+
+class DefaultThreadFactory : ThreadFactory {
+    override fun newThread(r: Runnable?) = Thread(r)
+}
+
+class AppThreadFactory : ThreadFactory {
+    override fun newThread(r: Runnable?) = Thread(r).apply {
+        priority = Process.THREAD_PRIORITY_BACKGROUND
+    }
+}
+
+
 

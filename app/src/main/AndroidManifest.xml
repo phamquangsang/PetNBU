@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.petnbu.petnbu">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.petnbu.petnbu">
 
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
@@ -17,7 +18,8 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme.Launch">
+        android:theme="@style/AppTheme.Launch"
+        tools:replace="android:theme">
         <activity
             android:name=".ui.MainActivity"
             android:label="@string/app_name"

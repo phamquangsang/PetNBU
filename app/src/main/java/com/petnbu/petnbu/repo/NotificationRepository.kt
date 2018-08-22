@@ -3,7 +3,6 @@ package com.petnbu.petnbu.repo
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.Transformations
-
 import com.petnbu.petnbu.AppExecutors
 import com.petnbu.petnbu.api.WebService
 import com.petnbu.petnbu.db.PetDb
@@ -12,10 +11,8 @@ import com.petnbu.petnbu.model.NotificationUI
 import com.petnbu.petnbu.model.Paging
 import com.petnbu.petnbu.model.Resource
 import com.petnbu.petnbu.util.RateLimiter
-
-import java.util.ArrayList
+import java.util.*
 import java.util.concurrent.TimeUnit
-
 import javax.inject.Inject
 
 class NotificationRepository

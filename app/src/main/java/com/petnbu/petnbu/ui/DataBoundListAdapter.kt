@@ -30,10 +30,7 @@ import android.view.ViewGroup
 abstract class DataBoundListAdapter<T, V : ViewDataBinding>(diffItemCallback: DiffUtil.ItemCallback<T>)
     : ListAdapter<T, DataBoundViewHolder<V>>(diffItemCallback) {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DataBoundViewHolder<V> {
-        val binding = createBinding(parent)
-        return DataBoundViewHolder(binding)
-    }
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = DataBoundViewHolder(createBinding(parent))
 
     protected abstract fun createBinding(parent: ViewGroup): V
 

@@ -11,6 +11,8 @@ import android.view.View
 import android.view.ViewGroup
 import com.petnbu.petnbu.R
 import com.petnbu.petnbu.databinding.FragmentNotificationsBinding
+import com.petnbu.petnbu.util.SharedPrefUtil
+import java.util.*
 
 class NotificationsFragment : Fragment() {
 
@@ -28,7 +30,7 @@ class NotificationsFragment : Fragment() {
     private fun initialize() {
         mNotificationViewModel = ViewModelProviders.of(this).get(NotificationViewModel::class.java)
         mBinding.viewModel = mNotificationViewModel
-        mNotificationViewModel.loadNotifications().observe(this, Observer { notifications ->
+        mNotificationViewModel.loadNotifications(SharedPrefUtil.userId, Date().time).observe(this, Observer { notifications ->
             notifications?.let { notificationsRecyclerViewAdapter?.submitList(it) }
         })
 

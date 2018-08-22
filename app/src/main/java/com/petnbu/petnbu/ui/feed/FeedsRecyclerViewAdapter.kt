@@ -112,7 +112,7 @@ class FeedsRecyclerViewAdapter(context: Context,
                             val layoutManager = recyclerView.layoutManager
                             if (layoutManager is LinearLayoutManager) {
                                 val position = layoutManager.getPosition(snapHelper.findSnapView(layoutManager))
-                                mBinding.tvPhotosCount.text = "${position + 1}/$size"
+                                mBinding.tvPhotosCount.text = "${(position ?: 0) + 1}/$size"
                                 lastSelectedPhotoPositions[feed.feedId] = position
                             }
                         }

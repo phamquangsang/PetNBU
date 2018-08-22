@@ -14,19 +14,13 @@
  * limitations under the License.
  */
 
-package com.petnbu.petnbu.ui;
+package com.petnbu.petnbu.ui
 
-import android.databinding.ViewDataBinding;
-import android.support.v7.widget.RecyclerView;
+import android.databinding.ViewDataBinding
+import android.support.v7.widget.RecyclerView
 
 /**
- * A generic ViewHolder that works with a {@link ViewDataBinding}.
+ * A generic ViewHolder that works with a [ViewDataBinding].
  * @param <T> The type of the ViewDataBinding.
- */
-public class DataBoundViewHolder<T extends ViewDataBinding> extends RecyclerView.ViewHolder {
-    public final T binding;
-    DataBoundViewHolder(T binding) {
-        super(binding.getRoot());
-        this.binding = binding;
-    }
-}
+</T> */
+class DataBoundViewHolder<T : ViewDataBinding> internal constructor(val binding: T) : RecyclerView.ViewHolder(binding.root)
