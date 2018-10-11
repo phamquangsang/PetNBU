@@ -20,7 +20,7 @@ class Paging {
 
     var oldestId: String? = null
 
-    constructor() {}
+    constructor()
 
     @Ignore
     constructor(pagingId: String, ids: MutableList<String>?, ended: Boolean, oldestId: String?) {
@@ -30,9 +30,7 @@ class Paging {
         this.oldestId = oldestId
     }
 
-    fun getIds(): MutableList<String>? {
-        return ids
-    }
+    fun getIds() = ids
 
     fun setIds(ids: MutableList<String>) {
         this.ids = ids

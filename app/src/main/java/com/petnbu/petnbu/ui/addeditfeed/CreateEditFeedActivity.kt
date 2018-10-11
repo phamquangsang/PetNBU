@@ -82,9 +82,9 @@ class CreateEditFeedActivity : AppCompatActivity() {
         }
         createEditFeedViewModel.getFeed(feedId).observe(this, Observer { feed ->
             if (feed != null && savedInstanceState == null) {
-                createEditFeedViewModel.selectedPhotos.addAll(feed.photos)
+                createEditFeedViewModel.selectedPhotos.addAll(feed.photos ?: emptyList())
                 photosAdapter.notifyDataSetChanged()
-                mBinding.edText.setText(feed.content)
+                mBinding.edText.setText(feed.feedContent)
             }
             postMenuTitle = if (feed != null)
                 getString(R.string.menu_action_save_title)

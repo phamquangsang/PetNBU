@@ -249,11 +249,11 @@ class CommentsRecyclerViewAdapter(context: Context,
         }
     }
 
-    inner class ViewLoadingHolder(itemView: View) : BaseBindingViewHolder<ViewLoadingBinding, Void>(itemView) {
+    inner class ViewLoadingHolder(itemView: View) : BaseBindingViewHolder<ViewLoadingBinding, Void?>(itemView) {
 
-        override fun bindData(item: Void) {}
+        override fun bindData(item: Void?) {}
 
-        override fun bindData(item: Void, payloads: List<Any>) {}
+        override fun bindData(item: Void?, payloads: List<Any>) {}
     }
 
     private class CommentDiffCallback : DiffUtil.ItemCallback<CommentUI>() {

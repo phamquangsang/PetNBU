@@ -1,12 +1,12 @@
 package com.petnbu.petnbu.ui.feed
 
 import android.annotation.SuppressLint
+import android.arch.paging.PagedListAdapter
 import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
 import android.support.constraint.ConstraintLayout
 import android.support.v4.util.ArrayMap
-import android.support.v7.recyclerview.extensions.ListAdapter
 import android.support.v7.util.DiffUtil
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.PagerSnapHelper
@@ -36,7 +36,7 @@ import java.util.*
 class FeedsRecyclerViewAdapter(context: Context,
                                private val onItemClickListener: OnItemClickListener?,
                                private val feedsViewModel: FeedsViewModel)
-    : ListAdapter<FeedUI, BaseBindingViewHolder<*, *>>(FeedDiffCallback()) {
+    : PagedListAdapter<FeedUI, BaseBindingViewHolder<*, *>>(FeedDiffCallback()) {
 
     private val glideRequests = GlideApp.with(context)
     private val lastSelectedPhotoPositions = ArrayMap<String, Int>()
@@ -70,24 +70,33 @@ class FeedsRecyclerViewAdapter(context: Context,
         this.maxPhotoHeight = maxPhotoHeight
     }
 
-    private inner class ViewHolder(itemView: View) : BaseBindingViewHolder<ViewFeedBinding, FeedUI>(itemView) {
+    private inner class ViewHolder(itemView: View) : BaseBindingViewHolder<ViewFeedBinding, FeedUI?>(itemView) {
 
         private lateinit var feed: FeedUI
         private val openProfileClickListener = { _: View ->
-            if (adapterPosition != RecyclerView.NO_POSITION)
-                feedsViewModel.openUserProfile(getItem(adapterPosition).ownerId)
+            if (adapterPosition != RecyclerView.NO_POSITION) {
+                getItem(adapterPosition)?.let { feed ->
+                    feedsViewModel.openUserProfile(feed.ownerId)
+                }
+            }
         }
         private val openCommentsClickListener = { _: View ->
-            if (adapterPosition != RecyclerView.NO_POSITION)
-                feedsViewModel.openComments(getItem(adapterPosition).feedId)
+            if (adapterPosition != RecyclerView.NO_POSITION) {
+                getItem(adapterPosition)?.let { feed ->
+                    feedsViewModel.openComments(feed.feedId)
+                }
+            }
         }
 
         init {
             mBinding.imgProfile.setOnClickListener(openProfileClickListener)
             mBinding.tvName.setOnClickListener(openProfileClickListener)
             mBinding.imgLike.setOnClickListener {
-                if (onItemClickListener != null && adapterPosition != RecyclerView.NO_POSITION)
-                    onItemClickListener.onLikeClicked(getItem(adapterPosition).feedId)
+                if (onItemClickListener != null && adapterPosition != RecyclerView.NO_POSITION) {
+                    getItem(adapterPosition)?.let { feed ->
+                        onItemClickListener.onLikeClicked(feed.feedId)
+                    }
+                }
             }
             mBinding.imgComment.setOnClickListener(openCommentsClickListener)
             mBinding.tvViewComments.setOnClickListener(openCommentsClickListener)
@@ -95,7 +104,7 @@ class FeedsRecyclerViewAdapter(context: Context,
 
             mBinding.imgOptions.setOnClickListener { view ->
                 if (onItemClickListener != null && adapterPosition != RecyclerView.NO_POSITION)
-                    onItemClickListener.onOptionClicked(view, getItem(adapterPosition))
+                    onItemClickListener.onOptionClicked(view, getItem(adapterPosition)!!)
             }
 
             mBinding.rvPhotos.layoutManager = LinearLayoutManager(itemView.context, LinearLayoutManager.HORIZONTAL, false)
@@ -105,7 +114,7 @@ class FeedsRecyclerViewAdapter(context: Context,
             mBinding.rvPhotos.addOnScrollListener(object : RecyclerView.OnScrollListener() {
                 @SuppressLint("SetTextI18n")
                 override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                    val feed: FeedUI = getItem(adapterPosition)
+                    val feed: FeedUI = getItem(adapterPosition)!!
 
                     feed.photos?.run {
                         if (newState == RecyclerView.SCROLL_STATE_IDLE) {
@@ -121,7 +130,9 @@ class FeedsRecyclerViewAdapter(context: Context,
             })
         }
 
-        override fun bindData(item: FeedUI) {
+        override fun bindData(item: FeedUI?) {
+            if(item == null) return
+
             feed = item
 
             if (feed.isUploading()) {
@@ -166,7 +177,9 @@ class FeedsRecyclerViewAdapter(context: Context,
             displayCommentCount()
         }
 
-        override fun bindData(item: FeedUI, payloads: List<Any>) {
+        override fun bindData(item: FeedUI?, payloads: List<Any>) {
+            if(item == null) return
+
             feed = item
 
             (payloads[0] as? Bundle)?.run {

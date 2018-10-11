@@ -10,6 +10,7 @@ import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.PopupMenu
 import android.support.v7.widget.RecyclerView
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,6 +20,7 @@ import com.petnbu.petnbu.databinding.FragmentFeedsBinding
 import com.petnbu.petnbu.model.FeedUI
 import com.petnbu.petnbu.model.Paging
 import com.petnbu.petnbu.model.Photo
+import com.petnbu.petnbu.repo.Status
 import com.petnbu.petnbu.ui.addeditfeed.CreateEditFeedActivity
 import com.petnbu.petnbu.ui.comment.CommentsActivity
 import com.petnbu.petnbu.ui.user.UserProfileActivity
@@ -75,7 +77,7 @@ class FeedsFragment : Fragment() {
             }, feedsViewModel)
         }
 
-        feedsViewModel.getFeeds(Paging.GLOBAL_FEEDS_PAGING_ID, SharedPrefUtil.userId).observe(this, Observer { feeds -> feedsAdapter.submitList(feeds) })
+//        feedsViewModel.getFeeds(Paging.GLOBAL_FEEDS_PAGING_ID, SharedPrefUtil.userId).observe(this, Observer { feeds -> feedsAdapter.submitList(feeds) })
         feedsViewModel.showLoadingEvent.observe(this, Observer { value -> mBinding.pullToRefresh.isRefreshing = value ?: false })
         feedsViewModel.showLoadingErrorEvent.observe(this, Observer { value -> SnackbarUtils.showSnackbar(mBinding.root, value) })
         feedsViewModel.loadMoreState.observe(this, Observer { state ->
@@ -90,6 +92,30 @@ class FeedsFragment : Fragment() {
         })
         feedsViewModel.openUserProfileEvent.observe(this, Observer { userId -> userId?.let { showUserProfile(it) } })
         feedsViewModel.openCommentsEvent.observe(this, Observer { feedId -> feedId?.let { showCommentsByFeed(it) } })
+
+        feedsViewModel.loadFeedsPaging(Paging.GLOBAL_FEEDS_PAGING_ID, SharedPrefUtil.userId)
+        feedsViewModel.feedPaging.observe(this, Observer {
+            feedsAdapter.submitList(it)
+        })
+        feedsViewModel.refreshStatePaging.observe(this, Observer { networkState ->
+            if(networkState != null) {
+                Log.d("WTF", "refreshStatePaging")
+                feedsViewModel.showLoadingEvent.value = networkState.status == Status.RUNNING
+            }
+        })
+        feedsViewModel.loadStatePaging.observe(this, Observer { networkState ->
+            if(networkState != null) {
+                Log.d("WTF", "loadStatePaging")
+                feedsViewModel.showLoadingEvent.value = networkState.status == Status.RUNNING
+            }
+        })
+        feedsViewModel.loadMoreStatePaging.observe(this, Observer { networkState ->
+            if(networkState != null) {
+                Log.d("WTF", "loadMoreStatePaging")
+                mBinding.progressBar.isVisible = networkState.status == Status.RUNNING
+                networkState.msg?.let { SnackbarUtils.showSnackbar(mBinding.root, it) }
+            }
+        })
 
         mBinding.rvFeeds.layoutManager = LinearLayoutManager(activity)
         mBinding.rvFeeds.post {
@@ -114,7 +140,7 @@ class FeedsFragment : Fragment() {
         })
 
         mBinding.pullToRefresh.setOnRefreshListener {
-            feedsViewModel.refresh()
+            feedsViewModel.refreshPaging()
         }
 
         mBinding.fabNewPost.setOnClickListener {

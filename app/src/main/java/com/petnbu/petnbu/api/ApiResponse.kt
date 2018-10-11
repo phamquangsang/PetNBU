@@ -1,41 +1,4 @@
-package com.petnbu.petnbu.api
-
-import timber.log.Timber
-
-/**
- * Common class used by API responses.
- * @param <T>
-</T> */
-class ApiResponse<T> {
-    val isSuccessful: Boolean
-    val body: T?
-    val errorMessage: String?
-
-    constructor(error: Throwable) {
-        isSuccessful = false
-        body = null
-        errorMessage = error.message
-        Timber.e(error)
-    }
-
-    constructor(responseType :T){
-        isSuccessful = true
-        body = responseType
-        errorMessage = null
-    }
-
-    constructor(responseType: T?, isSucceed: Boolean, errorMsg: String?) {
-        this.isSuccessful = isSucceed
-        if (isSucceed) {
-            body = responseType
-            errorMessage = null
-        } else {
-            errorMessage = errorMsg
-            body = null
-        }
-    }
-
-}/*
+/*
  * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,3 +13,46 @@ class ApiResponse<T> {
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package com.petnbu.petnbu.api
+
+import timber.log.Timber
+
+/**
+ * Common class used by API responses.
+ * @param <T>
+</T> */
+class ApiResponse<T> {
+    val isSuccessful: Boolean
+    val body: T?
+    val error : Throwable?
+    val errorMessage: String?
+
+    constructor(error: Throwable) {
+        isSuccessful = false
+        body = null
+        this.error = error
+        errorMessage = error.message
+        Timber.e(error)
+    }
+
+    constructor(responseType :T){
+        isSuccessful = true
+        body = responseType
+        error = null
+        errorMessage = null
+    }
+
+    constructor(responseType: T?, isSucceed: Boolean, errorMsg: String?) {
+        this.isSuccessful = isSucceed
+        this.error = null
+        if (isSucceed) {
+            body = responseType
+            errorMessage = null
+        } else {
+            errorMessage = errorMsg
+            body = null
+        }
+    }
+
+}

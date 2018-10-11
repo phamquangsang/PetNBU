@@ -17,6 +17,7 @@ package com.petnbu.petnbu
  */
 
 import android.arch.lifecycle.LifecycleOwner
+import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.Observer
 import android.support.annotation.MainThread
@@ -35,6 +36,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  *
  * Note that only one observer is going to be notified of changes.
  */
+
 class SingleLiveEvent<T> : MutableLiveData<T>() {
 
     private val mPending = AtomicBoolean(false)
@@ -66,3 +68,18 @@ class SingleLiveEvent<T> : MutableLiveData<T>() {
         value = null
     }
 }
+
+fun MutableLiveData<Unit>.call() {
+    value = null
+}
+
+fun <T> LiveData<T>.observe(action: (T?) -> Unit) {
+    observeForever(object : Observer<T> {
+        override fun onChanged(t: T?) {
+            removeObserver(this)
+            action(t)
+        }
+    })
+}
+
+

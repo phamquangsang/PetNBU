@@ -56,6 +56,7 @@ class CreateEditFeedWorker : Worker() {
                         feedEntity.commentCount, feedEntity.likeCount,
                         feedEntity.isLiked, feedEntity.content, null ,
                         feedEntity.timeCreated, feedEntity.timeUpdated, feedEntity.status, feedEntity.likeInProgress)
+                feed.pagingIds = feedEntity.pagingIds
 
                 if (inputData.getBoolean("result", false) && feed.isUploading()) {
                     feed.timeUpdated = Date()
@@ -129,6 +130,7 @@ class CreateEditFeedWorker : Worker() {
                         petDb.runInTransaction {
                             feedDao.updateFeedId(temporaryFeedId, newFeed.feedId)
                             newFeed.status = STATUS_DONE
+                            newFeed.pagingIds = arrayListOf(Paging.GLOBAL_FEEDS_PAGING_ID, newFeed.feedUser.userId)
 
                             petDb.pagingDao().findFeedPaging(Paging.GLOBAL_FEEDS_PAGING_ID)?.apply {
                                 getIds()!!.add(0, newFeed.feedId)

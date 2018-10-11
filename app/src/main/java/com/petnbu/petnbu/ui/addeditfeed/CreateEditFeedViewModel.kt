@@ -7,10 +7,10 @@ import android.arch.lifecycle.Transformations
 import android.arch.lifecycle.ViewModel
 import android.databinding.ObservableBoolean
 import com.petnbu.petnbu.PetApplication
-import com.petnbu.petnbu.util.SharedPrefUtil
 import com.petnbu.petnbu.model.*
 import com.petnbu.petnbu.repo.FeedRepository
 import com.petnbu.petnbu.repo.UserRepository
+import com.petnbu.petnbu.util.SharedPrefUtil
 import java.util.*
 import javax.inject.Inject
 
@@ -27,7 +27,7 @@ class CreateEditFeedViewModel : ViewModel() {
 
     val showLoading = ObservableBoolean()
 
-    private val feedLiveData = MutableLiveData<Feed>()
+    private val feedLiveData = MutableLiveData<FeedUI>()
 
     private var isNewFeed: Boolean = false
 
@@ -47,15 +47,15 @@ class CreateEditFeedViewModel : ViewModel() {
         }
     }
 
-    fun getFeed(feedId: String): LiveData<Feed> {
+    fun getFeed(feedId: String): LiveData<FeedUI> {
         return if (!feedId.isEmpty()) {
             if (feedLiveData.value == null) {
-                Transformations.switchMap<Resource<Feed>, Feed>(feedRepository.getFeed(feedId)) { input ->
-                    feedLiveData.value = input.data
-                    if (input.data != null) {
+                Transformations.switchMap(feedRepository.getFeed(feedId)) { feedRes ->
+                    if (feedRes.data != null) {
+                        feedLiveData.value = feedRes.data
                         this.feedId = feedId
                     }
-                    showLoading.set(Status.LOADING == input.status)
+                    showLoading.set(Status.LOADING == feedRes.status)
                     feedLiveData
                 }
             } else feedLiveData
@@ -68,10 +68,7 @@ class CreateEditFeedViewModel : ViewModel() {
 
     fun saveFeed(content: String, photos: ArrayList<Photo>) {
         if (isNewFeed && feedId.isEmpty()) {
-            feedRepository.createNewFeed(Feed(this@CreateEditFeedViewModel.feedId).apply {
-                this.content = content
-                this.photos = photos
-            })
+            feedRepository.createNewFeed(content, photos)
         } else {
             feedRepository.updateFeed(Feed(this@CreateEditFeedViewModel.feedId).apply {
                 this.content = content

@@ -7,6 +7,7 @@ import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.ServerTimestamp
 import com.petnbu.petnbu.db.ListPhotoConverters
 import java.util.*
+import kotlin.collections.ArrayList
 
 data class Feed(var feedId: String) {
     @Embedded
@@ -34,6 +35,9 @@ data class Feed(var feedId: String) {
     @get:Exclude
     var likeInProgress: Boolean = false
 
+    @get:Exclude
+    var pagingIds : MutableList<String> = ArrayList()
+
     constructor() : this("")
 
     constructor(feedId: String, feedUser: FeedUser, photos: MutableList<Photo>, commentCount: Int,
@@ -55,6 +59,6 @@ data class Feed(var feedId: String) {
     fun toEntity(): FeedEntity {
         return FeedEntity(feedId, feedUser.userId,
                 photos, commentCount, if (latestComment == null) null else latestComment?.id, likeCount, isLiked, content,
-                timeCreated, timeUpdated, status, likeInProgress)
+                timeCreated, timeUpdated, status, likeInProgress, pagingIds)
     }
 }

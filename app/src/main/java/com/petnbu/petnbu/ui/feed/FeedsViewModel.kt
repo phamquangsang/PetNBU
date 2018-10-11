@@ -1,11 +1,13 @@
 package com.petnbu.petnbu.ui.feed
 
 import android.arch.lifecycle.*
+import android.arch.paging.PagedList
 import com.petnbu.petnbu.PetApplication
 import com.petnbu.petnbu.SingleLiveEvent
 import com.petnbu.petnbu.model.*
 import com.petnbu.petnbu.repo.FeedRepository
 import com.petnbu.petnbu.repo.LoadMoreState
+import com.petnbu.petnbu.repo.NetworkState
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -31,7 +33,7 @@ class FeedsViewModel : ViewModel() {
     }
 
     fun getFeeds(pagingId: String, loggedUserId: String): LiveData<List<FeedUI>> {
-        return Transformations.switchMap(feedRepository.loadFeeds(pagingId, loggedUserId), {
+        return Transformations.switchMap(feedRepository.loadFeeds(pagingId, loggedUserId)) {
             it?.run {
                 data?.run {
                     feedsLiveData.value = this
@@ -42,8 +44,29 @@ class FeedsViewModel : ViewModel() {
                 }
             }
             feedsLiveData
-        })
+        }
+    }
 
+    private val loadFeeds = MutableLiveData<Listing<FeedUI>>()
+
+    val feedPaging: LiveData<PagedList<FeedUI>> = Transformations.switchMap(loadFeeds) { it.pagedList }
+
+    val loadStatePaging: LiveData<NetworkState> = Transformations.switchMap(loadFeeds) { it.networkState }
+
+    val loadMoreStatePaging: LiveData<NetworkState> = Transformations.switchMap(loadFeeds) { it.loadMoreNetworkState }
+
+    val refreshStatePaging: LiveData<NetworkState> = Transformations.switchMap(loadFeeds) { it.refreshState }
+
+    fun loadFeedsPaging(pagingId: String, loggedUserId: String) {
+        loadFeeds.value = feedRepository.loadFeedsPaging(pagingId, loggedUserId)
+    }
+
+    fun refreshPaging() {
+        loadFeeds.value?.refresh?.invoke()
+    }
+
+    fun retryPaging() {
+        loadFeeds.value?.retry?.invoke()
     }
 
     fun loadNextPage() {
@@ -55,9 +78,9 @@ class FeedsViewModel : ViewModel() {
     fun refresh() {
         loadMoreHandler.reset()
         val refreshLiveData = feedRepository.refresh()
-        refreshLiveData.observeForever(object :Observer<Resource<List<Feed>>> {
+        refreshLiveData.observeForever(object : Observer<Resource<List<Feed>>> {
             override fun onChanged(resource: Resource<List<Feed>>?) {
-                if(resource != null && resource.status != Status.LOADING) {
+                if (resource != null && resource.status != Status.LOADING) {
                     showLoadingEvent.value = false
                     refreshLiveData.removeObserver(this)
                 }
@@ -115,7 +138,8 @@ class FeedsViewModel : ViewModel() {
                     Status.ERROR -> {
                         hasMore = true
                         unregister()
-                        loadMoreState.setValue(LoadMoreState(false, result.message ?: "Error Unknown"))
+                        loadMoreState.setValue(LoadMoreState(false, result.message
+                                ?: "Error Unknown"))
                     }
                 }
             }

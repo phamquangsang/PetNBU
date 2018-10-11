@@ -35,19 +35,19 @@ class UserProfileViewModel : ViewModel() {
     }
 
     fun getFeeds(userId: String, pagingId: String): LiveData<List<FeedUI>> {
-        return Transformations.switchMap(feedRepository.loadUserFeeds(userId, pagingId), {
+        return Transformations.switchMap(feedRepository.loadUserFeeds(userId, pagingId)) {
             feedsLiveData.apply {
                 value = it.data
             }
-        })
+        }
     }
 
     fun getUser(userId: String): LiveData<UserEntity> {
-        return Transformations.switchMap(userRepository.getUserById(userId), {
+        return Transformations.switchMap(userRepository.getUserById(userId)) {
             userLiveData.apply {
                 value = it.data
             }
-        })
+        }
     }
 
     fun loadNextPage(userId: String, pagingId: String) {

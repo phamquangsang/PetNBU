@@ -64,8 +64,8 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors,
         }
     }
 
-    private fun loadFeedById(feedId: String): LiveData<Resource<Feed>> {
-        return object : NetworkBoundResource<Feed, Feed>(mAppExecutors) {
+    private fun loadFeedById(feedId: String): LiveData<Resource<FeedUI>> {
+        return object : NetworkBoundResource<FeedUI, Feed>(mAppExecutors) {
             override fun saveCallResult(item: Feed) {
                 mPetDb.feedDao().insertFromFeed(item)
                 mPetDb.userDao().insert(item.feedUser)
@@ -75,11 +75,11 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors,
                 }
             }
 
-            override fun shouldFetch(data: Feed?) = data == null
+            override fun shouldFetch(data: FeedUI?) = data == null
 
             override fun deleteDataFromDb(body: Feed?) = mPetDb.feedDao().deleteFeedById(feedId)
 
-            override fun loadFromDb(): LiveData<Feed> = mPetDb.feedDao().loadFeedById(feedId)
+            override fun loadFromDb(): LiveData<FeedUI> = mPetDb.feedDao().loadFeedById(feedId)
 
             override fun createCall(): LiveData<ApiResponse<Feed>> = mWebService.getFeed(feedId)
         }.asLiveData()
@@ -98,9 +98,9 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors,
                         if (resourceComments != null) {
                             if (resourceComments.data != null){
                                 val resourceCommentsMutable = arrayListOf(feedComment)
-                                resourceComments.data.forEach({
+                                resourceComments.data.forEach {
                                     resourceCommentsMutable.add(it)
-                                })
+                                }
                                 mediatorLiveData.setValue(Resource.success(resourceCommentsMutable))
                             }
                         }
@@ -111,12 +111,12 @@ constructor(private val mPetDb: PetDb, private val mAppExecutors: AppExecutors,
         return mediatorLiveData
     }
 
-    private fun createCommentUIFromFeed(feed: Feed): CommentUI {
-        return CommentUI(feed.feedId, feed.feedUser, feed.content, timeCreated = feed.timeCreated!!)
+    private fun createCommentUIFromFeed(feed: FeedUI): CommentUI {
+        val feedUser = mPetDb.userDao().findUserById(feed.ownerId)!!
+        return CommentUI(feed.feedId, FeedUser(feedUser.userId, feedUser.avatar, feedUser.name), feed.feedContent ?: "", timeCreated = feed.timeCreated!!)
     }
 
     private fun getFeedComments(feedId: String, after: Long, limit: Int): LiveData<Resource<List<CommentUI>>> {
-
         return object : NetworkBoundResource<List<CommentUI>, List<Comment>>(mAppExecutors) {
             override fun saveCallResult(item: List<Comment>) {
 

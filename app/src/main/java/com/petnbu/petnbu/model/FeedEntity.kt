@@ -1,16 +1,10 @@
 package com.petnbu.petnbu.model
 
-import android.arch.persistence.room.Entity
-import android.arch.persistence.room.ForeignKey
-import android.arch.persistence.room.Ignore
-import android.arch.persistence.room.PrimaryKey
-import android.arch.persistence.room.TypeConverters
-
+import android.arch.persistence.room.*
 import com.google.firebase.firestore.Exclude
 import com.petnbu.petnbu.db.ListPhotoConverters
 import com.petnbu.petnbu.db.PetTypeConverters
-
-import java.util.Date
+import java.util.*
 
 @Entity(tableName = "feeds")
 @TypeConverters(value = [(ListPhotoConverters::class), (PetTypeConverters::class)])
@@ -37,12 +31,15 @@ class FeedEntity {
     @get:Exclude
     var likeInProgress: Boolean = false
 
+    lateinit var pagingIds: MutableList<String>
+
     constructor()
 
     @Ignore
     constructor(feedId: String, fromUserId: String, photos: MutableList<Photo>, commentCount: Int,
                 latestCommentId: String?, likeCount: Int, isLiked: Boolean, content: String,
-                timeCreated: Date?, timeUpdated: Date?, status: Int, likeInProgress: Boolean) {
+                timeCreated: Date?, timeUpdated: Date?, status: Int, likeInProgress: Boolean,
+                pagingIds : MutableList<String>) {
         this.feedId = feedId
         this.fromUserId = fromUserId
         this.photos = photos
@@ -55,6 +52,6 @@ class FeedEntity {
         this.timeUpdated = timeUpdated
         this.status = status
         this.likeInProgress = likeInProgress
+        this.pagingIds = pagingIds
     }
-
 }
